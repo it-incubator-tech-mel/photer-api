@@ -14,22 +14,21 @@ RUN mkdir -p /home/node/dist/${SERVICE}
 WORKDIR /home/node/dist/${SERVICE}
 
 # Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
+# A wildcard is used to ensure both package.json AND yarn.lock are copied
 
 
 
-COPY --chown=node package*.json ./
+COPY --chown=node package.json yarn.lock ./
 
-RUN npm install
+RUN yarn install --frozen-lockfile
 
 # Bundle app source code
 COPY --chown=node . .
 
-RUN npm run build:${SERVICE}
+RUN yarn build:${SERVICE}
 
 # Bind to all network interfaces so that it can be mapped to the host OS
 
 EXPOSE ${PORT}
 
-CMD npm run 'start:gateway'
+CMD yarn start:prod:gateway
