@@ -26,8 +26,8 @@ export class CoreConfig {
 
   @IsEnum(Environments, {
     message:
-      'Ser correct NODE_ENV value, available values: ' +
+      'Ser correct ENV_TYPE value, available values: ' +
       configValidation.getEnumValues(Environments).join(', '),
   })
-  env: string = this.configService.get('NODE_ENV');
+  env: string = this.configService.get('ENV_TYPE');
 }
