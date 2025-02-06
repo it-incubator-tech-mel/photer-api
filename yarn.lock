@@ -706,6 +706,11 @@
     path-to-regexp "3.3.0"
     tslib "2.8.1"
 
+"@nestjs/cqrs@^11.0.1":
+  version "11.0.1"
+  resolved "https://registry.npmjs.org/@nestjs/cqrs/-/cqrs-11.0.1.tgz#8ed3e8b865a7859680b93731839e41e12c5d1412"
+  integrity sha512-g0KfzOYubqEs/Z6uVDh1n+ltmqTTg03qGf/4IpRiMQIbwHI6uDkmJdHK2TtlzHtw5c+oGGkT3QcTF+9Qd+nKTg==
+
 "@nestjs/platform-express@^10.0.0":
   version "10.4.15"
   resolved "https://registry.npmjs.org/@nestjs/platform-express/-/platform-express-10.4.15.tgz#117fe7470c2b93e4ac07687b7fa604a17ca240c5"

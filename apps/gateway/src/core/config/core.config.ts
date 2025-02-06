@@ -1,5 +1,5 @@
 import { IsEnum, IsNumber } from 'class-validator';
-import { configValidation } from '../../../common/config/config-validation';
+import { configValidation } from '../../../../common/config/config-validation';
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 
