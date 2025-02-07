@@ -16,6 +16,7 @@ export class AuthController {
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() registrationDto: RegistrationDto) {
+    console.log('12345')
     return { message: 'registration' };
   }
 
