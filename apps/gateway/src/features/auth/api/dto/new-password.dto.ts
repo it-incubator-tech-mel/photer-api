@@ -1,8 +1,17 @@
-import {Length, Matches} from "class-validator";
+import { IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
+import { Trim } from '../../../../core/decorators/trim';
 
 export class NewPasswordDto {
-    @Length(6, 20)
-    @Matches(/^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!"#$%&'()*+,\-.\/:;<=>?@[\\]^_`{|}~])[0-9A-Za-z!"#$%&'()*+,\-.\/:;<=>?@[\\]^_`{|}~]$/)
+    @IsString()
+    @Trim()
+    @IsNotEmpty({ message: 'newPassword is required' })
+    @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]).*$/, {
+        message: 'newPassword must include at least one uppercase letter, one lowercase letter, one number, and one special character',
+    })
     newPassword: string;
+
+    @Trim()
+    @IsNotEmpty({ message: 'recoveryCode is required' })
+    @IsUUID(4, { message: 'UUID not correct' })
     recoveryCode: string
 }
