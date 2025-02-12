@@ -1,22 +1,15 @@
 datasource db {
   provider  = "postgresql"
-  url  	    = env("DATABASE_URL")   //TODO: подключение к БД, бд мы разворачивали в neon.tech, подключение оттуда взял
+  url        = env("DATABASE_URL")
 }
 generator client {
-  provider = "prisma-client-js" //TODO: генерирует клиент в \node_modules\@prisma\client
+  provider = "prisma-client-js"
 }
 
-
-//TODO: определение моделей к БД
-
 model User {
-  id String   @id @default(uuid())
-  username String
-  email String @unique(map: "User.email_unique")
-  passwordHash String
-  passweordSalt String
-  recoveryCode String
-  createdAt String
-  confirmationCode String
-  isConfirmed Boolean @default(false)
+  id        Int      @id @default(autoincrement())
+  username  String   @db.VarChar(30)
+  password  String   @db.VarChar(20)
+  email     String   @unique
+  createdAt DateTime @default(now())
 }
