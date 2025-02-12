@@ -15,11 +15,7 @@ import { PrismaModule } from './prisma/prisma.module';
   ],
   controllers: [],
   providers: [
-    {
-      provide: CoreConfig,
-      useFactory: (configService: ConfigService<any, true>) => new CoreConfig(configService),
-      inject: [ConfigService],
-    }
+
   ],
 })
 export class AppModule {}
