@@ -13,6 +13,7 @@ export enum Environments {
 @Injectable()
 export class CoreConfig {
   constructor(private configService: ConfigService<any, true>) {
+    console.log(configService);
     configValidation.validateConfig(this);
   }
 
