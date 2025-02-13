@@ -6,6 +6,7 @@ import { PasswordRecoveryDto } from './dto/password-recovery.dto';
 import { NewPasswordDto } from './dto/new-password.dto';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
+import {RegistrationUserCommand} from "../application/use-cases/registration.use-case";
 
 @Controller('auth')
 export class AuthController {
@@ -16,7 +17,7 @@ export class AuthController {
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() registrationDto: RegistrationDto) {
-    return { message: 'registration' };
+    return this.commandBus.execute(new RegistrationUserCommand(registrationDto.username, registrationDto.password, registrationDto.email ))
   }
 
   @Post('registration-confirmation')

@@ -6,11 +6,12 @@ import { registrationEmailTemplate } from '../../../../core/services/mailler/ema
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
+import {Result} from "../../../../../base/object-result";
 // import { User } from '../../../../users/domain/user.entity';
 
 export class RegistrationUserCommand {
   constructor(
-    public readonly login: string,
+    public readonly username: string,
     public readonly password: string,
     public readonly email: string,
   ) {}
@@ -29,10 +30,10 @@ export class RegistrationUseCase
   async execute(
     command: RegistrationUserCommand,
   ): Promise<Result<string | null>> {
-    const { login, password, email } = command;
+    const { username, password, email } = command;
 
     const [userByLogin, userByEmail] = await Promise.all([
-      this.usersRepository.findByLogin(login),
+      this.usersRepository.findByUsername(username),
       this.usersRepository.findByEmail(email),
     ]);
 
@@ -63,7 +64,7 @@ export class RegistrationUseCase
     const confirmationCode: string = randomUUID();
 
     const createdUser: User = await this.usersRepository.create(
-      login,
+      username,
       passwordHash,
       email,
       {
