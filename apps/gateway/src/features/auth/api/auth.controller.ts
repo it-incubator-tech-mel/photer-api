@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common';
+import {Body, Controller, Get, HttpCode, Headers, HttpStatus, Param, Post, Res, Req} from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/login.dto';
@@ -7,6 +7,9 @@ import { NewPasswordDto } from './dto/new-password.dto';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
 import {RegistrationUserCommand} from "../application/use-cases/registration.use-case";
+import { Request, Response } from 'express';
+import {LoginUserCommand} from "../application/use-cases/login.use-case";
+import {Result} from "../../../../base/object-result";
 
 @Controller('auth')
 export class AuthController {
@@ -34,7 +37,22 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
+  async login(
+      @Headers() header,
+      @Body() loginDto: LoginDto,
+      @Res({ passthrough: true }) response: Response,
+      @Req() req: Request,) {
+    const userAgent = {
+      IP: req.ip,
+      deviceName: header['user-agent'],
+    };
+    const { accessToken, refreshToken } = await this.commandBus.execute(
+        new LoginUserCommand(loginDto, userAgent))
+    if (!accessToken || !refreshToken) return Result.unauthorized()
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+    });
     return { accessToken: 'token' };
   }
 

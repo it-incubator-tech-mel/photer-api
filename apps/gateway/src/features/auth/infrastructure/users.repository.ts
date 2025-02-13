@@ -8,27 +8,33 @@ export class UsersRepository {
   constructor() {
   }
   async findByUsername(username: string): Promise<UserType>{
-    const userFoundByUsername = await prisma.user.findUnique({
+    return prisma.user.findUnique({
       where: {
         username
       }
     })
-    return userFoundByUsername
+
   }
   async findByEmail(email: string): Promise<UserType>{
-    const userFoundByEmail = await prisma.user.findUnique({
+    return prisma.user.findUnique({
       where: {
         email
       }
     })
-    return userFoundByEmail
+  }
+  async findById(id: number): Promise<UserType>{
+    return prisma.user.findUnique({
+      where: {
+        id
+      }
+    })
+
   }
   async createUser(username: string,email: string, passwordHash: string): Promise<UserType>{
-    const userFoundByEmail = await prisma.user.findUnique({
+    return prisma.user.findUnique({
       where: {
         email
       }
     })
-    return userFoundByEmail
   }
 }

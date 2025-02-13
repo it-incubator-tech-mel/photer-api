@@ -63,29 +63,29 @@ export class RegistrationUseCase
 
     const confirmationCode: string = randomUUID();
 
-    const createdUser: User = await this.usersRepository.create(
-      username,
-      passwordHash,
-      email,
-      {
-        confirmationCode: confirmationCode,
-        expirationDate: add(new Date(), {
-          hours: 1,
-          minutes: 30,
-        }),
-        isConfirmed: false,
-      },
-      {
-        recoveryCode: randomUUID(),
-        expirationDate: new Date(),
-      },
-    );
+    // const createdUser = await this.usersRepository.create(
+    //   username,
+    //   passwordHash,
+    //   email,
+    //   {
+    //     confirmationCode: confirmationCode,
+    //     expirationDate: add(new Date(), {
+    //       hours: 1,
+    //       minutes: 30,
+    //     }),
+    //     isConfirmed: false,
+    //   },
+    //   {
+    //     recoveryCode: randomUUID(),
+    //     expirationDate: new Date(),
+    //   },
+    // );
 
-    this.mailerService.sendEmail(
-      createdUser.email,
-      registrationEmailTemplate(confirmationCode),
-      'Registration Confirmation',
-    );
+    // this.mailerService.sendEmail(
+    //   createdUser.email,
+    //   registrationEmailTemplate(confirmationCode),
+    //   'Registration Confirmation',
+    // );
 
     return Result.success();
   }
