@@ -16,11 +16,13 @@ export class UsersRepository {
 
   }
   async findByEmail(email: string): Promise<UserType>{
-    return prisma.user.findUnique({
+    const user =  await prisma.user.findUnique({
       where: {
         email
       }
     })
+    console.log("USER:" , user)
+    return user
   }
   async findById(id: number): Promise<UserType>{
     return prisma.user.findUnique({

@@ -1,6 +1,10 @@
+
+
 datasource db {
   provider  = "postgresql"
   url        = env("DATABASE_URL")
+  // configService.get<string>('DATABASE_URL)
+  // env("DATABASE_URL")
 }
 generator client {
   provider = "prisma-client-js"

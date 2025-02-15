@@ -1,27 +1,21 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-// import { Result } from '../../../../../base/types/object-result';
-import { randomUUID } from 'node:crypto';
-import { add } from 'date-fns';
-import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { UsersRepository } from '../../infrastructure/users.repository';
-import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
-import {Result} from "../../../../../base/object-result";
 import {LoginDto} from "../../api/dto/login.dto";
 import {UserType} from "../../api/dto/User-type";
 import bcrypt from "bcrypt";
 import {DeviceClass} from "../../api/dto/Device-type";
 import {DeviceRepository} from "../../infrastructure/device.repository";
 import {JwtService} from "@nestjs/jwt";
-import {setting} from "../../../../../settings";
-// import { User } from '../../../../users/domain/user.entity';
+import {ConfigService} from "@nestjs/config";
+import {userAgentType} from "../../api/dto/variable types/variable-types-for-authorization";
+import {Result} from "../../../../../base/object-result";
+
 
 export class LoginUserCommand {
     constructor(
         public readonly loginDto: LoginDto,
-        public readonly userAgent: {
-            IP: string,
-            deviceName: string, },
+        public readonly userAgent: userAgentType,
     ) {}
 }
 
@@ -34,6 +28,7 @@ export class LoginUseCase
         private readonly usersRepository: UsersRepository,
         private jwtService: JwtService,
         private readonly deviceRepository: DeviceRepository,
+        private configService: ConfigService<any, true>
     ) {}
 
     async execute(
@@ -45,7 +40,20 @@ export class LoginUseCase
             email,
             password,
         );
-
+        if (!user) {
+            return {
+                accessToken: null,
+                refreshToken: null
+            }
+        }
+        // if (!user) throw Result.unauthorized(
+        //     'unauthorized',
+        //     [{
+        //         message: 'User with such credentials already exists',
+        //         field: 'login',
+        //     }],
+        // )
+        console.log(user, 123)
         const createRefreshTokenMeta = new DeviceClass(
             command.userAgent.IP || '123',
             command.userAgent.deviceName || 'internet',
@@ -68,14 +76,12 @@ export class LoginUseCase
         };
         const accessToken: string = await this.jwtService.signAsync(
             bodyToAccessToken,
-            { secret: setting.JWT_SECRET, expiresIn: '1000s' },
+            { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '1000s' },
         );
         const refreshToken: string = await this.jwtService.signAsync(
             bodyToRefreshToken,
-            { secret: setting.JWT_REFRESH_SECRET, expiresIn: '2000s' },
+            { secret: this.configService.get<string>('JWT_REFRESH_SECRET'), expiresIn: '2000s' },
         );
-        // await this.refreshTokenRepo.AddRefreshTokenInData(refreshToken);
-        // await this.refreshTokenRepo.AddRefreshTokenInData(refreshToken);
         await this.deviceRepository.addDeviceInDB(addDeviceToDB, refreshToken);
         return { accessToken, refreshToken };
     }
@@ -87,7 +93,8 @@ export class LoginUseCase
         password: string,
     ): Promise<UserType | null> {
         const user = await this.usersRepository.findByEmail(email);
-        if (!user) return null;
+        console.log(123, user)
+        if (!user) return null
 
         const passwordHash = await this._generateHash(password, user.password);
         if (user.password !== passwordHash) return null

@@ -1,8 +1,9 @@
 import {Injectable} from "@nestjs/common";
 import {BodyDeviceToDB, DeviceClass} from "../api/dto/Device-type";
 import {UsersRepository} from "./users.repository";
-import {setting} from "../../../../settings";
+// import {setting} from "../../../../settings";
 import {JwtService} from "@nestjs/jwt";
+import process from "process";
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 @Injectable()
@@ -23,7 +24,7 @@ export class DeviceRepository {
     }
     async addDeviceInDB(token: BodyDeviceToDB, refreshToken: string) {
         const parser = await this.jwtService.verify(refreshToken, {
-            secret: setting.JWT_REFRESH_SECRET,
+            secret: process.env.JWT_REFRESH_SECRET,
         });
         await prisma.device.update({
             where: {
