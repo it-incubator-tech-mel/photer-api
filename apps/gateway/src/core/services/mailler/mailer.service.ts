@@ -1,7 +1,8 @@
-import nodemailer, { Transporter } from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { MailerConfig } from '../../config/mailer.config';
 import { Injectable } from '@nestjs/common';
+import { Transporter } from 'nodemailer';
 
 @Injectable()
 export class MailerService {
