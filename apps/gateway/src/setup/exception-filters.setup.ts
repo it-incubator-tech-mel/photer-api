@@ -8,6 +8,6 @@ export function exceptionFiltersSetup(app: INestApplication) {
   app.useGlobalFilters(
     new CustomExceptionFilter(),
     new HttpExceptionFilter(),
-    new GlobalExceptionFilter(),
+    // new GlobalExceptionFilter(),
   );
 }
