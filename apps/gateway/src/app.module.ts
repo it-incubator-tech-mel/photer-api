@@ -3,6 +3,7 @@ import { AuthModule } from './features/auth/auth.module';
 import { DeviceModule } from './features/devices/device.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { Module } from '@nestjs/common';
+import { CoreConfig } from './core/config/core.config';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { Module } from '@nestjs/common';
     PrismaModule,
     AuthModule,
     DeviceModule,
+    CoreConfig
   ],
   controllers: [],
   providers: [
