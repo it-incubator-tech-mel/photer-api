@@ -1,11 +1,11 @@
 import { IsNumber, IsString } from 'class-validator';
 import { configValidation } from '../../../../common/config/config-validation';
-import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MailerConfig {
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<any, true>) {
     console.log('in MailerConfig', configService);
     configValidation.validateConfig(this);
   }
