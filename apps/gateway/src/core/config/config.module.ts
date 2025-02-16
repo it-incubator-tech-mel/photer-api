@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CoreConfig } from './core.config';
 import { MailerConfig } from './mailer.config';
-import { ConfigService } from '@nestjs/config';
 
 @Global()
 @Module({
@@ -15,7 +15,8 @@ import { ConfigService } from '@nestjs/config';
       provide: MailerConfig,
       useFactory: (configService: ConfigService<any, true>) => new MailerConfig(configService),
       inject: [ConfigService],
-    }],
+    }
+  ],
   exports: [CoreConfig, MailerConfig],
 })
-export class PrismaModule {}
+export class ConfigModule {}
