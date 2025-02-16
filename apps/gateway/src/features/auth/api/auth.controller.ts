@@ -6,6 +6,8 @@ import { PasswordRecoveryDto } from './dto/password-recovery.dto';
 import { NewPasswordDto } from './dto/new-password.dto';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { APIErrorResult } from '../../../core/swagger/error/error-response.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -14,6 +16,25 @@ export class AuthController {
   ) {}
 
   @Post('registration')
+  @ApiOperation({ summary: 'Registration in the system. Email will be send to passed email address' })
+  @ApiResponse({ status: 204, description: 'Input data is accepted. Email with confirmation code will be send to passed email address' })
+  @ApiResponse({
+    status: 400,
+    description: 'If the inputModel has incorrect values (in particular if the user with the given email or username already exists',
+    type: APIErrorResult,
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'Validation failed',
+          errorsMessages: [
+
+          ],
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() registrationDto: RegistrationDto) {
     return { message: 'registration' };
