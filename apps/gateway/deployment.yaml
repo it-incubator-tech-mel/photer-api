@@ -47,6 +47,11 @@ spec:
                  secretKeyRef:
                    name: photer-gateway-api-production-config-secret
                    key: EMAIL_PASSWORD
+             - name: BASE_URL
+               valueFrom:
+                 secretKeyRef:
+                   name: photer-gateway-api-production-config-secret
+                   key: BASE_URL
              - name: DATABASE_URL
                valueFrom:
                  secretKeyRef:
