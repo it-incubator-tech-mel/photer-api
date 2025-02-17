@@ -22,6 +22,31 @@ spec:
              - containerPort: PORT_CONTAINER
 
            env:
+             - name: ENV_TYPE
+               valueFrom:
+                 secretKeyRef:
+                   name: photer-gateway-api-production-config-secret
+                   key: ENV_TYPE
+             - name: EMAIL_HOST
+               valueFrom:
+                 secretKeyRef:
+                   name: photer-gateway-api-production-config-secret
+                   key: EMAIL_HOST
+             - name: EMAIL_PORT
+               valueFrom:
+                 secretKeyRef:
+                   name: photer-gateway-api-production-config-secret
+                   key: EMAIL_PORT
+             - name: EMAIL_USER
+               valueFrom:
+                 secretKeyRef:
+                   name: photer-gateway-api-production-config-secret
+                   key: EMAIL_USER
+             - name: EMAIL_PASSWORD
+               valueFrom:
+                 secretKeyRef:
+                   name: photer-gateway-api-production-config-secret
+                   key: EMAIL_PASSWORD
              - name: DATABASE_URL
                valueFrom:
                  secretKeyRef:
