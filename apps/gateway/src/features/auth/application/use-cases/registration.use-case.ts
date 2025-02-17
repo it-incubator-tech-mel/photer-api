@@ -5,6 +5,7 @@ import { MailerService } from '../../../../core/services/mailler/mailer.service'
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { Notification } from '../../../../core/notification/notification';
 import { User } from '../../domain/user.entity';
+import { CoreConfig } from '../../../../core/config/core.config';
 
 export class RegistrationUserCommand {
   constructor(
@@ -22,6 +23,7 @@ export class RegistrationUseCase
     private readonly cryptoService: CryptoService,
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
+    private coreConfig: CoreConfig,
   ) {}
 
   async execute (
@@ -64,7 +66,7 @@ export class RegistrationUseCase
 
     this.mailerService.sendEmail(
       user.getEmail(),
-      registrationEmailTemplate(user.getConfirmationCode()),
+      registrationEmailTemplate(user.getConfirmationCode(), this.coreConfig.baseUrl),
       'Registration Confirmation',
     );
 

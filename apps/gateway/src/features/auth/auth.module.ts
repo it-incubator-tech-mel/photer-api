@@ -5,12 +5,13 @@ import { MailerModule } from '../../core/services/mailler/mailer.module';
 import { CryptoModule } from '../../core/services/crypto/crypto.module';
 import { RegistrationUseCase } from './application/use-cases/registration.use-case';
 import { UserRepository } from './infrastructure/users.repository';
+import { ConfigModule } from '../../core/config/config.module';
 
 const useCases: Provider[] = [RegistrationUseCase];
-const repos = [UserRepository]
+const repos: Provider[] = [UserRepository]
 
 @Module({
-  imports: [CqrsModule, MailerModule, CryptoModule],
+  imports: [CqrsModule, MailerModule, CryptoModule, ConfigModule],
   controllers: [AuthController],
   providers: [...useCases, ...repos],
   exports: []

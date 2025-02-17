@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber } from 'class-validator';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
 import { configValidation } from '../../../../common/config/config-validation';
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
@@ -31,4 +31,9 @@ export class CoreConfig {
       configValidation.getEnumValues(Environments).join(', '),
   })
   env: string = this.configService.get('ENV_TYPE');
+
+  @IsString({
+    message: 'Set Env variable BASE_URL, example: https://example.com',
+  })
+  baseUrl: string = this.configService.get<string>('BASE_URL');
 }
