@@ -6,8 +6,9 @@ import { CryptoModule } from '../../core/services/crypto/crypto.module';
 import { RegistrationUseCase } from './application/use-cases/registration.use-case';
 import { UserRepository } from './infrastructure/users.repository';
 import { ConfigModule } from '../../core/config/config.module';
+import { ConfirmRegistrationUseCase } from './application/use-cases/confirm-registration.use-case';
 
-const useCases: Provider[] = [RegistrationUseCase];
+const useCases: Provider[] = [RegistrationUseCase, ConfirmRegistrationUseCase];
 const repos: Provider[] = [UserRepository]
 
 @Module({

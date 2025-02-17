@@ -11,6 +11,7 @@ import { APIErrorResult } from '../../../core/swagger/api-error/error-response.d
 import { Notification, ResultStatus } from '../../../core/notification/notification';
 import { RegistrationUserCommand } from '../application/use-cases/registration.use-case';
 import { BadRequestException } from '../../../core/exception-filters/exceptions/exception-types';
+import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -51,9 +52,35 @@ export class AuthController {
   }
 
   @Post('registration-confirmation')
+  @ApiOperation({ summary: 'Confirm registration' })
+  @ApiResponse({ status: 204, description: 'Email was verified. Account was activated' })
+  @ApiResponse({
+    status: 400,
+    description: 'If the confirmation code is incorrect, expired or already been applied',
+    type: APIErrorResult,
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'Validation failed',
+          errorsMessages: [],
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
+  @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
   async confirmRegistration(@Body() confirmRegistrationDto: ConfirmRegistrationDto) {
-    return { message: 'registration-confirmation' };
+    const { code } = confirmRegistrationDto;
+
+    const result: Notification = await this.commandBus.execute(
+      new ConfirmRegistrationCommand(code),
+    );
+
+    if (result.status === ResultStatus.BadRequest) {
+      throw new BadRequestException(result.extensions!);
+    }
   }
 
   @Post('registration-email-resending')

@@ -57,10 +57,6 @@ export class User {
         );
     }
 
-    // getId(): number {
-    //     return this.id;
-    // }
-
     getUsername(): string {
         return this.username;
     }
@@ -73,6 +69,10 @@ export class User {
         return this.password;
     }
 
+    getIsDeleted(): boolean {
+        return this.isDeleted;
+    }
+
     getConfirmationCode(): string {
         return this.confirmationCode;
     }
@@ -81,7 +81,7 @@ export class User {
         return this.confirmationExpiration;
     }
 
-    private isEmailConfirmed(): boolean {
+    isEmailConfirmed(): boolean {
         return this.isConfirmed;
     }
 
@@ -90,5 +90,6 @@ export class User {
             throw new Error('Email already confirmed');
         }
         this.isConfirmed = true;
+        this.updatedAt = new Date();
     }
 }
