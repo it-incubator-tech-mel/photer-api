@@ -11,8 +11,8 @@ export class LoginDto {
     @Trim()
     @IsNotEmpty({ message: 'Password is required' })
     @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
-    @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]).*$/, {
-        message: 'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character',
+    @Matches(/^[a-zA-Z0-9_-]+$/, {
+        message: 'Username can only contain letters, numbers, underscores, and hyphens'
     })
     password: string;
 }

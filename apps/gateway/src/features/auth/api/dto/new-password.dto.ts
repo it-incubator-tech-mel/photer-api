@@ -5,8 +5,8 @@ export class NewPasswordDto {
     @IsString()
     @Trim()
     @IsNotEmpty({ message: 'newPassword is required' })
-    @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]).*$/, {
-        message: 'newPassword must include at least one uppercase letter, one lowercase letter, one number, and one special character',
+    @Matches(/^[a-zA-Z0-9_-]+$/, {
+        message: 'Username can only contain letters, numbers, underscores, and hyphens'
     })
     newPassword: string;
 
