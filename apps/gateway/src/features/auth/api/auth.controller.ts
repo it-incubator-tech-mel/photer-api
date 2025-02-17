@@ -7,7 +7,10 @@ import { NewPasswordDto } from './dto/new-password.dto';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { APIErrorResult } from '../../../core/swagger/error/error-response.dto';
+import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
+import { Notification, ResultStatus } from '../../../core/notification/notification';
+import { RegistrationUserCommand } from '../application/use-cases/registration.use-case';
+import { BadRequestException } from '../../../core/exception-filters/exceptions/exception-types';
 
 @Controller('auth')
 export class AuthController {
@@ -27,9 +30,7 @@ export class AuthController {
         example: {
           statusCode: 400,
           message: 'Validation failed',
-          errorsMessages: [
-
-          ],
+          errorsMessages: [],
         },
       },
     },
@@ -37,7 +38,16 @@ export class AuthController {
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() registrationDto: RegistrationDto) {
-    return { message: 'registration' };
+    const { username, email, password} = registrationDto;
+
+    const result: Notification<string | null> = await this.commandBus.execute<
+      RegistrationUserCommand,
+      Notification<string | null>
+    >(new RegistrationUserCommand(username, email, password));
+
+    if (result.status === ResultStatus.BadRequest) {
+      throw new BadRequestException(result.extensions!);
+    }
   }
 
   @Post('registration-confirmation')

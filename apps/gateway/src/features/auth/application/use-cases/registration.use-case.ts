@@ -1,18 +1,16 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-// import { Result } from '../../../../../base/types/object-result';
-import { randomUUID } from 'node:crypto';
-import { add } from 'date-fns';
 import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
-import { UsersRepository } from '../../infrastructure/users.repository';
+import { UserRepository } from '../../infrastructure/users.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
-// import { User } from '../../../../users/domain/user.entity';
+import { Notification } from '../../../../core/notification/notification';
+import { User } from '../../domain/user.entity';
 
 export class RegistrationUserCommand {
   constructor(
-    public readonly login: string,
-    public readonly password: string,
+    public readonly username: string,
     public readonly email: string,
+    public readonly password: string,
   ) {}
 }
 
@@ -22,22 +20,22 @@ export class RegistrationUseCase
 {
   constructor(
     private readonly cryptoService: CryptoService,
-    private readonly usersRepository: UsersRepository,
+    private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
   ) {}
 
-  async execute(
+  async execute (
     command: RegistrationUserCommand,
-  ): Promise<Result<string | null>> {
-    const { login, password, email } = command;
+  ): Promise<Notification<string | null>> {
+    const { username, email, password } = command;
 
     const [userByLogin, userByEmail] = await Promise.all([
-      this.usersRepository.findByLogin(login),
-      this.usersRepository.findByEmail(email),
+      this.userRepository.findByUsername(username),
+      this.userRepository.findByEmail(email),
     ]);
 
     if (userByLogin) {
-      return Result.badRequest([
+      return Notification.badRequest([
         {
           message: 'User with such credentials already exists',
           field: 'login',
@@ -46,7 +44,7 @@ export class RegistrationUseCase
     }
 
     if (userByEmail) {
-      return Result.badRequest([
+      return Notification.badRequest([
         {
           message: 'User with such credentials already exists',
           field: 'email',
@@ -60,32 +58,16 @@ export class RegistrationUseCase
       saltRounds,
     );
 
-    const confirmationCode: string = randomUUID();
+    const user: User = User.create(username, passwordHash, email);
 
-    const createdUser: User = await this.usersRepository.create(
-      login,
-      passwordHash,
-      email,
-      {
-        confirmationCode: confirmationCode,
-        expirationDate: add(new Date(), {
-          hours: 1,
-          minutes: 30,
-        }),
-        isConfirmed: false,
-      },
-      {
-        recoveryCode: randomUUID(),
-        expirationDate: new Date(),
-      },
-    );
+    await this.userRepository.save(user);
 
     this.mailerService.sendEmail(
-      createdUser.email,
-      registrationEmailTemplate(confirmationCode),
+      user.getEmail(),
+      registrationEmailTemplate(user.getConfirmationCode()),
       'Registration Confirmation',
     );
 
-    return Result.success();
+    return Notification.success();
   }
 }
