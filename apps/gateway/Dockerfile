@@ -31,4 +31,5 @@ RUN yarn build:${SERVICE}
 
 EXPOSE ${PORT}
 
-CMD yarn start:prod:gateway
+#CMD yarn start:prod:gateway
+CMD yarn migrate && yarn start:prod:gateway
