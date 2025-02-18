@@ -15,6 +15,7 @@ import { APIErrorResult } from '../../../core/swagger/api-error/error-response.d
 import { Notification, ResultStatus } from '../../../core/notification/notification';
 import { BadRequestException, UnauthorizedException } from '../../../core/exception-filters/exceptions/exception-types';
 import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
+import { RegistrationEmailResendingCommand } from '../application/use-cases/registration-email-resending.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -87,9 +88,35 @@ export class AuthController {
   }
 
   @Post('registration-email-resending')
+  @ApiOperation({ summary: 'Resend confirmation registration. Email if user exists' })
+  @ApiResponse({ status: 204, description: 'Input data is accepted.Email with confirmation code will be send to passed email address.Confirmation code should be inside link as query param, for example: https://some-front.com/confirm-registration?code=youtcodehere' })
+  @ApiResponse({
+    status: 400,
+    description: 'If the inputModel has incorrect values',
+    type: APIErrorResult,
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'Validation failed',
+          errorsMessages: [],
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() registrationEmailResendingDto: RegistrationEmailResendingDto) {
-    return { message: 'registration-email-resending' };
+    const { email } = registrationEmailResendingDto;
+
+    const result: Notification = await this.commandBus.execute<
+      RegistrationEmailResendingCommand,
+      Notification
+    >(new RegistrationEmailResendingCommand(email));
+
+    if (result.status === ResultStatus.BadRequest) {
+      throw new BadRequestException(result.extensions!);
+    }
   }
 
   @Post('login')

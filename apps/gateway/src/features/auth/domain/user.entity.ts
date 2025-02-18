@@ -92,4 +92,10 @@ export class User {
         this.isConfirmed = true;
         this.updatedAt = new Date();
     }
+
+    updateConfirmationCode(code: string, expiration: Date): void {
+        this.confirmationCode = code;
+        this.confirmationExpiration = expiration;
+        this.updatedAt = new Date();
+    }
 }

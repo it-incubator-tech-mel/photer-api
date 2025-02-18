@@ -10,11 +10,13 @@ import { ConfirmRegistrationUseCase } from './application/use-cases/confirm-regi
 import { LoginUseCase } from "./application/use-cases/login.use-case";
 import { DeviceRepository } from "./infrastructure/device.repository";
 import { JwtStrategy } from "./strategies/bearer.strategies";
+import { RegistrationEmailResendingUseCase } from './application/use-cases/registration-email-resending.use-case';
 
 
 const useCases: Provider[] = [
   RegistrationUseCase,
   ConfirmRegistrationUseCase,
+  RegistrationEmailResendingUseCase,
   LoginUseCase,
 ];
 
