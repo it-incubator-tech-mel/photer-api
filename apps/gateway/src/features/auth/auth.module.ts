@@ -7,14 +7,30 @@ import { RegistrationUseCase } from './application/use-cases/registration.use-ca
 import { UserRepository } from './infrastructure/users.repository';
 import { ConfigModule } from '../../core/config/config.module';
 import { ConfirmRegistrationUseCase } from './application/use-cases/confirm-registration.use-case';
+import { LoginUseCase } from "./application/use-cases/login.use-case";
+import { DeviceRepository } from "./infrastructure/device.repository";
+import { JwtStrategy } from "./strategies/bearer.strategies";
 
-const useCases: Provider[] = [RegistrationUseCase, ConfirmRegistrationUseCase];
-const repos: Provider[] = [UserRepository]
+
+const useCases: Provider[] = [
+  RegistrationUseCase,
+  ConfirmRegistrationUseCase,
+  LoginUseCase,
+];
+
+const repos: Provider[] = [
+  UserRepository,
+  DeviceRepository
+]
+
+const strategies: Provider[] = [
+  JwtStrategy
+]
 
 @Module({
   imports: [CqrsModule, MailerModule, CryptoModule, ConfigModule],
   controllers: [AuthController],
-  providers: [...useCases, ...repos],
+  providers: [...useCases, ...repos, ...strategies],
   exports: []
 })
 export class AuthModule {}

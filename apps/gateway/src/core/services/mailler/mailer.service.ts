@@ -1,6 +1,6 @@
 import * as nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { MailerConfig } from '../../config/mailer.config';
+import { MailerConfig } from '../../config/mailer/mailer.config';
 import { Injectable } from '@nestjs/common';
 import { Transporter } from 'nodemailer';
 
@@ -10,7 +10,7 @@ export class MailerService {
 
   constructor(private mailerConfig: MailerConfig) {
     const { emailHost, emailPort, emailUser, emailPassword } =
-      this.mailerConfig;
+        this.mailerConfig;
 
     if (!emailHost || !emailPort || !emailUser || !emailPassword) {
       throw new Error('Missing required email configuration');
@@ -28,17 +28,17 @@ export class MailerService {
   }
 
   async sendEmail(
-    recipient: string,
-    emailTemplate: string,
-    subject: string,
+      recipient: string,
+      emailTemplate: string,
+      subject: string,
   ): Promise<boolean> {
     const info: SMTPTransport.SentMessageInfo = await this.transporter.sendMail(
-      {
-        from: this.mailerConfig.emailUser,
-        to: recipient,
-        subject,
-        html: emailTemplate,
-      },
+        {
+          from: this.mailerConfig.emailUser,
+          to: recipient,
+          subject,
+          html: emailTemplate,
+        },
     );
 
     console.log('Message sent: %s', info.messageId);

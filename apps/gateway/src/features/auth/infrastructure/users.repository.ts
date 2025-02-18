@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { User } from '../domain/user.entity';
+import { UserType } from '../api/dto/User-type';
 
 @Injectable()
 export class UserRepository {
@@ -64,7 +65,6 @@ export class UserRepository {
     }
   }
 
-
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
       where: { username },
@@ -98,6 +98,22 @@ export class UserRepository {
 
     return prismaUser ? this.mapToDomain(prismaUser) : null;
   }
+
+  // async findById(id: number): Promise<UserType>{
+  //   return prisma.user.findUnique({
+  //     where: {
+  //       id
+  //     }
+  //   })
+  //
+  // }
+  // async createUser(username: string,email: string, passwordHash: string): Promise<UserType>{
+  //   return prisma.user.findUnique({
+  //     where: {
+  //       email
+  //     }
+  //   })
+  // }
 
   private mapToDomain(prismaUser: any): User {
     return User.restore(

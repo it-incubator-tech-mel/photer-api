@@ -33,3 +33,11 @@ model PasswordRecovery {
   recoveryCode   String   @unique
   expirationDate DateTime
 }
+
+model Device {
+  id             Int  @id @default(autoincrement())
+  ip             String
+  title          String
+  lastActiveDate String
+  userId          Int
+}

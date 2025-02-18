@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res } from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/login.dto';
@@ -6,11 +6,14 @@ import { PasswordRecoveryDto } from './dto/password-recovery.dto';
 import { NewPasswordDto } from './dto/new-password.dto';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
+import {RegistrationUserCommand} from "../application/use-cases/registration.use-case";
+import { Request, Response } from 'express';
+import {LoginUserCommand} from "../application/use-cases/login.use-case";
+import {userAgentType} from "./dto/variable types/variable-types-for-authorization";
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { Notification, ResultStatus } from '../../../core/notification/notification';
-import { RegistrationUserCommand } from '../application/use-cases/registration.use-case';
-import { BadRequestException } from '../../../core/exception-filters/exceptions/exception-types';
+import { BadRequestException, UnauthorizedException } from '../../../core/exception-filters/exceptions/exception-types';
 import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
 
 @Controller('auth')
@@ -91,8 +94,24 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
-    return { accessToken: 'token' };
+  async login(
+      // @Headers() header: Record<string, string>,
+      // @Body() loginDto: LoginDto,
+      // @Res({ passthrough: true }) response: Response,
+      @Req() req: Request,) {
+    // const userAgent: userAgentType = {
+    //   IP: req.ip,
+    //   deviceName: header['user-agent'],
+    // };
+    // const { accessToken, refreshToken } = await this.commandBus.execute(
+    //     new LoginUserCommand(loginDto, userAgent))
+    // if (!accessToken || !refreshToken) throw new UnauthorizedException()
+    // console.log( accessToken, refreshToken , ' accessToken, refreshToken')
+    // response.cookie('refreshToken', refreshToken, {
+    //   httpOnly: true,
+    //   secure: true,
+    // });
+    // return { accessToken: 'token' };
   }
 
   @Post('password-recovery')

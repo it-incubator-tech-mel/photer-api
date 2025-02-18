@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CoreConfig } from './core.config';
-import { MailerConfig } from './mailer.config';
+import { MailerConfig } from './mailer/mailer.config';
 
 @Global()
 @Module({
