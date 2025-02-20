@@ -11,6 +11,8 @@ import { LoginUseCase } from "./application/use-cases/login.use-case";
 import { DeviceRepository } from "./infrastructure/device.repository";
 import { JwtStrategy } from "./strategies/bearer.strategies";
 import { RegistrationEmailResendingUseCase } from './application/use-cases/registration-email-resending.use-case';
+import {JwtService} from "@nestjs/jwt";
+import {NewPasswordCase} from "./application/use-cases/new-password.use-case";
 
 
 const useCases: Provider[] = [
@@ -18,6 +20,7 @@ const useCases: Provider[] = [
   ConfirmRegistrationUseCase,
   RegistrationEmailResendingUseCase,
   LoginUseCase,
+  NewPasswordCase,
 ];
 
 const repos: Provider[] = [
@@ -32,7 +35,7 @@ const strategies: Provider[] = [
 @Module({
   imports: [CqrsModule, MailerModule, CryptoModule, ConfigModule],
   controllers: [AuthController],
-  providers: [...useCases, ...repos, ...strategies],
+  providers: [...useCases, ...repos, ...strategies, JwtService],
   exports: []
 })
 export class AuthModule {}

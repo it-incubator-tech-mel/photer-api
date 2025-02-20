@@ -41,4 +41,6 @@ model Device {
   title          String
   lastActiveDate String
   userId          Int
+  iat             Int @default(0)
+  exp             Int @default(0)
 }

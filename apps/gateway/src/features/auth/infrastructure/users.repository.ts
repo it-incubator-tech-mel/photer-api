@@ -99,21 +99,29 @@ export class UserRepository {
     return prismaUser ? this.mapToDomain(prismaUser) : null;
   }
 
-  // async findById(id: number): Promise<UserType>{
-  //   return prisma.user.findUnique({
-  //     where: {
-  //       id
-  //     }
-  //   })
-  //
-  // }
-  // async createUser(username: string,email: string, passwordHash: string): Promise<UserType>{
-  //   return prisma.user.findUnique({
-  //     where: {
-  //       email
-  //     }
-  //   })
-  // }
+  async findByRecoveryCodeAndUpdateDate(
+      newPassword: string,
+      recoveryCode: string,
+      date: Date
+  ): Promise<boolean | null> {
+    const prismaUser = await this.prisma.user.findFirst({
+      where: {
+        passwordRecovery: {
+          recoveryCode
+        },
+      },
+      include: {
+        passwordRecovery: true,
+      },
+    });
+    if (!prismaUser || prismaUser.passwordRecovery.expirationDate < date) return null
+    await this.prisma.user.update({where: {id: prismaUser.id},
+      data : {
+      password: newPassword
+      }})
+    return true
+  }
+
 
   private mapToDomain(prismaUser: any): User {
     return User.restore(
