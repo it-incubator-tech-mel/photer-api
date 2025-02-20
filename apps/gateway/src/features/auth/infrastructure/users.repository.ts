@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { User } from '../domain/user.entity';
-import { UserType } from '../api/dto/User-type';
+import {PasswordRecovery} from "../domain/password-recovery";
+
 
 @Injectable()
 export class UserRepository {
@@ -97,6 +98,32 @@ export class UserRepository {
     });
 
     return prismaUser ? this.mapToDomain(prismaUser) : null;
+  }
+  async updateRecoveryCodeByEmailOrSave(
+      passwordRecovery: PasswordRecovery
+  ) {
+    const findPasswordRecoveryByUserId = await this.prisma.PasswordRecovery.findFirst({
+      where: {
+        userId: passwordRecovery.userId
+      }})
+    if (findPasswordRecoveryByUserId){
+      await this.prisma.PasswordRecovery.update({
+        where: {userId: passwordRecovery.userId},
+        data: {
+          userId: passwordRecovery.userId,
+          recoveryCode: passwordRecovery.recoveryCode,
+          expirationDate: passwordRecovery.expirationDate,
+        }
+      })
+    }else {
+      await this.prisma.PasswordRecovery.create({
+        data: {
+          userId: passwordRecovery.userId,
+          recoveryCode: passwordRecovery.recoveryCode,
+          expirationDate: passwordRecovery.expirationDate,
+        }
+      })
+    }
   }
 
   // async findById(id: number): Promise<UserType>{

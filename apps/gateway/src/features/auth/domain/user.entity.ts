@@ -57,6 +57,9 @@ export class User {
         );
     }
 
+    getId(): number {
+        return this.id;
+    }
     getUsername(): string {
         return this.username;
     }
