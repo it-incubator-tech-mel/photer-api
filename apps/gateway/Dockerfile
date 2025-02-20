@@ -22,6 +22,8 @@ COPY --chown=node package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
 
+RUN yarn prisma generate --schema=prisma/schema.prisma
+
 # Bundle app source code
 COPY --chown=node . .
 
