@@ -62,7 +62,7 @@ export class RegistrationUseCase
 
     const user: User = User.create(username, passwordHash, email);
 
-    await this.userRepository.save(user);
+    await this.userRepository.create(user);
 
     this.mailerService.sendEmail(
       user.getEmail(),

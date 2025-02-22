@@ -1,68 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { User } from '../domain/user.entity';
-import { UserType } from '../api/dto/User-type';
 
 @Injectable()
 export class UserRepository {
   constructor(private prisma: PrismaService) {
   }
 
-  async save(user: User): Promise<void> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: user.getEmail() },
+  async create(user: User): Promise<void> {
+    await this.prisma.user.create({
+      data: {
+        username: user.getUsername(),
+        password: user.getPassword(),
+        email: user.getEmail(),
+        createdAt: user.getCreatedAt(),
+        updatedAt: user.getUpdatedAt(),
+        isDeleted: user.getIsDeleted(),
+        emailConfirmation: {
+          create: {
+            confirmationCode: user.getConfirmationCode(),
+            expirationDate: user.getConfirmationExpiration(),
+            isConfirmed: user.isEmailConfirmed(),
+          },
+        },
+      },
+      include: {
+        emailConfirmation: true,
+      },
     });
-
-    if (existingUser) {
-      // If user exists, update it
-      await this.prisma.user.update({
-        where: { email: user.getEmail() },
-        data: {
-          username: user.getUsername(),
-          password: user.getPassword(),
-          isDeleted: user.getIsDeleted(),
-          updatedAt: new Date(),
-        },
-      });
-
-      // Update email confirmation (if necessary)
-      await this.prisma.emailConfirmation.upsert({
-        where: { userId: existingUser.id },
-        update: {
-          confirmationCode: user.getConfirmationCode(),
-          expirationDate: user.getConfirmationExpiration(),
-          isConfirmed: user.isEmailConfirmed(), // или оставьте как есть, если не подтверждено
-        },
-        create: {
-          userId: existingUser.id,
-          confirmationCode: user.getConfirmationCode(),
-          expirationDate: user.getConfirmationExpiration(),
-          isConfirmed: false, // начальное состояние
-        },
-      });
-    } else {
-      // Create user if does not exist
-      const createdUser = await this.prisma.user.create({
-        data: {
-          username: user.getUsername(),
-          password: user.getPassword(),
-          email: user.getEmail(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isDeleted: false,
-        },
-      });
-
-      // Create confirmation email record
-      await this.prisma.emailConfirmation.create({
-        data: {
-          userId: createdUser.id,
-          confirmationCode: user.getConfirmationCode(),
-          expirationDate: user.getConfirmationExpiration(),
-          isConfirmed: false, // начальное состояние
-        },
-      });
-    }
   }
 
   async findByUsername(username: string): Promise<User | null> {
@@ -99,21 +64,36 @@ export class UserRepository {
     return prismaUser ? this.mapToDomain(prismaUser) : null;
   }
 
-  // async findById(id: number): Promise<UserType>{
-  //   return prisma.user.findUnique({
-  //     where: {
-  //       id
-  //     }
-  //   })
-  //
-  // }
-  // async createUser(username: string,email: string, passwordHash: string): Promise<UserType>{
-  //   return prisma.user.findUnique({
-  //     where: {
-  //       email
+  // async updateUser(user: User): Promise<void> {
+  //   await this.prisma.user.update({
+  //     where: { id: user.getId() },
+  //     data: {
+  //       username: user.getUsername(),
+  //       password: user.getPassword(),
+  //       isDeleted: user.getIsDeleted(),
+  //       updatedAt: user.getUpdatedAt(), // Берём из сущности
   //     }
   //   })
   // }
+
+  async updateConfirmation(user: User): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.getId() },
+        data: {
+          updatedAt: user.getUpdatedAt(),
+        },
+      }),
+      this.prisma.emailConfirmation.update({
+        where: { userId: user.getId() },
+        data: {
+          confirmationCode: user.getConfirmationCode(),
+          expirationDate: user.getConfirmationExpiration(),
+          isConfirmed: user.isEmailConfirmed(),
+        },
+      }),
+    ]);
+  }
 
   private mapToDomain(prismaUser: any): User {
     return User.restore(
