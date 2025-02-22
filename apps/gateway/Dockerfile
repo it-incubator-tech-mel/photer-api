@@ -30,4 +30,4 @@ RUN yarn build:${SERVICE}
 EXPOSE ${PORT}
 
 #CMD yarn start:prod:gateway
-CMD yarn migrate:prod && yarn start:prod:gateway
+CMD yarn prisma generate && yarn migrate:prod && yarn start:prod:gateway
