@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../infrastructure/users.repository';
+import { UserRepository } from '../../infrastructure/user.repository';
 import { Notification } from '../../../../core/notification/notification';
 import { User } from '../../domain/user.entity';
 

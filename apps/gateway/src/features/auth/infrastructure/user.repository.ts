@@ -47,6 +47,14 @@ export class UserRepository {
     return user ? this.mapToDomain(user) : null;
   }
 
+  async findById(id: number): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { emailConfirmation: true },
+    });
+    return user ? this.mapToDomain(user) : null;
+  }
+
   async findByConfirmationCode(
     confirmationCode: string,
   ): Promise<User | null> {

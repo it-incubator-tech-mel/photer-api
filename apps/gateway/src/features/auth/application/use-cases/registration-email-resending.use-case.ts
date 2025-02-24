@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../infrastructure/users.repository';
+import { UserRepository } from '../../infrastructure/user.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { CoreConfig } from '../../../../core/config/core.config';

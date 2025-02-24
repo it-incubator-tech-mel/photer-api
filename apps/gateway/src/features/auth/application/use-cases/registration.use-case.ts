@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
-import { UserRepository } from '../../infrastructure/users.repository';
+import { UserRepository } from '../../infrastructure/user.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { Notification } from '../../../../core/notification/notification';

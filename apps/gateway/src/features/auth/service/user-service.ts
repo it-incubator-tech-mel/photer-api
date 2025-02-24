@@ -1,5 +1,5 @@
 import {Injectable} from "@nestjs/common";
-import {UserRepository} from "../infrastructure/users.repository";
+import {UserRepository} from "../infrastructure/user.repository";
 import bcrypt from "bcrypt";
 import { User } from '../domain/user.entity';
 

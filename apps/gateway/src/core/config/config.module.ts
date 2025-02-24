@@ -1,7 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CoreConfig } from './core.config';
-import { MailerConfig } from './mailer/mailer.config';
+import { MailerConfig } from './mailer.config';
+import { JwtConfig } from './jwt.config';
 
 @Global()
 @Module({
@@ -15,8 +16,13 @@ import { MailerConfig } from './mailer/mailer.config';
       provide: MailerConfig,
       useFactory: (configService: ConfigService<any, true>) => new MailerConfig(configService),
       inject: [ConfigService],
+    },
+    {
+      provide: JwtConfig,
+      useFactory: (configService: ConfigService<any, true>) => new JwtConfig(configService),
+      inject: [ConfigService],
     }
   ],
-  exports: [CoreConfig, MailerConfig],
+  exports: [CoreConfig, MailerConfig, JwtConfig],
 })
 export class ConfigModule {}
