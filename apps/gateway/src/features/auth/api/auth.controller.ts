@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Headers, Post, Req, Res } from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/login.dto';
@@ -16,6 +16,9 @@ import { Notification, ResultStatus } from '../../../core/notification/notificat
 import { BadRequestException, UnauthorizedException } from '../../../core/exception-filters/exceptions/exception-types';
 import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
 import { RegistrationEmailResendingCommand } from '../application/use-cases/registration-email-resending.use-case';
+import {PasswordRecoveryUseCommand} from '../application/use-cases/password-recovery.use-case';
+import {LogoutCommand} from "../application/use-cases/logout.use-case";
+
 
 @Controller('auth')
 export class AuthController {
@@ -122,29 +125,46 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
-      // @Headers() header: Record<string, string>,
-      // @Body() loginDto: LoginDto,
-      // @Res({ passthrough: true }) response: Response,
+      @Headers() header: Record<string, string>,
+      @Body() loginDto: LoginDto,
+      @Res({ passthrough: true }) response: Response,
       @Req() req: Request,) {
-    // const userAgent: userAgentType = {
-    //   IP: req.ip,
-    //   deviceName: header['user-agent'],
-    // };
-    // const { accessToken, refreshToken } = await this.commandBus.execute(
-    //     new LoginUserCommand(loginDto, userAgent))
-    // if (!accessToken || !refreshToken) throw new UnauthorizedException()
-    // console.log( accessToken, refreshToken , ' accessToken, refreshToken')
-    // response.cookie('refreshToken', refreshToken, {
-    //   httpOnly: true,
-    //   secure: true,
-    // });
-    // return { accessToken: 'token' };
+    const userAgent: userAgentType = {
+      IP: req.ip,
+      deviceName: header['user-agent'],
+    };
+    const { accessToken, refreshToken } = await this.commandBus.execute(
+        new LoginUserCommand(loginDto, userAgent))
+    if (!accessToken || !refreshToken) throw new UnauthorizedException()
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+    });
+    return { accessToken: 'token' };
   }
 
   @Post('password-recovery')
+  @ApiOperation({ summary: 'Send recovery code for recovery password. Email if user exists' })
+  @ApiResponse({ status: 204, description: 'We have sent a link to confirm your email to ____email_____' })
+  @ApiResponse({
+    status: 400,
+    description: 'If the inputModel has incorrect values',
+    type: APIErrorResult,
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'Validation failed',
+          errorsMessages: [],
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto) {
-    return { message: 'password-recovery' };
+    await this.commandBus.execute(
+        new PasswordRecoveryUseCommand(passwordRecoveryDto.email));
   }
 
   @Post('new-password')
@@ -161,8 +181,10 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async logout() {
-    return;
+  async logout(@Req() req: Request) {
+    await this.commandBus.execute(
+        new LogoutCommand(req.cookies.refreshToken));
+    return HttpCode
   }
 
   @Get('oauth/:provider')

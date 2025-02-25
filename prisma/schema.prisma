@@ -42,3 +42,10 @@ model Device {
   lastActiveDate String
   userId          Int
 }
+
+model RefreshToken {
+  userId    Int   @id
+  deviceId  Int
+  iat       Int
+  exp       Int
+}

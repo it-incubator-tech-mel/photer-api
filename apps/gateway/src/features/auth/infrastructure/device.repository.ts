@@ -41,4 +41,10 @@ export class DeviceRepository {
         //
         // return true;
     }
+
+    async deleteDevice(deviceId: number) {
+        return prisma.device.delete({
+            where: {id: deviceId}
+        })
+    }
 }
