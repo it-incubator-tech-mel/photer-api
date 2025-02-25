@@ -41,6 +41,15 @@ export class DeviceRepository {
         //
         // return true;
     }
+    async updateDevice(parser: RefreshTokenPayload) {
+        return prisma.device.update({
+            where: {
+                id: parser.deviceId},
+            data: {
+                iat: parser.iat,
+                exp: parser.exp
+            }})
+    }
 
     async deleteDevice(deviceId: number) {
         return prisma.device.delete({

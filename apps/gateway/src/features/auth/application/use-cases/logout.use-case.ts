@@ -19,7 +19,7 @@ export class LogoutCase
     async execute(command: LogoutCommand){
         const decodedRefreshToken: RefreshTokenPayload = await this.jwtService.decode<RefreshTokenPayload>(command.refreshToken);
         const deletingDevice = await this.deviceRep.deleteDevice(+decodedRefreshToken.deviceId)
-        const validToken = await this.refreshTokenRepo.deleteRefreshTokenInData(command.refreshToken);
+        const validToken = await this.refreshTokenRepo.deleteRefreshToken(command.refreshToken);
         if (deletingDevice && validToken){
             return true
         } else {

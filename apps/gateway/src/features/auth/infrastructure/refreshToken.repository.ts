@@ -11,7 +11,19 @@ export class RefreshTokenRepo {
         private configService: ConfigService<any, true>
     ) {}
 
-    async deleteRefreshTokenInData(refreshToken: string): Promise<any> {
+
+    async updateRefreshToken(parser: RefreshTokenPayload){
+        return this.prismaService.refreshToken.update({
+            where: {
+                userId: parser.userId,
+                deviceId: parser.deviceId},
+            data: {
+                iat: parser.iat,
+                exp: parser.exp
+            }})
+    }
+
+    async deleteRefreshToken(refreshToken: string): Promise<any> {
         const parser = await this.jwtService.verify(refreshToken, {
             secret: this.configService.get<string>('JWT_REFRESH_SECRET')
         });

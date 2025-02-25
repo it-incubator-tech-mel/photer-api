@@ -18,6 +18,8 @@ import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-reg
 import { RegistrationEmailResendingCommand } from '../application/use-cases/registration-email-resending.use-case';
 import {PasswordRecoveryUseCommand} from '../application/use-cases/password-recovery.use-case';
 import {LogoutCommand} from "../application/use-cases/logout.use-case";
+import {RefreshTokenCommand} from "../application/use-cases/refreshToken.use-case";
+import { Cookie } from '../../../core/decorators/param-decorators/cookie.decorator';
 
 
 @Controller('auth')
@@ -174,8 +176,27 @@ export class AuthController {
   }
 
   @Post('refresh-token')
+  @ApiOperation({ summary: 'update refresh token' })
+  @ApiResponse({ status: 200,})
+  @ApiResponse({
+    status: 400,
+    description: 'If the inputModel has incorrect values',
+    type: APIErrorResult,
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'Validation failed',
+          errorsMessages: [],
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.OK)
-  async refreshToken() {
+  async refreshToken(@Cookie('refreshToken') refreshToken: string) {
+    await this.commandBus.execute(
+        new RefreshTokenCommand(refreshToken));
     return { accessToken: 'token' };
   }
 
@@ -199,9 +220,9 @@ export class AuthController {
   })
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async logout(@Req() req: Request) {
-    await this.commandBus.execute(
-        new LogoutCommand(req.cookies.refreshToken));
+  async logout(@Req() request: Request) {
+    await this.commandBus.execute<LogoutCommand, Notification>(
+        new LogoutCommand(request.cookies.refreshToken));
     return HttpCode
   }
 
