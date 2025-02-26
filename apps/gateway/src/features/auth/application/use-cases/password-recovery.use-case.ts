@@ -2,8 +2,6 @@ import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
 import {UserRepository} from "../../infrastructure/users.repository";
 import {MailerService} from "../../../../core/services/mailler/mailer.service";
 import {CoreConfig} from "../../../../core/config/core.config";
-import {RegistrationEmailResendingCommand} from "./registration-email-resending.use-case";
-import {PasswordRecoveryDto} from "../../api/dto/password-recovery.dto";
 import {Result} from "../../../../../base/object-result";
 import {randomUUID} from "crypto";
 import {PasswordRecovery} from "../../domain/password-recovery";
