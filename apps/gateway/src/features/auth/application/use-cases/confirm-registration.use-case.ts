@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../infrastructure/users.repository';
 import { Notification } from '../../../../core/notification/notification';
 import { User } from '../../domain/user.entity';
+import {UserRepository} from "../../infrastructure/users.repository";
 
 export class ConfirmRegistrationCommand {
   constructor(public readonly code: string) {}
