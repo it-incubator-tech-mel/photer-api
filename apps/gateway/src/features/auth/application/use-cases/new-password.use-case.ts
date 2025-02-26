@@ -29,7 +29,7 @@ export class NewPasswordCase
         if (!findUserByRecoveryCodeAndReplacementPas){
             return Notification.badRequest([
                 {
-                    message: 'Recovery code time has expired',
+                    message: 'Recovery code time has expired or incorrect code',
                     field: 'recoveryCode',
                 },
             ]);
