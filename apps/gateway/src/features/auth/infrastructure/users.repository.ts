@@ -102,12 +102,12 @@ export class UserRepository {
   async updateRecoveryCodeByEmailOrSave(
       passwordRecovery: PasswordRecovery
   ) {
-    const findPasswordRecoveryByUserId = await this.prisma.PasswordRecovery.findFirst({
+    const findPasswordRecoveryByUserId = await this.prisma.passwordRecovery.findFirst({
       where: {
         userId: passwordRecovery.userId
       }})
     if (findPasswordRecoveryByUserId){
-      await this.prisma.PasswordRecovery.update({
+      await this.prisma.passwordRecovery.update({
         where: {userId: passwordRecovery.userId},
         data: {
           userId: passwordRecovery.userId,
@@ -116,7 +116,7 @@ export class UserRepository {
         }
       })
     }else {
-      await this.prisma.PasswordRecovery.create({
+      await this.prisma.passwordRecovery.create({
         data: {
           userId: passwordRecovery.userId,
           recoveryCode: passwordRecovery.recoveryCode,

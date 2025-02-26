@@ -8,7 +8,6 @@ import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
 import {RegistrationUserCommand} from "../application/use-cases/registration.use-case";
 import { Request, Response } from 'express';
-import {LoginUserCommand} from "../application/use-cases/login.use-case";
 import {userAgentType} from "./dto/variable types/variable-types-for-authorization";
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
@@ -17,6 +16,7 @@ import { BadRequestException, UnauthorizedException } from '../../../core/except
 import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
 import { RegistrationEmailResendingCommand } from '../application/use-cases/registration-email-resending.use-case';
 import {PasswordRecoveryUseCommand} from "../application/use-cases/password-recovery.use-case";
+import {LoginUserCommand} from "../application/use-cases/login.use-case";
 
 @Controller('auth')
 export class AuthController {
