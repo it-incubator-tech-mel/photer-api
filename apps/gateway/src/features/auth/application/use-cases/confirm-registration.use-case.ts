@@ -1,6 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../infrastructure/users.repository';
+import { UserRepository } from '../../infrastructure/user.repository';
 import { Notification } from '../../../../core/notification/notification';
+import { User } from '../../domain/user.entity';
 
 export class ConfirmRegistrationCommand {
   constructor(public readonly code: string) {}
@@ -17,7 +18,7 @@ export class ConfirmRegistrationUseCase
   async execute(command: ConfirmRegistrationCommand): Promise<Notification> {
     const { code } = command;
 
-    const existingUser =
+    const existingUser: User =
       await this.userRepository.findByConfirmationCode(code);
 
     if (!existingUser) {
@@ -40,7 +41,7 @@ export class ConfirmRegistrationUseCase
 
     try {
       existingUser.confirmEmail();
-      await this.userRepository.save(existingUser);
+      await this.userRepository.updateConfirmation(existingUser);
     } catch (error) {
       return Notification.badRequest([
         { message: error.message, field: 'code' },

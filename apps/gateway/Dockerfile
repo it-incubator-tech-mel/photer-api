@@ -16,8 +16,6 @@ WORKDIR /home/node/dist/${SERVICE}
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND yarn.lock are copied
 
-
-
 COPY --chown=node package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
@@ -32,4 +30,4 @@ RUN yarn build:${SERVICE}
 EXPOSE ${PORT}
 
 #CMD yarn start:prod:gateway
-CMD yarn migrate && yarn start:prod:gateway
+CMD yarn prisma generate && yarn migrate:prod && yarn start:prod:gateway

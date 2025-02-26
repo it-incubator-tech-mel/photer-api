@@ -36,11 +36,13 @@ model PasswordRecovery {
 }
 
 model Device {
-  id             Int  @id @default(autoincrement())
-  ip             String
-  title          String
-  lastActiveDate String
-  userId          Int
+  id           String @id @default(uuid())
+  userId       Int
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceName   String
+  ip           String
+  iat          DateTime @default(now())
+  exp          DateTime @default(now())
 }
 
 model RefreshToken {

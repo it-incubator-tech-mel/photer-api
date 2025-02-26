@@ -57,21 +57,35 @@ export class User {
         );
     }
 
-    getUsername(): string {
-        return this.username;
+    getId(): number {
+        return this.id;
     }
 
-    getEmail(): string {
-        return this.email;
+    getUsername(): string {
+        return this.username;
     }
 
     getPassword(): string {
         return this.password;
     }
 
+    getEmail(): string {
+        return this.email;
+    }
+
+    getCreatedAt(): Date {
+        return this.createdAt;
+    }
+
+    getUpdatedAt(): Date {
+        return this.updatedAt;
+    }
+
     getIsDeleted(): boolean {
         return this.isDeleted;
     }
+
+    // emailConfirmation
 
     getConfirmationCode(): string {
         return this.confirmationCode;

@@ -1,18 +1,27 @@
-import {Injectable} from "@nestjs/common";
-import {BodyDeviceToDB, DeviceClass} from "../api/dto/Device-type";
-import {UserRepository} from "./users.repository";
-// import {setting} from "../../../../settings";
-import {JwtService} from "@nestjs/jwt";
-import process from "process";
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+import { Injectable } from "@nestjs/common";
+import { BodyDeviceToDB, DeviceClass } from "../../auth/api/dto/Device-type";
+import { PrismaService } from '../../../prisma/prisma.service';
+import { Device } from '../domain/device.entity';
+
 @Injectable()
 export class DeviceRepository {
     constructor(
-      private userRepository: UserRepository,
-      //private jwtService: JwtService
+      private prisma: PrismaService
     ) {
     }
+
+    async create(device: Device): Promise<void> {
+        await this.prisma.device.create({
+            data: {
+                userId: device.getUserId(),
+                deviceName: device.getDeviceName(),
+                ip: device.getIp(),
+                iat: device.getIat(),
+                exp: device.getExp(),
+            }
+        });
+    }
+
     async createDeviceAndSaveToDB(device: DeviceClass, userId: number) {
         // const user = await this.usersRepository.findById(userId)
         //
@@ -25,6 +34,7 @@ export class DeviceRepository {
         //     }
         // })
     }
+
     async addDeviceInDB(token: BodyDeviceToDB, refreshToken: string) {
         // const parser = await this.jwtService.verify(refreshToken, {
         //     secret: process.env.JWT_REFRESH_SECRET,
