@@ -5,12 +5,6 @@ import { randomUUID } from 'node:crypto';
 import { Device } from '../../../devices/domain/device.entity';
 import { AccessTokenPayload, JwtServiceProvider, RefreshTokenPayload } from '../../../../core/services/jwt/jwt-service-provider.service';
 
-// export class LoginUserCommand {
-//   constructor(
-//     public readonly loginDto: LoginDto,
-//     public readonly userAgent: userAgentType,
-//   ) {}
-// }
 
 export class LoginCommand {
   constructor(

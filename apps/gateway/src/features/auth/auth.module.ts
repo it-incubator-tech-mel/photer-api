@@ -1,13 +1,19 @@
 import { Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AuthController } from './api/auth.controller';
+import { MailerModule } from '../../core/services/mailler/mailer.module';
+import { CryptoModule } from '../../core/services/crypto/crypto.module';
 import { RegistrationUseCase } from './application/use-cases/registration.use-case';
-import { UserRepository } from './infrastructure/user.repository';
+import { UserRepository } from './infrastructure/users.repository';
+import { ConfigModule } from '../../core/config/config.module';
 import { ConfirmRegistrationUseCase } from './application/use-cases/confirm-registration.use-case';
 import { LoginUseCase } from "./application/use-cases/login.use-case";
-import { DeviceRepository } from "../devices/infrastructure/device.repository";
-import { JwtStrategy } from "../../core/strategies/bearer.strategies";
+import { DeviceRepository } from "./infrastructure/device.repository";
+import { JwtStrategy } from "./strategies/bearer.strategies";
 import { RegistrationEmailResendingUseCase } from './application/use-cases/registration-email-resending.use-case';
+import {JwtService} from "@nestjs/jwt";
+import {NewPasswordCase} from "./application/use-cases/new-password.use-case";
+
 import { JwtModule } from '@nestjs/jwt';
 import { JwtConfig } from '../../core/config/jwt.config';
 import { DeviceModule } from '../devices/device.module';
@@ -20,6 +26,7 @@ const useCases: Provider[] = [
   ConfirmRegistrationUseCase,
   RegistrationEmailResendingUseCase,
   LoginUseCase,
+  NewPasswordCase,
 ];
 
 const repos: Provider[] = [

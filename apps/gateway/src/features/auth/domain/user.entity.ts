@@ -65,6 +65,10 @@ export class User {
         return this.username;
     }
 
+    getEmail(): string {
+        return this.email;
+    }
+
     getPassword(): string {
         return this.password;
     }
@@ -84,8 +88,6 @@ export class User {
     getIsDeleted(): boolean {
         return this.isDeleted;
     }
-
-    // emailConfirmation
 
     getConfirmationCode(): string {
         return this.confirmationCode;
