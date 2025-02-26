@@ -1,5 +1,4 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Headers, Post, Req, Res } from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/login.dto';
@@ -9,8 +8,6 @@ import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
 import {RegistrationUserCommand} from "../application/use-cases/registration.use-case";
 import { Request, Response } from 'express';
-import {LoginUserCommand} from "../application/use-cases/login.use-case";
-import {userAgentType} from "./dto/variable types/variable-types-for-authorization";
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { Notification, ResultStatus } from '../../../core/notification/notification';
@@ -22,6 +19,7 @@ import { Cookie } from '../../../core/decorators/param-decorators/cookie.decorat
 import { UserAgent } from '../../../core/decorators/param-decorators/user-agent.decorator';
 import { LocalAuthGuard } from '../../../core/guards/local-auth.guard';
 import {NewPasswordCommand} from "../application/use-cases/new-password.use-case";
+import {LoginCommand} from "../application/use-cases/login.use-case";
 
 @Controller('auth')
 export class AuthController {

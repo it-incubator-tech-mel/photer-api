@@ -8,6 +8,29 @@ export class UserRepository {
   constructor(private prisma: PrismaService) {
   }
 
+  async create(user: User): Promise<void> {
+    await this.prisma.user.create({
+      data: {
+        username: user.getUsername(),
+        password: user.getPassword(),
+        email: user.getEmail(),
+        createdAt: user.getCreatedAt(),
+        updatedAt: user.getUpdatedAt(),
+        isDeleted: user.getIsDeleted(),
+        emailConfirmation: {
+          create: {
+            confirmationCode: user.getConfirmationCode(),
+            expirationDate: user.getConfirmationExpiration(),
+            isConfirmed: user.isEmailConfirmed(),
+          },
+        },
+      },
+      include: {
+        emailConfirmation: true,
+      },
+    });
+  }
+
   async save(user: User): Promise<void> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: user.getEmail() },
@@ -82,6 +105,14 @@ export class UserRepository {
     return user ? this.mapToDomain(user) : null;
   }
 
+  async findById(id: number): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { emailConfirmation: true },
+    });
+    return user ? this.mapToDomain(user) : null;
+  }
+
   async findByConfirmationCode(
     confirmationCode: string,
   ): Promise<User | null> {
@@ -120,6 +151,25 @@ export class UserRepository {
       password: newPassword
       }})
     return true
+  }
+
+  async updateConfirmation(user: User): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.getId() },
+        data: {
+          updatedAt: user.getUpdatedAt(),
+        },
+      }),
+      this.prisma.emailConfirmation.update({
+        where: { userId: user.getId() },
+        data: {
+          confirmationCode: user.getConfirmationCode(),
+          expirationDate: user.getConfirmationExpiration(),
+          isConfirmed: user.isEmailConfirmed(),
+        },
+      }),
+    ]);
   }
 
 

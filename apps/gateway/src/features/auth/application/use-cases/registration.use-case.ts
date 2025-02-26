@@ -1,11 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
-import { UserRepository } from '../../infrastructure/user.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { Notification } from '../../../../core/notification/notification';
 import { User } from '../../domain/user.entity';
 import { CoreConfig } from '../../../../core/config/core.config';
+import {UserRepository} from "../../infrastructure/users.repository";
 
 export class RegistrationUserCommand {
   constructor(
@@ -64,7 +64,7 @@ export class RegistrationUseCase
 
     await this.userRepository.create(user);
 
-    this.mailerService.sendEmail(
+    await this.mailerService.sendEmail(
       user.getEmail(),
       registrationEmailTemplate(user.getConfirmationCode(), this.coreConfig.baseUrl),
       'Registration Confirmation',

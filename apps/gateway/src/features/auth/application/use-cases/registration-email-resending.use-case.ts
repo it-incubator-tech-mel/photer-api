@@ -1,5 +1,4 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../infrastructure/user.repository';
+
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { CoreConfig } from '../../../../core/config/core.config';
@@ -7,6 +6,9 @@ import { Notification, ResultStatus } from '../../../../core/notification/notifi
 import { randomUUID } from 'crypto';
 import { User } from '../../domain/user.entity';
 import { add } from 'date-fns';
+import {CommandHandler} from "@nestjs/cqrs/dist/decorators/command-handler.decorator";
+import {ICommandHandler} from "@nestjs/cqrs/dist/interfaces/commands/command-handler.interface";
+import {UserRepository} from "../../infrastructure/users.repository";
 
 export class RegistrationEmailResendingCommand {
   constructor(public readonly email: string) {}

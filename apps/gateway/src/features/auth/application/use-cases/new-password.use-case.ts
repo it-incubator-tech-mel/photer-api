@@ -1,15 +1,9 @@
-import {LoginDto} from "../../api/dto/login.dto";
-import {userAgentType} from "../../api/dto/variable types/variable-types-for-authorization";
 import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
 import {CryptoService} from "../../../../core/services/crypto/crypto.service";
 import {UserRepository} from "../../infrastructure/users.repository";
-import {JwtService} from "@nestjs/jwt";
-import {DeviceRepository} from "../../infrastructure/device.repository";
-import {ConfigService} from "@nestjs/config";
 import {Notification} from "../../../../core/notification/notification";
-import {RegistrationUserCommand} from "./registration.use-case";
 import bcrypt from "bcrypt";
-import {Result} from "../../../../../base/object-result";
+
 
 export class NewPasswordCommand {
     constructor(

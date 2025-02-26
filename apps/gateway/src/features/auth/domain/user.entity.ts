@@ -73,9 +73,6 @@ export class User {
         return this.password;
     }
 
-    getEmail(): string {
-        return this.email;
-    }
 
     getCreatedAt(): Date {
         return this.createdAt;
