@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res } from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/login.dto';
@@ -8,18 +8,15 @@ import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
 import {RegistrationUserCommand} from "../application/use-cases/registration.use-case";
 import { Request, Response } from 'express';
+import {userAgentType} from "./dto/variable types/variable-types-for-authorization";
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { Notification, ResultStatus } from '../../../core/notification/notification';
 import { BadRequestException, UnauthorizedException } from '../../../core/exception-filters/exceptions/exception-types';
 import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
 import { RegistrationEmailResendingCommand } from '../application/use-cases/registration-email-resending.use-case';
-import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
-import { Cookie } from '../../../core/decorators/param-decorators/cookie.decorator';
-import { UserAgent } from '../../../core/decorators/param-decorators/user-agent.decorator';
-import { LocalAuthGuard } from '../../../core/guards/local-auth.guard';
-import {NewPasswordCommand} from "../application/use-cases/new-password.use-case";
-import {LoginCommand} from "../application/use-cases/login.use-case";
+import {PasswordRecoveryUseCommand} from "../application/use-cases/password-recovery.use-case";
+import {LoginUserCommand} from "../application/use-cases/login.use-case";
 
 @Controller('auth')
 export class AuthController {
@@ -124,34 +121,6 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'Try login user to the system' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns JWT accessToken (expired after 5 minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired after 24 hours).',
-    schema: {
-      type: 'object',
-      properties: {
-        accessToken: { type: 'string', description: 'JWT access token' },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect values',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 401, description: 'If the password or login is wrong' })
-  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
-  @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
   async login(
     // @Headers() header,
@@ -222,28 +191,9 @@ export class AuthController {
   }
 
   @Post('new-password')
-  @ApiOperation({ summary: 'Create new password and update data' })
-  @ApiResponse({ status: 204, description: 'Input data is accepted.Email with confirmation code will be send to passed email address.Confirmation code should be inside link as query param, for example: https://some-front.com/confirm-registration?code=youtcodehere' })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect values',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() newPasswordDto: NewPasswordDto) {
-    await this.commandBus.execute<NewPasswordCommand, Notification<string | null>
-    >(new NewPasswordCommand(newPasswordDto.newPassword, newPasswordDto.recoveryCode))
-    return HttpCode
+    return { message: 'new-password' };
   }
 
   @Post('refresh-token')
