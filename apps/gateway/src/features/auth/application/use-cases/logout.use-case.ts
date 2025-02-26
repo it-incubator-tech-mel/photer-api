@@ -1,8 +1,9 @@
 import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
 import {JwtService} from "@nestjs/jwt";
-import {DeviceRepository} from "../../infrastructure/device.repository";
 import {RefreshTokenRepo} from "../../infrastructure/refreshToken.repository";
 import {Result} from "../../../../../base/object-result";
+import {DeviceRepository} from "../../../devices/infrastructure/device.repository";
+import {RefreshTokenPayload} from "../../../../core/services/jwt/jwt-service-provider.service";
 
 export class LogoutCommand {
     constructor(public readonly refreshToken: string) {}
@@ -18,7 +19,7 @@ export class LogoutCase
     ) {}
     async execute(command: LogoutCommand){
         const decodedRefreshToken: RefreshTokenPayload = await this.jwtService.decode<RefreshTokenPayload>(command.refreshToken);
-        const deletingDevice = await this.deviceRep.deleteDevice(+decodedRefreshToken.deviceId)
+        const deletingDevice = await this.deviceRep.deleteDevice(decodedRefreshToken.deviceId)
         const validToken = await this.refreshTokenRepo.deleteRefreshToken(command.refreshToken);
         if (deletingDevice && validToken){
             return true

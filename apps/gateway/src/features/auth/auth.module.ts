@@ -11,7 +11,7 @@ import { RegistrationEmailResendingUseCase } from './application/use-cases/regis
 import { JwtModule } from '@nestjs/jwt';
 import { JwtConfig } from '../../core/config/jwt.config';
 import { DeviceModule } from '../devices/device.module';
-import { JwtService } from '../../core/services/jwt/jwt.service';
+import { JwtServiceProvider } from '../../core/services/jwt/jwt-service-provider.service';
 import { CryptoModule } from '../../core/services/crypto/crypto.module';
 import { MailerModule } from '../../core/services/mailler/mailer.module';
 
@@ -32,7 +32,7 @@ const strategies: Provider[] = [
 ];
 
 const services: Provider[] = [
-  JwtService
+  JwtServiceProvider
 ];
 
 @Module({

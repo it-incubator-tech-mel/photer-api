@@ -1,9 +1,10 @@
 datasource db {
-  provider  = "postgresql"
-  url        = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
+
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -13,19 +14,20 @@ model User {
   password  String   @db.VarChar(255)
   email     String   @unique
   createdAt DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  isDeleted  Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
 
   emailConfirmation EmailConfirmation?
   passwordRecovery  PasswordRecovery?
+  devices           Device[]
 }
 
 model EmailConfirmation {
-  userId            Int      @id
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  confirmationCode  String   @unique
-  expirationDate    DateTime
-  isConfirmed       Boolean  @default(false)
+  userId           Int      @id
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  confirmationCode String   @unique
+  expirationDate   DateTime
+  isConfirmed      Boolean  @default(false)
 }
 
 model PasswordRecovery {
@@ -36,18 +38,18 @@ model PasswordRecovery {
 }
 
 model Device {
-  id           String @id @default(uuid())
-  userId       Int
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deviceName   String
-  ip           String
-  iat          DateTime @default(now())
-  exp          DateTime @default(now())
+  id         String   @id @default(uuid())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceName String
+  ip         String
+  iat        DateTime @default(now())
+  exp        DateTime @default(now())
 }
 
 model RefreshToken {
-  userId    Int   @id
-  deviceId  Int
-  iat       Int
-  exp       Int
+  userId   Int @id
+  deviceId Int
+  iat      Int
+  exp      Int
 }

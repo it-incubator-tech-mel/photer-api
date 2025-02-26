@@ -3,7 +3,7 @@ import { DeviceRepository } from "../../../devices/infrastructure/device.reposit
 import { Notification } from '../../../../core/notification/notification';
 import { randomUUID } from 'node:crypto';
 import { Device } from '../../../devices/domain/device.entity';
-import { AccessTokenPayload, JwtService, RefreshTokenPayload } from '../../../../core/services/jwt/jwt.service';
+import { AccessTokenPayload, JwtServiceProvider, RefreshTokenPayload } from '../../../../core/services/jwt/jwt-service-provider.service';
 
 // export class LoginUserCommand {
 //   constructor(
@@ -26,7 +26,7 @@ export class LoginUseCase
   implements ICommandHandler<LoginCommand>
 {
   constructor(
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtServiceProvider,
     private readonly deviceRepository: DeviceRepository,
   ) {}
 
@@ -37,7 +37,7 @@ export class LoginUseCase
     // pass login if refreshToken not passed (not valid)
     if (command.refreshToken) {
       try {
-        this.jwtService.verify<RefreshTokenPayload>(command.refreshToken);
+        await this.jwtService.verify<RefreshTokenPayload>(command.refreshToken);
 
         return Notification.unauthorized(
           'Refresh token is still valid. Logout before logging in again',

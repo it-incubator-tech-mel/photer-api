@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { BodyDeviceToDB, DeviceClass } from "../../auth/api/dto/Device-type";
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Device } from '../domain/device.entity';
+import {RefreshTokenPayload} from "../../../core/services/jwt/jwt-service-provider.service";
 
 @Injectable()
 export class DeviceRepository {
@@ -52,17 +53,17 @@ export class DeviceRepository {
         // return true;
     }
     async updateDevice(parser: RefreshTokenPayload) {
-        return prisma.device.update({
+        return this.prisma.device.update({
             where: {
                 id: parser.deviceId},
             data: {
-                iat: parser.iat,
-                exp: parser.exp
+                iat: new Date(parser.iat),
+                exp: new Date(parser.exp)
             }})
     }
 
-    async deleteDevice(deviceId: number) {
-        return prisma.device.delete({
+    async deleteDevice(deviceId: string) {
+        return this.prisma.device.delete({
             where: {id: deviceId}
         })
     }

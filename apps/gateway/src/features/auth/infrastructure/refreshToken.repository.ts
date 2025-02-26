@@ -2,6 +2,7 @@ import {PrismaService} from "../../../prisma/prisma.service";
 import {JwtService} from "@nestjs/jwt";
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
+import {RefreshTokenPayload} from "../../../core/services/jwt/jwt-service-provider.service";
 
 @Injectable()
 export class RefreshTokenRepo {
@@ -16,7 +17,7 @@ export class RefreshTokenRepo {
         return this.prismaService.refreshToken.update({
             where: {
                 userId: parser.userId,
-                deviceId: parser.deviceId},
+                deviceId: +parser.deviceId},
             data: {
                 iat: parser.iat,
                 exp: parser.exp
