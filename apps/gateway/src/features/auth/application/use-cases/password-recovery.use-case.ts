@@ -21,11 +21,12 @@ export class PasswordRecoveryUseCase
     async execute(command: PasswordRecoveryUseCommand): Promise<any> {
         const { email } = command;
         const existingUser = await this.userRepository.findByEmail(email);
-        if (!existingUser) return Result.badRequest()
+        if (!existingUser) return Result.unauthorized()
         const generateRecoveryCode = randomUUID()
         const createPasswordRecoveryCodeBody = PasswordRecovery.createForUser(existingUser.getId(), generateRecoveryCode)
         await this.userRepository.updateRecoveryCodeByEmailOrSave(createPasswordRecoveryCodeBody);
         await this.mailerService.sendEmail(email, generateRecoveryCode, 'password recovery')
+        return true
     }
 
 }

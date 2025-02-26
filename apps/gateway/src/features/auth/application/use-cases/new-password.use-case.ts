@@ -3,12 +3,12 @@ import {CryptoService} from "../../../../core/services/crypto/crypto.service";
 import {UserRepository} from "../../infrastructure/users.repository";
 import {Notification} from "../../../../core/notification/notification";
 import bcrypt from "bcrypt";
+import {NewPasswordDto} from "../../api/dto/new-password.dto";
 
 
 export class NewPasswordCommand {
     constructor(
-        public readonly newPassword: string,
-        public readonly recoveryCode: string,
+        public readonly newPasswordDto: NewPasswordDto
     ) {}
 }
 
@@ -22,9 +22,10 @@ export class NewPasswordCase
     async execute (
         command: NewPasswordCommand,
     ) {
+        const {newPassword, recoveryCode} = command.newPasswordDto
         const generateSalt = await bcrypt.genSalt(10)
-        const newPassword = await this.cryptoService.createHash(command.newPassword, generateSalt)
-        const findUserByRecoveryCodeAndReplacementPas = await this.userRepository.findByRecoveryCodeAndUpdateDate(newPassword, command.recoveryCode, new Date())
+        const generateNewPassword = await this.cryptoService.createHash(newPassword, generateSalt)
+        const findUserByRecoveryCodeAndReplacementPas = await this.userRepository.findByRecoveryCodeAndUpdateDate(generateNewPassword, recoveryCode, new Date())
         if (!findUserByRecoveryCodeAndReplacementPas){
             return Notification.badRequest([
                 {

@@ -19,6 +19,8 @@ import {Cookie} from "../../../core/decorators/param-decorators/cookie.decorator
 import {Ip} from "@nestjs/common/decorators/http/route-params.decorator";
 import {UserAgent} from "../../../core/decorators/param-decorators/user-agent.decorator";
 import {LoginCommand} from "../application/use-cases/login.use-case";
+import {NewPasswordCommand} from "../application/use-cases/new-password.use-case";
+import {PasswordRecoveryUseCommand} from "../application/use-cases/password-recovery.use-case";
 
 
 @Controller('auth')
@@ -126,12 +128,6 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
-    // @Headers() header,
-    // const userAgent: userAgentType = {
-    //   IP: req.ip,
-    //   deviceName: header['user-agent'],
-    // };
-    // @Req() req: Request,
     @CurrentUserId() userId: number,
     @Cookie('refreshToken') refreshToken: string,
     @Ip() ip: string,
@@ -139,16 +135,6 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
     ) {
-    // const { accessToken, refreshToken } = await this.commandBus.execute(
-    //   new LoginUserCommand(loginDto, userAgent))
-
-    // if (!accessToken || !refreshToken) throw new UnauthorizedException()
-
-    // console.log( accessToken, refreshToken , ' accessToken, refreshToken')
-    // response.cookie('refreshToken', refreshToken, {
-    //   httpOnly: true,
-    //   secure: true,
-    // });
 
     const loginResult: Notification<null | {
       accessToken: string;
@@ -190,12 +176,21 @@ export class AuthController {
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto) {
-    return { message: 'password-recovery' };
+    const pasRec = await this.commandBus.execute<
+        PasswordRecoveryUseCommand,
+        Notification
+    >(new PasswordRecoveryUseCommand(passwordRecoveryDto.email));
+    if (pasRec.status === ResultStatus.Unauthorized) throw new UnauthorizedException(pasRec.errorMessage)
+    return HttpCode
   }
 
   @Post('new-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() newPasswordDto: NewPasswordDto) {
+    const result: Notification = await this.commandBus.execute<
+        NewPasswordCommand,
+        Notification
+    >(new NewPasswordCommand(newPasswordDto));
     return { message: 'new-password' };
   }
 
