@@ -19,6 +19,8 @@ import {JwtStrategy} from "../../core/strategies/bearer.strategies";
 import {LogoutCase} from "./application/use-cases/logout.use-case";
 import {RefreshTokenCase} from "./application/use-cases/refreshToken.use-case";
 import {RefreshTokenRepo} from "./infrastructure/refreshToken.repository";
+import {ReCaptchaProvider} from "./domain/reCaptcha.adapter";
+import {CaptchaConfig} from "../../core/config/captcha.config";
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -42,7 +44,8 @@ const strategies: Provider[] = [
 ];
 
 const services: Provider[] = [
-  JwtServiceProvider
+  JwtServiceProvider,
+  ReCaptchaProvider
 ];
 
 @Module({
@@ -64,7 +67,7 @@ const services: Provider[] = [
           },
         };
       },
-      inject: [JwtConfig],
+      inject: [JwtConfig, CaptchaConfig],
     }),
     DeviceModule,
   ],

@@ -23,12 +23,14 @@ import {NewPasswordCommand} from "../application/use-cases/new-password.use-case
 import {PasswordRecoveryUseCommand} from "../application/use-cases/password-recovery.use-case";
 import {LogoutCommand} from "../application/use-cases/logout.use-case";
 import {RefreshTokenCommand} from "../application/use-cases/refreshToken.use-case";
+import {ReCaptchaProvider} from "../domain/reCaptcha.adapter";
 
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly commandBus: CommandBus
+    private readonly commandBus: CommandBus,
+    private readonly reCaptchaProvider: ReCaptchaProvider
   ) {}
 
   @Post('registration')
@@ -178,12 +180,17 @@ export class AuthController {
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto) {
-    const pasRec = await this.commandBus.execute<
-        PasswordRecoveryUseCommand,
-        Notification
-    >(new PasswordRecoveryUseCommand(passwordRecoveryDto.email));
-    if (pasRec.status === ResultStatus.Unauthorized) throw new UnauthorizedException(pasRec.errorMessage)
-    return HttpCode
+    if (await this.reCaptchaProvider.isValue(passwordRecoveryDto.recaptchaValue)){
+      const pasRec = await this.commandBus.execute<
+          PasswordRecoveryUseCommand,
+          Notification
+      >(new PasswordRecoveryUseCommand(passwordRecoveryDto.email));
+      if (pasRec.status === ResultStatus.Unauthorized) throw new UnauthorizedException(pasRec.errorMessage)
+      return (`email sent to your email: ${passwordRecoveryDto.email}`)
+    }else {
+      throw new BadRequestException([{ field: 'Captcha', message: 'Incorrect captcha' }])
+    }
+
   }
 
   @Post('new-password')
