@@ -11,4 +11,5 @@ export class PasswordRecoveryDto {
     @IsNotEmpty({ message: 'Email is required' })
     @IsEmail({}, { message: 'Invalid email format' })
     email: string;
+    recaptchaValue: boolean
 }

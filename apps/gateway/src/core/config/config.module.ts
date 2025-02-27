@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { CoreConfig } from './core.config';
 import { MailerConfig } from './mailer.config';
 import { JwtConfig } from './jwt.config';
+import {CaptchaConfig} from "./captcha.config";
 
 @Global()
 @Module({
@@ -21,8 +22,13 @@ import { JwtConfig } from './jwt.config';
       provide: JwtConfig,
       useFactory: (configService: ConfigService<any, true>) => new JwtConfig(configService),
       inject: [ConfigService],
+    },
+    {
+      provide: CaptchaConfig,
+      useFactory: (configService: ConfigService<any, true>) => new CaptchaConfig(configService),
+      inject: [ConfigService],
     }
   ],
-  exports: [CoreConfig, MailerConfig, JwtConfig],
+  exports: [CoreConfig, MailerConfig, JwtConfig, CaptchaConfig],
 })
 export class ConfigModule {}
