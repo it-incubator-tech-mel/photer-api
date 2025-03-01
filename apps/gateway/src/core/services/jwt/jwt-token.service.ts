@@ -13,7 +13,7 @@ export class RefreshTokenPayload extends AccessTokenPayload {
 }
 
 @Injectable()
-export class JwtServiceProvider {
+export class JwtTokenService {
   constructor(
     private nestJwtService: NestJwtService,
     private jwtConfig: JwtConfig
