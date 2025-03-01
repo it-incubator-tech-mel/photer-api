@@ -89,6 +89,7 @@ export class UserRepository {
     }
   }
 
+
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
       where: { username },

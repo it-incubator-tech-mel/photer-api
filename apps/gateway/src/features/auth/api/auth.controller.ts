@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res } from '@nestjs/common';
+import {Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Req, Res, UseGuards} from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/login.dto';
@@ -24,13 +24,15 @@ import {PasswordRecoveryUseCommand} from "../application/use-cases/password-reco
 import {LogoutCommand} from "../application/use-cases/logout.use-case";
 import {RefreshTokenCommand} from "../application/use-cases/refreshToken.use-case";
 import {ReCaptchaProvider} from "../domain/reCaptcha.adapter";
+import * as passport from 'passport';
+
 
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly reCaptchaProvider: ReCaptchaProvider
+    private readonly reCaptchaProvider: ReCaptchaProvider,
   ) {}
 
   @Post('registration')
@@ -278,14 +280,14 @@ export class AuthController {
   }
 
   @Get('oauth/:provider')
-  async oauthLogin(@Param('provider') provider: 'google' | 'github') {
-    const redirectUrl = `https://auth.${provider}.com/oauth`;
-    return { message: `redirect url ${redirectUrl}` };
+  // @UseGuards(AuthGuard('google'))
+  async oauthLogin(@Param('provider') provider: 'google' | 'github', @Req() req: Request, @Res() res: Response) {
+    return passport.authenticate(provider)(req, res);
   }
 
   @Get('oauth/:provider/callback')
   @HttpCode(HttpStatus.OK)
   async oauthCallback(@Param('provider') provider: 'google' | 'github') {
-    return { message: `OAuth callback from ${provider} successful` };
+  return passport.authenticate(provider)
   }
 }
