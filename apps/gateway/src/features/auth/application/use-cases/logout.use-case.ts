@@ -1,9 +1,9 @@
 import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
 import {JwtService} from "@nestjs/jwt";
-import {RefreshTokenRepo} from "../../infrastructure/refreshToken.repository";
-import {Result} from "../../../../../base/object-result";
+import {RefreshTokenRepository} from "../../infrastructure/refresh-token.repository";
 import {DeviceRepository} from "../../../devices/infrastructure/device.repository";
-import {RefreshTokenPayload} from "../../../../core/services/jwt/jwt-service-provider.service";
+import {RefreshTokenPayload} from "../../../../core/services/jwt/jwt-token.service";
+import { Notification } from '../../../../core/notification/notification';
 
 export class LogoutCommand {
     constructor(public readonly refreshToken: string) {}
@@ -15,16 +15,16 @@ export class LogoutCase
     constructor(
         private readonly jwtService: JwtService,
         private readonly deviceRep: DeviceRepository,
-        private readonly refreshTokenRepo: RefreshTokenRepo,
+        private readonly refreshTokenRepo: RefreshTokenRepository,
     ) {}
     async execute(command: LogoutCommand){
         const decodedRefreshToken: RefreshTokenPayload = await this.jwtService.decode<RefreshTokenPayload>(command.refreshToken);
         const deletingDevice = await this.deviceRep.deleteDevice(decodedRefreshToken.deviceId)
-        const validToken = await this.refreshTokenRepo.deleteRefreshToken(command.refreshToken);
+        const validToken = await this.refreshTokenRepo.delete(command.refreshToken);
         if (deletingDevice && validToken){
             return true
         } else {
-            return Result.forbidden()
+            return Notification.forbidden()
         }
     }
 }

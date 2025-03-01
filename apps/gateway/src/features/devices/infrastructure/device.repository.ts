@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { BodyDeviceToDB, DeviceClass } from "../../auth/api/dto/Device-type";
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Device } from '../domain/device.entity';
-import {RefreshTokenPayload} from "../../../core/services/jwt/jwt-service-provider.service";
+import {RefreshTokenPayload} from "../../../core/services/jwt/jwt-token.service";
 
 @Injectable()
 export class DeviceRepository {

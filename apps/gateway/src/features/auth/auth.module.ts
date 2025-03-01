@@ -15,7 +15,7 @@ import { DeviceRepository } from '../devices/infrastructure/device.repository';
 import { JwtStrategy } from '../../core/strategies/bearer.strategies';
 import { LogoutCase } from './application/use-cases/logout.use-case';
 import { RefreshTokenCase } from './application/use-cases/refreshToken.use-case';
-import { RefreshTokenRepo } from './infrastructure/refreshToken.repository';
+import { RefreshTokenRepository } from './infrastructure/refresh-token.repository';
 import { ReCaptchaModule } from '../../core/services/reCaptcha/reCaptcha.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtTokenService } from '../../core/services/jwt/jwt-token.service';
@@ -33,7 +33,7 @@ const useCases: Provider[] = [
 const repos: Provider[] = [
   UserRepository,
   DeviceRepository,
-  RefreshTokenRepo,
+  RefreshTokenRepository,
 ];
 
 const strategies: Provider[] = [

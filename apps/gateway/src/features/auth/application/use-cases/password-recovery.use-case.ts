@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '../../infrastructure/users.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
-import { Result } from '../../../../../base/object-result';
 import { Notification } from '../../../../core/notification/notification';
 import { User } from '../../domain/user.entity';
 import { CoreConfig } from '../../../../core/config/core.config';
@@ -29,7 +28,7 @@ export class PasswordRecoveryUseCase
   async execute(command: PasswordRecoveryUseCommand): Promise<Notification> {
     const { email } = command;
     const user: User = await this.userRepository.findByEmail(email);
-    if (!user) return Result.unauthorized();
+    if (!user) return Notification.unauthorized();
 
     // const generateRecoveryCode = randomUUID();
     // const createPasswordRecoveryCodeBody = PasswordRecovery.createForUser(existingUser.getId(), generateRecoveryCode);
@@ -54,7 +53,7 @@ export class PasswordRecoveryUseCase
     //   'password recovery'
     // );
 
-    return Result.success();
+    return Notification.success();
     // return true;
   }
 
