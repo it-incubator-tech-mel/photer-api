@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { User } from '../domain/user.entity';
-import {PasswordRecovery} from "../domain/password-recovery";
-
 
 @Injectable()
 export class UserRepository {
@@ -32,62 +30,62 @@ export class UserRepository {
     });
   }
 
-  async save(user: User): Promise<void> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: user.getEmail() },
-    });
-
-    if (existingUser) {
-      // If user exists, update it
-      await this.prisma.user.update({
-        where: { email: user.getEmail() },
-        data: {
-          username: user.getUsername(),
-          password: user.getPassword(),
-          isDeleted: user.getIsDeleted(),
-          updatedAt: new Date(),
-        },
-      });
-
-      // Update email confirmation (if necessary)
-      await this.prisma.emailConfirmation.upsert({
-        where: { userId: existingUser.id },
-        update: {
-          confirmationCode: user.getConfirmationCode(),
-          expirationDate: user.getConfirmationExpiration(),
-          isConfirmed: user.isEmailConfirmed(), // или оставьте как есть, если не подтверждено
-        },
-        create: {
-          userId: existingUser.id,
-          confirmationCode: user.getConfirmationCode(),
-          expirationDate: user.getConfirmationExpiration(),
-          isConfirmed: false, // начальное состояние
-        },
-      });
-    } else {
-      // Create user if does not exist
-      const createdUser = await this.prisma.user.create({
-        data: {
-          username: user.getUsername(),
-          password: user.getPassword(),
-          email: user.getEmail(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isDeleted: false,
-        },
-      });
-
-      // Create confirmation email record
-      await this.prisma.emailConfirmation.create({
-        data: {
-          userId: createdUser.id,
-          confirmationCode: user.getConfirmationCode(),
-          expirationDate: user.getConfirmationExpiration(),
-          isConfirmed: false, // начальное состояние
-        },
-      });
-    }
-  }
+  // async save(user: User): Promise<void> {
+  //   const existingUser = await this.prisma.user.findUnique({
+  //     where: { email: user.getEmail() },
+  //   });
+  //
+  //   if (existingUser) {
+  //     // If user exists, update it
+  //     await this.prisma.user.update({
+  //       where: { email: user.getEmail() },
+  //       data: {
+  //         username: user.getUsername(),
+  //         password: user.getPassword(),
+  //         isDeleted: user.getIsDeleted(),
+  //         updatedAt: new Date(),
+  //       },
+  //     });
+  //
+  //     // Update email confirmation (if necessary)
+  //     await this.prisma.emailConfirmation.upsert({
+  //       where: { userId: existingUser.id },
+  //       update: {
+  //         confirmationCode: user.getConfirmationCode(),
+  //         expirationDate: user.getConfirmationExpiration(),
+  //         isConfirmed: user.isEmailConfirmed(), // или оставьте как есть, если не подтверждено
+  //       },
+  //       create: {
+  //         userId: existingUser.id,
+  //         confirmationCode: user.getConfirmationCode(),
+  //         expirationDate: user.getConfirmationExpiration(),
+  //         isConfirmed: false, // начальное состояние
+  //       },
+  //     });
+  //   } else {
+  //     // Create user if does not exist
+  //     const createdUser = await this.prisma.user.create({
+  //       data: {
+  //         username: user.getUsername(),
+  //         password: user.getPassword(),
+  //         email: user.getEmail(),
+  //         createdAt: new Date(),
+  //         updatedAt: new Date(),
+  //         isDeleted: false,
+  //       },
+  //     });
+  //
+  //     // Create confirmation email record
+  //     await this.prisma.emailConfirmation.create({
+  //       data: {
+  //         userId: createdUser.id,
+  //         confirmationCode: user.getConfirmationCode(),
+  //         expirationDate: user.getConfirmationExpiration(),
+  //         isConfirmed: false, // начальное состояние
+  //       },
+  //     });
+  //   }
+  // }
 
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
@@ -130,7 +128,8 @@ export class UserRepository {
 
     return prismaUser ? this.mapToDomain(prismaUser) : null;
   }
-  async updateRecoveryCodeByEmailOrSave(
+
+/*  async updateRecoveryCodeByEmailOrSave(
       passwordRecovery: PasswordRecovery
   ) {
     const findPasswordRecoveryByUserId = await this.prisma.passwordRecovery.findFirst({
@@ -155,13 +154,32 @@ export class UserRepository {
         }
       })
     }
+  }*/
+
+  async updatePasswordRecovery(user: User): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.getId() },
+        data: {
+          updatedAt: user.getUpdatedAt(),
+        },
+      }),
+      this.prisma.passwordRecovery.upsert({
+        where: { userId: user.getId() },
+        update: {
+          recoveryCode: user.getRecoveryCode(),
+          expirationDate: user.getConfirmationExpiration(),
+        },
+        create: {
+          userId: user.getId(),
+          recoveryCode: user.getRecoveryCode(),
+          expirationDate: user.getConfirmationExpiration(),
+        },
+      }),
+    ]);
   }
 
-  async findByRecoveryCodeAndUpdateDate(
-      newPassword: string,
-      recoveryCode: string,
-      date: Date
-  ): Promise<boolean | null> {
+  async findUserByRecoveryCode(recoveryCode: string): Promise<User | null> {
     const prismaUser = await this.prisma.user.findFirst({
       where: {
         passwordRecovery: {
@@ -172,13 +190,32 @@ export class UserRepository {
         passwordRecovery: true,
       },
     });
-    if (!prismaUser || prismaUser.passwordRecovery.expirationDate < date) return null
-    await this.prisma.user.update({where: {id: prismaUser.id},
-      data : {
-      password: newPassword
-      }})
-    return true
+
+    return prismaUser ? this.mapToDomain(prismaUser) : null;
   }
+
+  // async findByRecoveryCodeAndUpdateDate(
+  //     newPassword: string,
+  //     recoveryCode: string,
+  //     date: Date
+  // ): Promise<boolean | null> {
+  //   const prismaUser = await this.prisma.user.findFirst({
+  //     where: {
+  //       passwordRecovery: {
+  //         recoveryCode
+  //       },
+  //     },
+  //     include: {
+  //       passwordRecovery: true,
+  //     },
+  //   });
+  //   if (!prismaUser || prismaUser.passwordRecovery.expirationDate < date) return null
+  //   await this.prisma.user.update({where: {id: prismaUser.id},
+  //     data : {
+  //     password: newPassword
+  //     }})
+  //   return true
+  // }
 
   async updateConfirmation(user: User): Promise<void> {
     await this.prisma.$transaction([
@@ -212,6 +249,8 @@ export class UserRepository {
       prismaUser.emailConfirmation?.confirmationCode ?? '',
       prismaUser.emailConfirmation?.expirationDate ?? new Date(),
       prismaUser.emailConfirmation?.isConfirmed ?? false,
+      prismaUser.passwordRecovery?.recoveryCode,
+      prismaUser.passwordRecovery?.expirationDate,
     );
   }
 }
