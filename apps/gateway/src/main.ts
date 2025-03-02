@@ -12,11 +12,7 @@ async function bootstrap() {
     methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
   });
-  app.use(
-      cors({
-        origin: 'https://photer.ltd',
-      })
-  )
+  
 
   appSetup(app);
 
