@@ -12,6 +12,11 @@ async function bootstrap() {
     methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
   });
+  app.use(
+      cors({
+        origin: ['https://photer.ltd/api/v1/auth/oauth/google', 'https://photer.ltd/api/v1/auth/oauth/github'],
+      })
+  )
 
   appSetup(app);
 
