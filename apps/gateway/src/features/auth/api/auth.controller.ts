@@ -28,6 +28,7 @@ import * as passport from 'passport';
 
 
 
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -280,9 +281,8 @@ export class AuthController {
   }
 
   @Get('oauth/:provider')
-  // @UseGuards(AuthGuard('google'))
   async oauthLogin(@Param('provider') provider: 'google' | 'github', @Req() req: Request, @Res() res: Response) {
-    return passport.authenticate(provider)(req, res);
+    passport.authenticate(provider)(req, res);
   }
 
   @Get('oauth/:provider/callback')

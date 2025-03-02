@@ -12,7 +12,6 @@ async function bootstrap() {
     methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
   });
-
   appSetup(app);
 
   const coreConfig: CoreConfig = app.get<CoreConfig>(CoreConfig);

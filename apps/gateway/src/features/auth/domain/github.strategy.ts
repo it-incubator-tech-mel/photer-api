@@ -22,9 +22,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
 
     async validate(accessToken: string, refreshToken: string, profile: OauthTokenData) {
         const user = await this.userRepository.findByEmail(profile.email);
-        console.log(user,'user')
         if (!user) return Notification.unauthorized('Not registered')
-        console.log(user,'123')
         return user
     }
 }
