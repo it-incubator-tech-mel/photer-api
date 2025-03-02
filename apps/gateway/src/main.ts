@@ -7,11 +7,7 @@ import { appSetup } from './setup/app.setup';
 async function bootstrap() {
   const app: INestApplication = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: '*', // Разрешаем все домены
-    methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization',
-  });
+  app.enableCors();
 
   appSetup(app);
 
