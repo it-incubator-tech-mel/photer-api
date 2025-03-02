@@ -8,11 +8,7 @@ async function bootstrap() {
   const app: INestApplication = await NestFactory.create(AppModule);
 
   app.enableCors();
-  app.use(
-      cors({
-        origin: ['https://photer.ltd/api/v1/auth/oauth/google', 'https://photer.ltd/api/v1/auth/oauth/github'],
-      })
-  )
+  
   appSetup(app);
 
   const coreConfig: CoreConfig = app.get<CoreConfig>(CoreConfig);
