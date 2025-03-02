@@ -21,6 +21,9 @@ import {RefreshTokenCase} from "./application/use-cases/refreshToken.use-case";
 import {RefreshTokenRepo} from "./infrastructure/refreshToken.repository";
 import {ReCaptchaProvider} from "./domain/reCaptcha.adapter";
 import {CaptchaConfig} from "../../core/config/captcha.config";
+import {GoogleStrategy} from "./domain/google.strategy";
+import {PassportModule} from "@nestjs/passport";
+import {GithubStrategy} from "./domain/github.strategy";
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -40,7 +43,9 @@ const repos: Provider[] = [
 ];
 
 const strategies: Provider[] = [
-  JwtStrategy
+  JwtStrategy,
+  GoogleStrategy,
+  GithubStrategy,
 ];
 
 const services: Provider[] = [
@@ -50,6 +55,7 @@ const services: Provider[] = [
 
 @Module({
   imports: [
+    PassportModule,
     CqrsModule,
     MailerModule,
     // ConfigModule,
@@ -67,7 +73,7 @@ const services: Provider[] = [
           },
         };
       },
-      inject: [JwtConfig, CaptchaConfig],
+      inject: [JwtConfig],
     }),
     DeviceModule,
   ],

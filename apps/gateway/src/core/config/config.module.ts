@@ -4,6 +4,7 @@ import { CoreConfig } from './core.config';
 import { MailerConfig } from './mailer.config';
 import { JwtConfig } from './jwt.config';
 import {CaptchaConfig} from "./captcha.config";
+import {Oauth2Config} from "./Oauth2.config";
 
 @Global()
 @Module({
@@ -27,8 +28,13 @@ import {CaptchaConfig} from "./captcha.config";
       provide: CaptchaConfig,
       useFactory: (configService: ConfigService<any, true>) => new CaptchaConfig(configService),
       inject: [ConfigService],
+    },
+    {
+      provide: Oauth2Config,
+      useFactory: (configService: ConfigService<any, true>) => new Oauth2Config(configService),
+      inject: [ConfigService],
     }
   ],
-  exports: [CoreConfig, MailerConfig, JwtConfig, CaptchaConfig],
+  exports: [CoreConfig, MailerConfig, JwtConfig, CaptchaConfig, Oauth2Config],
 })
 export class ConfigModule {}
