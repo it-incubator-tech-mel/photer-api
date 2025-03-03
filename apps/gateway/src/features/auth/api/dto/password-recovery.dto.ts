@@ -11,5 +11,10 @@ export class PasswordRecoveryDto {
     @IsNotEmpty({ message: 'Email is required' })
     @IsEmail({}, { message: 'Invalid email format' })
     email: string;
+    @ApiProperty({
+        nullable: false,
+        description: 'must be unique',
+    })
+    @Trim()
     recaptchaValue: string
 }
