@@ -20,7 +20,6 @@ spec:
           image: REGISTRY_HOSTNAME/PROJECT:TAG_VERSION
           ports:
             - containerPort: PORT_CONTAINER
-
           env:
             - name: ENV_TYPE
               valueFrom:
@@ -52,6 +51,46 @@ spec:
                 secretKeyRef:
                   name: photer-gateway-api-production-config-secret
                   key: BASE_URL
+            - name: CAPTCHA_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: CAPTCHA_SECRET
+            - name: GITHUB_CLIENT
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: GITHUB_CLIENT
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: GITHUB_CLIENT_SECRET
+            - name: GOOGLE_CLIENT
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: GOOGLE_CLIENT
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: GOOGLE_CLIENT_SECRET
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: JWT_SECRET
+            - name: JWT_ACCESS_EXPIRATION_TIME
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: JWT_ACCESS_EXPIRATION_TIME
+            - name: JWT_REFRESH_EXPIRATION_TIME
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: JWT_REFRESH_EXPIRATION_TIME
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
