@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
-import { Trim } from '../../../../core/decorators/trim';
+import { Trim } from '../../../../../core/decorators/trim';
 import {ApiProperty} from "@nestjs/swagger";
 
 export class NewPasswordDto {

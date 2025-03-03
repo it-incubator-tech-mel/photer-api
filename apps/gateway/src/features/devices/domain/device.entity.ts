@@ -6,6 +6,7 @@ export class Device {
     private ip: string,
     private iat: Date,
     private exp: Date,
+    private isDeleted: boolean,
   ) {}
 
   static create(deviceId: string, userId: number, deviceName: string, ip: string, iat: number, exp: number): Device {
@@ -15,7 +16,28 @@ export class Device {
       deviceName,
       ip,
       new Date(iat * 1000),
-      new Date(exp * 1000)
+      new Date(exp * 1000),
+      false
+    );
+  }
+
+  static restore(
+    id: string,
+    userId: number,
+    deviceName: string,
+    ip: string,
+    iat: Date,
+    exp: Date,
+    isDeleted: boolean,
+  ): Device {
+    return new Device(
+      id,
+      userId,
+      deviceName,
+      ip,
+      iat,
+      exp,
+      isDeleted
     );
   }
 
@@ -41,5 +63,9 @@ export class Device {
 
   getExp(): Date {
     return this.exp;
+  }
+
+  getIsDeleted(): boolean {
+    return this.isDeleted;
   }
 }

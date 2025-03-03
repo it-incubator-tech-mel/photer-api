@@ -45,6 +45,7 @@ model Device {
   ip         String
   iat        DateTime @default(now())
   exp        DateTime @default(now())
+  isDeleted  Boolean  @default(false)
 }
 
 model RefreshToken {

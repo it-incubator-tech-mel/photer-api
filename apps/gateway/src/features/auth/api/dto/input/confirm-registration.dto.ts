@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import { Trim } from '../../../../core/decorators/trim';
+import { Trim } from '../../../../../core/decorators/trim';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ConfirmRegistrationDto {

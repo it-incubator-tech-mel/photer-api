@@ -2,9 +2,8 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { UserRepository } from '../../infrastructure/users.repository';
 import { Notification } from '../../../../core/notification/notification';
-import { NewPasswordDto } from '../../api/dto/new-password.dto';
+import { NewPasswordDto } from '../../api/dto/input/new-password.dto';
 import { User } from '../../domain/user.entity';
-
 
 export class NewPasswordCommand {
   constructor(
@@ -14,7 +13,7 @@ export class NewPasswordCommand {
 }
 
 @CommandHandler(NewPasswordCommand)
-export class NewPasswordCase
+export class NewPasswordUseCase
   implements ICommandHandler<NewPasswordCommand> {
   constructor(
     private readonly cryptoService: CryptoService,
@@ -29,31 +28,16 @@ export class NewPasswordCase
 
     const user: User | null = await this.userRepository.findUserByRecoveryCode(recoveryCode);
 
-    if (!user) {
-      return Notification.badRequest([{ message: 'Incorrect recovery code', field: 'recoveryCode' }]);
-    }
+    if (!user) return Notification.badRequest([{ message: 'Incorrect recovery code', field: 'recoveryCode' }])
 
     const salt: string = await this.cryptoService.genSalt();
     const newPasswordHash: string = await this.cryptoService.createHash(newPassword, salt);
 
-    // const generateSalt = await bcrypt.genSalt(10);
-    // const generateNewPassword = await this.cryptoService.createHash(newPassword, generateSalt);
-
     try {
       user.updatePassword(newPasswordHash);
-      await this.userRepository.updatePasswordRecovery(user);
+      await this.userRepository.updateOrCreatePasswordRecovery(user);
     } catch (err) {
       return Notification.badRequest([{ message: err.message, field: 'recoveryCode' }]);
     }
-
-    // const findUserByRecoveryCodeAndReplacementPas = await this.userRepository.findByRecoveryCodeAndUpdateDate(generateNewPassword, recoveryCode, new Date());
-    // if (!findUserByRecoveryCodeAndReplacementPas) {
-    //   return Notification.badRequest([
-    //     {
-    //       message: 'Recovery code time has expired or incorrect code',
-    //       field: 'recoveryCode',
-    //     },
-    //   ]);
-    // }
   }
 }

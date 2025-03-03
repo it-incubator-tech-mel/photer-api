@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { configValidation } from '../../../../common/config/config-validation';
+import { configValidation } from './config-validation';
 import { IsString } from 'class-validator';
 
 @Injectable()
 export class CaptchaConfig {
   constructor(private configService: ConfigService<any, true>) {
-    console.log('in CaptchaConfig', configService);
+    // console.log('in CaptchaConfig', configService);
     configValidation.validateConfig(this);
   }
 

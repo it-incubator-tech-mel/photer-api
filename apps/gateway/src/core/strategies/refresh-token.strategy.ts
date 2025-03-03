@@ -8,11 +8,13 @@ import { UnauthorizedException } from '../exception-filters/exceptions/exception
 import { unixToISOString } from '../utils/convert-unix-to-iso';
 import { Notification, ResultStatus } from '../notification/notification';
 
-// logic
-// 1) extract token from cookie -> validate
-// 2) if not token provided -> pass validate method -> error in decorators (not provided)
+/**
+ * 1) extract token from cookie -> validate
+ * 2) if not token provided -> pass validate method -> error in decorators or ignoreExpiration (not provided)
+*/
+
 @Injectable()
-export class RefreshTokenJwtStrategy extends PassportStrategy(
+export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
   'refresh-token',
 ) {
@@ -42,7 +44,7 @@ export class RefreshTokenJwtStrategy extends PassportStrategy(
 
     req.device = {
       userId: userId,
-      deviceId,
+      deviceId: deviceId,
       iat: unixToISOString(iat),
     };
 

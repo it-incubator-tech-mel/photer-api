@@ -6,41 +6,51 @@ import { UserRepository } from './infrastructure/users.repository';
 import { ConfirmRegistrationUseCase } from './application/use-cases/confirm-registration.use-case';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { RegistrationEmailResendingUseCase } from './application/use-cases/registration-email-resending.use-case';
-import { NewPasswordCase } from './application/use-cases/new-password.use-case';
+import { NewPasswordUseCase } from './application/use-cases/new-password.use-case';
 import { JwtConfig } from '../../core/config/jwt.config';
 import { DeviceModule } from '../devices/device.module';
 import { CryptoModule } from '../../core/services/crypto/crypto.module';
 import { MailerModule } from '../../core/services/mailler/mailer.module';
 import { DeviceRepository } from '../devices/infrastructure/device.repository';
-import { JwtStrategy } from '../../core/strategies/bearer.strategies';
-import { LogoutCase } from './application/use-cases/logout.use-case';
-import { RefreshTokenCase } from './application/use-cases/refreshToken.use-case';
 import { RefreshTokenRepository } from './infrastructure/refresh-token.repository';
 import { ReCaptchaModule } from '../../core/services/reCaptcha/reCaptcha.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtTokenService } from '../../core/services/jwt/jwt-token.service';
+import { LocalStrategy } from '../../core/strategies/local.strategy';
+import { AuthService } from './application/services/auth-service';
+import { PasswordRecoveryUseCase } from './application/use-cases/password-recovery.use-case';
+import { RefreshTokenUseCase } from './application/use-cases/refreshToken.use-case';
+import { LogoutUseCase } from './application/use-cases/logout.use-case';
+import { UserQueryRepository } from './infrastructure/users.query-repository';
+import { BearerStrategy } from '../../core/strategies/bearer.strategies';
+import { RefreshTokenStrategy } from '../../core/strategies/refresh-token.strategy';
 
 const useCases: Provider[] = [
   RegistrationUseCase,
   ConfirmRegistrationUseCase,
   RegistrationEmailResendingUseCase,
-  LogoutCase,
-  RefreshTokenCase,
+  PasswordRecoveryUseCase,
+  NewPasswordUseCase,
   LoginUseCase,
-  NewPasswordCase,
+  RefreshTokenUseCase,
+  LogoutUseCase,
 ];
 
 const repos: Provider[] = [
   UserRepository,
+  UserQueryRepository,
   DeviceRepository,
   RefreshTokenRepository,
 ];
 
 const strategies: Provider[] = [
-  JwtStrategy,
+  BearerStrategy,
+  LocalStrategy,
+  RefreshTokenStrategy
 ];
 
 const services: Provider[] = [
+  AuthService,
   JwtTokenService
 ];
 

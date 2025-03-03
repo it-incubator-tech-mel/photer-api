@@ -1,14 +1,14 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { RegistrationDto } from './dto/registration.dto';
+import { RegistrationDto } from './dto/input/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
-import { LoginDto } from './dto/login.dto';
-import { PasswordRecoveryDto } from './dto/password-recovery.dto';
-import { NewPasswordDto } from './dto/new-password.dto';
-import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
-import { RegistrationEmailResendingDto } from './dto/registration-email-resending.dto';
+import { LoginDto } from './dto/input/login.dto';
+import { PasswordRecoveryDto } from './dto/input/password-recovery.dto';
+import { NewPasswordDto } from './dto/input/new-password.dto';
+import { ConfirmRegistrationDto } from './dto/input/confirm-registration.dto';
+import { RegistrationEmailResendingDto } from './dto/input/registration-email-resending.dto';
 import { RegistrationUserCommand } from '../application/use-cases/registration.use-case';
-import { Request, Response } from 'express';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Response } from 'express';
+import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { Notification, ResultStatus } from '../../../core/notification/notification';
 import { BadRequestException, UnauthorizedException } from '../../../core/exception-filters/exceptions/exception-types';
@@ -24,12 +24,23 @@ import { PasswordRecoveryUseCommand } from '../application/use-cases/password-re
 import { LogoutCommand } from '../application/use-cases/logout.use-case';
 import { RefreshTokenCommand } from '../application/use-cases/refreshToken.use-case';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
-
+import { LocalAuthGuard } from '../../../core/guards/local-auth.guard';
+import { RefreshTokenAuthGuard } from '../../../core/guards/refresh-token-auth.guard';
+import { CurrentDeviceId } from '../../../core/decorators/param-decorators/current-device-id.decorator';
+import { CurrentDeviceIat } from '../../../core/decorators/param-decorators/current-device-iat.decorator';
+import {
+  CurrentUserIdFromDevice,
+} from '../../../core/decorators/param-decorators/current-user-id-from-device.decorator';
+import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
+import { AuthMeOutputDto } from './dto/output/auth-me.dto';
+import { UserQueryRepository } from '../infrastructure/users.query-repository';
+import * as passport from 'passport';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
+    private readonly userQueryRepository: UserQueryRepository,
     private readonly reCaptchaService: ReCaptchaService,
   ) {
   }
@@ -161,6 +172,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'If the password or login is wrong' })
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
+  @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
   async login(
     @CurrentUserId() userId: number,
@@ -168,9 +180,8 @@ export class AuthController {
     @Ip() ip: string,
     @UserAgent() userAgent: string,
     @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response,
   ) {
-
     const result: Notification<null | {
       accessToken: string;
       refreshToken: string;
@@ -225,8 +236,6 @@ export class AuthController {
 
       // to prevent user's email detection send NO_CONTENT
       // for user by email not found or email send successfully
-
-      // if (result.status === ResultStatus.Unauthorized) throw new UnauthorizedException(result.errorMessage);
     } else {
       throw new BadRequestException([{ field: 'Captcha', message: 'Incorrect captcha' }]);
     }
@@ -260,45 +269,46 @@ export class AuthController {
     if (result.status === ResultStatus.BadRequest) {
       throw new BadRequestException(result.extensions!);
     }
-
   }
 
   @Post('refresh-token')
+  @ApiSecurity('refreshToken')
   @ApiOperation({ summary: 'Generate new pair of access and refresh token. Update date in Device' })
   @ApiResponse({
     status: 200, description: 'Returns JWT accessToken in body and JWT refreshToken in cookie (http-only, secure).',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  // @UseGuards(RefreshTokenAuthGuard)
+  @UseGuards(RefreshTokenAuthGuard)
   @HttpCode(HttpStatus.OK)
   async refreshToken(
-    @Cookie('refreshToken') refreshToken: string,
-    @CurrentUserId() userId: number,
-    @Res({ passthrough: true }) res: Response) {
-    const loginResult: Notification<null | {
-      accessToken: string;
-      refreshToken: string;
-    }> = await this.commandBus.execute<RefreshTokenCommand, Notification<null | {
-      accessToken: string;
-      refreshToken: string
-    }>>(
-      new RefreshTokenCommand(refreshToken));
+    @CurrentUserIdFromDevice() userId: number,
+    @CurrentDeviceId() deviceId: string,
+    @CurrentDeviceIat() iat: string,
+    @Res() res: Response,
+  ) {
+    const result: Notification<null | { accessToken: string; refreshToken: string }> =
+      await this.commandBus.execute<
+        RefreshTokenCommand,
+        Notification<null | { accessToken: string; refreshToken: string }>
+      >(new RefreshTokenCommand(userId, deviceId, iat));
 
-    if (loginResult.status === ResultStatus.Unauthorized || !loginResult.data) {
-      throw new UnauthorizedException(loginResult.errorMessage);
+    if (result.status === ResultStatus.Unauthorized || !result.data) {
+      throw new UnauthorizedException();
     }
 
-    res.cookie('refreshToken', loginResult.data.refreshToken, {
+    res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
+      sameSite: 'strict', // protects against CSRF attacks
     });
 
     res.status(HttpStatus.OK).send({
-      accessToken: loginResult.data.accessToken,
+      accessToken: result.data.accessToken!,
     });
   }
 
   @Post('logout')
+  @ApiSecurity('refreshToken')
   @ApiOperation({ summary: 'Logout in account' })
   @ApiResponse({
     status: 204, description: 'Are you really want to log out\n' +
@@ -319,22 +329,57 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async logout(@Req() req: Request) {
-    await this.commandBus.execute<LogoutCommand, Notification>(
-      new LogoutCommand(req.cookies.refreshToken));
-    return HttpCode;
+  @UseGuards(RefreshTokenAuthGuard)
+  async logout(
+    @CurrentDeviceId() deviceId: string,
+    @CurrentDeviceIat() iat: string,
+    @Res() res: Response,
+  ) {
+    const result: Notification = await this.commandBus.execute<LogoutCommand, Notification>(
+      new LogoutCommand(deviceId, iat),
+    );
+
+    if (result.status === ResultStatus.Unauthorized) {
+      throw new UnauthorizedException();
+    }
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true, // cookie can only be accessed via http or https
+      secure: true, // send cookie only over https
+      sameSite: 'strict', // protects against CSRF attacks
+    });
+
+    res.status(HttpStatus.NO_CONTENT).send();
+  }
+
+  @Get('me')
+  @ApiSecurity('bearer')
+  @ApiOperation({ summary: 'Get information about current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Success',
+    type: AuthMeOutputDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseGuards(BearerAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async authMe(@CurrentUserId() userId: number) {
+    const user: AuthMeOutputDto = await this.userQueryRepository.findAuthenticatedUserById(userId);
+
+    if (!user) throw new UnauthorizedException();
+
+    return user;
   }
 
   @Get('oauth/:provider')
-  async oauthLogin(@Param('provider') provider: 'google' | 'github') {
-    const redirectUrl = `https://auth.${provider}.com/oauth`;
-    return { message: `redirect url ${redirectUrl}` };
+  // @UseGuards(AuthGuard('google'))
+  async oauthLogin(@Param('provider') provider: 'google' | 'github', @Req() req: Request, @Res() res: Response) {
+    passport.authenticate(provider)(req, res);
   }
 
   @Get('oauth/:provider/callback')
   @HttpCode(HttpStatus.OK)
   async oauthCallback(@Param('provider') provider: 'google' | 'github') {
-    return { message: `OAuth callback from ${provider} successful` };
+    return passport.authenticate(provider)
   }
 }

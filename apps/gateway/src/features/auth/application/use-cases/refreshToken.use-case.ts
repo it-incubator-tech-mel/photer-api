@@ -1,61 +1,77 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
-import { RefreshTokenRepository } from '../../infrastructure/refresh-token.repository';
-import { ConfigService } from '@nestjs/config';
-import { Notification } from '../../../../core/notification/notification';
+import { Device } from '../../../devices/domain/device.entity';
 import {
-  AccessTokenPayload, JwtTokenService,
+  AccessTokenPayload,
+  JwtTokenService,
   RefreshTokenPayload,
 } from '../../../../core/services/jwt/jwt-token.service';
 import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
-import { JwtService } from '@nestjs/jwt';
+import { Notification } from '../../../../core/notification/notification';
+import { unixToISOString } from '../../../../core/utils/convert-unix-to-iso';
+
+/**
+  * on refreshToken update in device updates iat, exp the same
+  * exp will be > new Date() soon
+  * delete this
+*/
 
 export class RefreshTokenCommand {
   constructor(
-    public readonly refreshToken: string) {
+    public userId: number,
+    public deviceId: string,
+    public iat: string,
+  ) {
   }
 }
 
 @CommandHandler(RefreshTokenCommand)
-export class RefreshTokenCase
-  implements ICommandHandler<RefreshTokenCommand> {
+export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand> {
   constructor(
-    private readonly jwtService: JwtService,
     private readonly jwtTokenService: JwtTokenService,
-    private readonly deviceRep: DeviceRepository,
-    private readonly refreshTokenRepository: RefreshTokenRepository,
-    private configService: ConfigService<any, true>,
+    private readonly deviceRepository: DeviceRepository,
   ) {
   }
 
-  async execute(command: RefreshTokenCommand) {
-    const decodedRefreshToken: RefreshTokenPayload = await this.jwtService.decode<RefreshTokenPayload>(command.refreshToken);
-    return this.createAccessTokenAndRefreshToken(decodedRefreshToken);
-  }
+  async execute(
+    command: RefreshTokenCommand,
+  ): Promise<Notification<null | { accessToken: string; refreshToken: string }>> {
+    const { deviceId, userId, iat: issuedAt } = command;
 
-  async createAccessTokenAndRefreshToken(payload: RefreshTokenPayload) {
+    const device: Device | null =
+      await this.deviceRepository.findOneByDeviceIdAndIat(
+        deviceId,
+        issuedAt,
+      );
 
-    const JwtAccessTokenPayload: AccessTokenPayload = { userId: payload.userId };
-    const JwtRefreshTokenPayload: RefreshTokenPayload = { userId: payload.userId, deviceId: payload.deviceId };
+    if (!device) return Notification.unauthorized('Invalid refresh token')
 
+    // create payload for tokens
+    const JwtAccessTokenPayload: AccessTokenPayload = { userId };
+    const JwtRefreshTokenPayload: RefreshTokenPayload = { userId: command.userId, deviceId };
+
+    // generate tokens
     const accessToken: string = await this.jwtTokenService.generateAccessToken(JwtAccessTokenPayload);
     const refreshToken: string = await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
 
-    const parser = await this.jwtService.verify(refreshToken, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-    });
+    // update refresh token in db
+    // this.refreshTokenRepository.update(parser),
 
-    try {
-      await Promise.all([
-        this.deviceRep.updateDevice(parser),
-        this.refreshTokenRepository.update(parser),
-      ]);
+    const decodedRefreshToken: RefreshTokenPayload = await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
+    if (!decodedRefreshToken) return Notification.unauthorized('Invalid refresh token');
+
+    if (decodedRefreshToken) {
+      const { iat } = decodedRefreshToken;
+
+      const issuedAt: string = unixToISOString(iat);
+
+      // TODO: update only iat? or exp also
+      await this.deviceRepository.updateIat(deviceId, issuedAt);
+
       return Notification.success({
         accessToken,
         refreshToken,
       });
-    } catch (e) {
-
     }
+    return Notification.unauthorized();
   }
 }

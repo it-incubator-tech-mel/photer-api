@@ -27,16 +27,13 @@ export class PasswordRecoveryUseCase
 
   async execute(command: PasswordRecoveryUseCommand): Promise<Notification> {
     const { email } = command;
+
     const user: User = await this.userRepository.findByEmail(email);
     if (!user) return Notification.unauthorized();
 
-    // const generateRecoveryCode = randomUUID();
-    // const createPasswordRecoveryCodeBody = PasswordRecovery.createForUser(existingUser.getId(), generateRecoveryCode);
-
     user.requestPasswordRecovery();
 
-    await this.userRepository.updatePasswordRecovery(user)
-    // await this.userRepository.updateRecoveryCodeByEmailOrSave(createPasswordRecoveryCodeBody);
+    await this.userRepository.updateOrCreatePasswordRecovery(user)
 
     this.mailerService.sendEmail(
       email,
@@ -47,14 +44,6 @@ export class PasswordRecoveryUseCase
       'Password Recovery',
     );
 
-    // await this.mailerService.sendEmail(
-    //   email,
-    //   generateRecoveryCode,
-    //   'password recovery'
-    // );
-
     return Notification.success();
-    // return true;
   }
-
 }

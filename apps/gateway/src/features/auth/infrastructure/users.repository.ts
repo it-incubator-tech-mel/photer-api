@@ -30,63 +30,6 @@ export class UserRepository {
     });
   }
 
-  // async save(user: User): Promise<void> {
-  //   const existingUser = await this.prisma.user.findUnique({
-  //     where: { email: user.getEmail() },
-  //   });
-  //
-  //   if (existingUser) {
-  //     // If user exists, update it
-  //     await this.prisma.user.update({
-  //       where: { email: user.getEmail() },
-  //       data: {
-  //         username: user.getUsername(),
-  //         password: user.getPassword(),
-  //         isDeleted: user.getIsDeleted(),
-  //         updatedAt: new Date(),
-  //       },
-  //     });
-  //
-  //     // Update email confirmation (if necessary)
-  //     await this.prisma.emailConfirmation.upsert({
-  //       where: { userId: existingUser.id },
-  //       update: {
-  //         confirmationCode: user.getConfirmationCode(),
-  //         expirationDate: user.getConfirmationExpiration(),
-  //         isConfirmed: user.isEmailConfirmed(), // или оставьте как есть, если не подтверждено
-  //       },
-  //       create: {
-  //         userId: existingUser.id,
-  //         confirmationCode: user.getConfirmationCode(),
-  //         expirationDate: user.getConfirmationExpiration(),
-  //         isConfirmed: false, // начальное состояние
-  //       },
-  //     });
-  //   } else {
-  //     // Create user if does not exist
-  //     const createdUser = await this.prisma.user.create({
-  //       data: {
-  //         username: user.getUsername(),
-  //         password: user.getPassword(),
-  //         email: user.getEmail(),
-  //         createdAt: new Date(),
-  //         updatedAt: new Date(),
-  //         isDeleted: false,
-  //       },
-  //     });
-  //
-  //     // Create confirmation email record
-  //     await this.prisma.emailConfirmation.create({
-  //       data: {
-  //         userId: createdUser.id,
-  //         confirmationCode: user.getConfirmationCode(),
-  //         expirationDate: user.getConfirmationExpiration(),
-  //         isConfirmed: false, // начальное состояние
-  //       },
-  //     });
-  //   }
-  // }
-
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
       where: { username },
@@ -129,34 +72,7 @@ export class UserRepository {
     return prismaUser ? this.mapToDomain(prismaUser) : null;
   }
 
-/*  async updateRecoveryCodeByEmailOrSave(
-      passwordRecovery: PasswordRecovery
-  ) {
-    const findPasswordRecoveryByUserId = await this.prisma.passwordRecovery.findFirst({
-      where: {
-        userId: passwordRecovery.userId
-      }})
-    if (findPasswordRecoveryByUserId){
-      await this.prisma.passwordRecovery.update({
-        where: {userId: passwordRecovery.userId},
-        data: {
-          userId: passwordRecovery.userId,
-          recoveryCode: passwordRecovery.recoveryCode,
-          expirationDate: passwordRecovery.expirationDate,
-        }
-      })
-    }else {
-      await this.prisma.passwordRecovery.create({
-        data: {
-          userId: passwordRecovery.userId,
-          recoveryCode: passwordRecovery.recoveryCode,
-          expirationDate: passwordRecovery.expirationDate,
-        }
-      })
-    }
-  }*/
-
-  async updatePasswordRecovery(user: User): Promise<void> {
+  async updateOrCreatePasswordRecovery(user: User): Promise<void> {
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: user.getId() },
@@ -194,29 +110,6 @@ export class UserRepository {
     return prismaUser ? this.mapToDomain(prismaUser) : null;
   }
 
-  // async findByRecoveryCodeAndUpdateDate(
-  //     newPassword: string,
-  //     recoveryCode: string,
-  //     date: Date
-  // ): Promise<boolean | null> {
-  //   const prismaUser = await this.prisma.user.findFirst({
-  //     where: {
-  //       passwordRecovery: {
-  //         recoveryCode
-  //       },
-  //     },
-  //     include: {
-  //       passwordRecovery: true,
-  //     },
-  //   });
-  //   if (!prismaUser || prismaUser.passwordRecovery.expirationDate < date) return null
-  //   await this.prisma.user.update({where: {id: prismaUser.id},
-  //     data : {
-  //     password: newPassword
-  //     }})
-  //   return true
-  // }
-
   async updateConfirmation(user: User): Promise<void> {
     await this.prisma.$transaction([
       this.prisma.user.update({
@@ -235,7 +128,6 @@ export class UserRepository {
       }),
     ]);
   }
-
 
   private mapToDomain(prismaUser: any): User {
     return User.restore(
