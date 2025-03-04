@@ -1,4 +1,17 @@
-import {Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Req, Res, UseGuards} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Post,
+  Redirect,
+  Req,
+  Res,
+  UseGuards
+} from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/login.dto';
@@ -25,6 +38,11 @@ import {LogoutCommand} from "../application/use-cases/logout.use-case";
 import {RefreshTokenCommand} from "../application/use-cases/refreshToken.use-case";
 import {ReCaptchaProvider} from "../domain/reCaptcha.adapter";
 import * as passport from 'passport';
+import {JwtServiceProvider} from "../../../core/services/jwt/jwt-service-provider.service";
+import {JwtService} from "@nestjs/jwt";
+import {AuthGuard} from "@nestjs/passport";
+import {GoogleGuard} from "../guards/Google-guard";
+import {Oauth2Config} from "../../../core/config/Oauth2.config";
 
 
 
@@ -34,6 +52,9 @@ export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly reCaptchaProvider: ReCaptchaProvider,
+    private readonly jwtServiceProvider: JwtServiceProvider,
+    private readonly jwtService: JwtService,
+    private config: Oauth2Config,
   ) {}
 
   @Post('registration')
@@ -280,14 +301,51 @@ export class AuthController {
     return HttpCode
   }
 
-  @Get('oauth/:provider')
-  async oauthLogin(@Param('provider') provider: 'google' | 'github', @Req() req: Request, @Res() res: Response) {
-    passport.authenticate(provider)(req, res);
+  // @Get('oauth/:provider')
+  // @UseGuards(GoogleGuard)
+  // async oauthLogin(@Param('provider') provider: 'google' | 'github', @Req() req: Request, @Res() res: Response) {
+  //   passport.authenticate(provider)(req, res);
+  // }
+// http://localhost:3000/api/v1/auth/oauth/google/login
+  @UseGuards(GoogleGuard)
+  @Get('oauth/google/login')
+  async googleLogin() {
+    console.log(1)
+    console.log(this.config.googleClient)
+    console.log(this.config.googleClientSecret)
   }
-
-  @Get('oauth/:provider/callback')
+  @UseGuards(GoogleGuard)
+  @Get('oauth/google/callback')
+  @Redirect()
   @HttpCode(HttpStatus.OK)
-  async oauthCallback(@Param('provider') provider: 'google' | 'github') {
-  return passport.authenticate(provider)
+  async oauthCallback(@Req() req: Request){
+    console.log(2)
+    console.log(this.config.googleClient)
+    console.log(this.config.googleClientSecret)
+    if (!req.user) {
+      return {url: 'https://photer.ltd'}
+    }
+
+    return {url: 'https://photer.ltd'}
+  }
+//@Param('provider') provider: 'google' | 'github'
+
+  // @Get('oauth/:provider/callback')
+  // @Redirect()
+  // @HttpCode(HttpStatus.OK)
+  // async oauthCallback(
+  //     @Param('provider') provider: 'google' | 'github'){
+  //     console.log(123)
+  //     return {url: 'https://photer.ltd'}
+  // }
+}
+/*
+@Injectable()
+export class GoogleOAuthGuard extends AuthGuard('google') {
+  constructor(private configService: ConfigService) {
+    super({
+      accessType: 'offline',
+    });
   }
 }
+ */

@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { INestApplication } from '@nestjs/common';
 import { appSetup } from './setup/app.setup';
+import { cors } from 'cors';
+import passport from "passport";
 
 async function bootstrap() {
   const app: INestApplication = await NestFactory.create(AppModule);

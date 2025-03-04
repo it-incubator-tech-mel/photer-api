@@ -6,7 +6,7 @@ import {IsString} from "class-validator";
 @Injectable()
 export class Oauth2Config {
     constructor(private configService: ConfigService<any, true>) {
-        console.log('in CaptchaConfig', configService);
+        console.log('in Oauth2Config', configService);
         configValidation.validateConfig(this);
     }
     @IsString({
