@@ -4,19 +4,22 @@ import {Strategy, VerifyCallback} from "passport-google-oauth20";
 import {UserRepository} from "../infrastructure/users.repository";
 import {Oauth2Config} from "../../../core/config/Oauth2.config";
 import {Profile} from "passport";
+import {JwtService} from "@nestjs/jwt";
 
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     constructor(
         private readonly userRepository: UserRepository,
+        private readonly jwtService: JwtService,
         private config: Oauth2Config) {
         super({
             clientID: config.googleClient,
             clientSecret: config.googleClientSecret,
-            callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
-            passReqToCallback: true,
-            scope: ['profile', 'email'],
+            // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
+            callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/callback',
+            // passReqToCallback: true,
+            scope: ['email', 'profile'],
         });
     }
 
@@ -25,11 +28,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         if (profile.emails?.length) {
             user.email = profile.emails[0].value;
         }
-        console.log({profile})
+        // const token = this.jwtService.sign(user) // можем создать функцию создания нашего токена или обращаться к уже существующим функциям
+        // done(null, { user, token });
         return user
     }
 }
-
+//https://photer.ltd/api/v1/auth/oauth/google/callback
 // @Injectable()
 // export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 //     constructor(

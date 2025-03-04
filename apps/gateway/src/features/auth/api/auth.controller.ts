@@ -37,10 +37,8 @@ import {PasswordRecoveryUseCommand} from "../application/use-cases/password-reco
 import {LogoutCommand} from "../application/use-cases/logout.use-case";
 import {RefreshTokenCommand} from "../application/use-cases/refreshToken.use-case";
 import {ReCaptchaProvider} from "../domain/reCaptcha.adapter";
-import * as passport from 'passport';
 import {JwtServiceProvider} from "../../../core/services/jwt/jwt-service-provider.service";
 import {JwtService} from "@nestjs/jwt";
-import {AuthGuard} from "@nestjs/passport";
 import {GoogleGuard} from "../guards/Google-guard";
 import {Oauth2Config} from "../../../core/config/Oauth2.config";
 
@@ -310,20 +308,15 @@ export class AuthController {
   @UseGuards(GoogleGuard)
   @Get('oauth/google/login')
   async googleLogin() {
-    console.log(1)
-    console.log(this.config.googleClient)
-    console.log(this.config.googleClientSecret)
   }
   @UseGuards(GoogleGuard)
   @Get('oauth/google/callback')
   @Redirect()
   @HttpCode(HttpStatus.OK)
   async oauthCallback(@Req() req: Request){
-    console.log(2)
-    console.log(this.config.googleClient)
-    console.log(this.config.googleClientSecret)
+    console.log(req.user)
     if (!req.user) {
-      return {url: 'https://photer.ltd'}
+      return {url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL'}
     }
 
     return {url: 'https://photer.ltd'}
