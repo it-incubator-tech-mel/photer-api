@@ -323,7 +323,7 @@ export class AuthController {
     console.log(this.config.googleClient)
     console.log(this.config.googleClientSecret)
     if (!req.user) {
-      return {url: 'https://photer.ltd'}
+      return {url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL'}
     }
 
     return {url: 'https://photer.ltd'}
