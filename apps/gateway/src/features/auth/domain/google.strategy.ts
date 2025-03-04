@@ -16,9 +16,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         super({
             clientID: config.googleClient,
             clientSecret: config.googleClientSecret,
-            // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
-            callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/callback',
-            // passReqToCallback: true,
+            callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
+            // callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/callback',
+            passReqToCallback: true,
             scope: ['email', 'profile'],
         });
     }
