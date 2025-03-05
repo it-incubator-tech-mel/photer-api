@@ -39,7 +39,7 @@ import {RefreshTokenCommand} from "../application/use-cases/refreshToken.use-cas
 import {ReCaptchaProvider} from "../domain/reCaptcha.adapter";
 import {JwtServiceProvider} from "../../../core/services/jwt/jwt-service-provider.service";
 import {JwtService} from "@nestjs/jwt";
-import {GoogleGuard} from "../guards/Google-guard";
+import {GithubGuard, GoogleGuard} from "../guards/Google-guard";
 import {Oauth2Config} from "../../../core/config/Oauth2.config";
 
 
@@ -313,8 +313,26 @@ export class AuthController {
   @Get('oauth/google/callback')
   @Redirect()
   @HttpCode(HttpStatus.OK)
-  async oauthCallback(@Req() req: Request){
+  async oauthCallbackGoogle(@Req() req: Request){
     console.log(req.user)
+    if (!req.user) {
+      return {url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL'}
+    }
+
+    return {url: 'https://photer.ltd'}
+  }
+
+
+  @UseGuards(GithubGuard)
+  @Get('oauth/github/login')
+  async githubLogin() {
+  }
+  @UseGuards(GithubGuard)
+  @Get('oauth/github/callback')
+  @Redirect()
+  @HttpCode(HttpStatus.OK)
+  async oauthCallbackGithub(@Req() req: Request){
+
     if (!req.user) {
       return {url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL'}
     }
