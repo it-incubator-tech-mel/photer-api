@@ -18,12 +18,10 @@ export class DevicesQueryRepository {
     });
 
     if (!result || result.length === 0) {
-      console.log('Нет устройств для данного пользователя');
       return [];
     }
 
     return result.map((d) => {
-      console.log('Mapping device:', d); // Проверим, что приходит в `d`
       return this.mapToOutput(d);
     });
   }
