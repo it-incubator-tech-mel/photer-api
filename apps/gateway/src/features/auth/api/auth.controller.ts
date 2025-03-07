@@ -23,7 +23,6 @@ import { NewPasswordCommand } from '../application/use-cases/new-password.use-ca
 import { PasswordRecoveryUseCommand } from '../application/use-cases/password-recovery.use-case';
 import { LogoutCommand } from '../application/use-cases/logout.use-case';
 import { RefreshTokenCommand } from '../application/use-cases/refreshToken.use-case';
-import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
 import { LocalAuthGuard } from '../../../core/guards/local-auth.guard';
 import { RefreshTokenAuthGuard } from '../../../core/guards/refresh-token-auth.guard';
 import { CurrentDeviceId } from '../../../core/decorators/param-decorators/current-device-id.decorator';
@@ -41,7 +40,6 @@ export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly userQueryRepository: UserQueryRepository,
-    private readonly reCaptchaService: ReCaptchaService,
   ) {
   }
 
@@ -225,20 +223,26 @@ export class AuthController {
       },
     },
   })
+  @ApiResponse({
+    status: 404,
+    description: 'If user with this email does not exist',
+  })
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto) {
-    if (await this.reCaptchaService.isValue(passwordRecoveryDto.recaptchaValue)) {
-      await this.commandBus.execute<
+    //if (await this.reCaptchaService.isValue(passwordRecoveryDto.recaptchaValue)) {
+      const result: Notification = await this.commandBus.execute<
         PasswordRecoveryUseCommand,
         Notification
       >(new PasswordRecoveryUseCommand(passwordRecoveryDto.email));
 
-      // to prevent user's email detection send NO_CONTENT
-      // for user by email not found or email send successfully
-    } else {
-      throw new BadRequestException([{ field: 'Captcha', message: 'Incorrect captcha' }]);
-    }
+      if (result.status === ResultStatus.NotFound) {
+        throw new BadRequestException(result.extensions!);
+      }
+
+    // } else {
+    //   throw new BadRequestException([{ field: 'Captcha', message: 'Incorrect captcha' }]);
+    // }
   }
 
   @Post('new-password')
