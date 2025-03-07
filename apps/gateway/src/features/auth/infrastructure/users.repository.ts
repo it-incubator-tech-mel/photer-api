@@ -78,18 +78,21 @@ export class UserRepository {
         where: { id: user.getId() },
         data: {
           updatedAt: user.getUpdatedAt(),
+          password: user.getPassword()
         },
       }),
       this.prisma.passwordRecovery.upsert({
         where: { userId: user.getId() },
         update: {
-          recoveryCode: user.getRecoveryCode(),
+          recoveryCode: user.getRecoveryCode() || "",
           expirationDate: user.getConfirmationExpiration(),
         },
         create: {
-          userId: user.getId(),
-          recoveryCode: user.getRecoveryCode(),
+          recoveryCode: user.getRecoveryCode() || "",
           expirationDate: user.getConfirmationExpiration(),
+          user: {
+            connect: { id: user.getId() },
+          },
         },
       }),
     ]);
