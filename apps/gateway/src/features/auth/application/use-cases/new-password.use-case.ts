@@ -36,6 +36,8 @@ export class NewPasswordUseCase
     try {
       user.updatePassword(newPasswordHash);
       await this.userRepository.updateOrCreatePasswordRecovery(user);
+
+      return Notification.success();
     } catch (err) {
       return Notification.badRequest([{ message: err.message, field: 'recoveryCode' }]);
     }
