@@ -8,7 +8,11 @@ import { Notification, ResultStatus } from '../notification/notification';
 
 @Injectable()
 export class BearerStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService<any, true>, private readonly authService: AuthService) {
+  constructor(
+    private configService: ConfigService<any, true>,
+    private readonly authService: AuthService
+  ) {
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
