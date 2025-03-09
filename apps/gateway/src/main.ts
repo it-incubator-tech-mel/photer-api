@@ -7,8 +7,6 @@ import { appSetup } from './setup/app.setup';
 async function bootstrap() {
   const app: INestApplication = await NestFactory.create(AppModule);
 
-  app.enableCors();
-  
   appSetup(app);
 
   const coreConfig: CoreConfig = app.get<CoreConfig>(CoreConfig);

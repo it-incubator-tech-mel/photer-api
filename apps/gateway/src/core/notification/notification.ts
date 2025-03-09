@@ -31,7 +31,6 @@ export class Notification<T = null> {
   }
 
   static badRequest<T = null>(
-    //errorMessage?: string,
     extensions?: Array<{ field: string; message: string }>,
   ): Notification<T> {
     return new Notification(

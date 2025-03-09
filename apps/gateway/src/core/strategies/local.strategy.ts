@@ -5,7 +5,10 @@ import { Notification } from '../notification/notification';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
 import { AuthService } from '../../features/auth/application/services/auth-service';
 
-// check login data (extracts data from body)
+/**
+ * check login data (extracts data from body)
+ */
+
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
@@ -20,7 +23,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       );
 
     const userId: number = result.data;
-
     if (!userId) {
       throw new UnauthorizedException();
     }
