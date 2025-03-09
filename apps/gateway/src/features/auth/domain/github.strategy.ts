@@ -12,8 +12,8 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
         super({
             clientID: config.githubClient,
             clientSecret: config.githubClientSecret,
-            callbackURL: 'https://photer.ltd/api/v1/auth/oauth/github/callback',
-            // callbackURL: 'http://localhost:3000/api/v1/auth/oauth/github/callback',
+            // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/github/callback',
+            callbackURL: 'http://localhost:3000/api/v1/auth/oauth/github/callback',
             // passReqToCallback: true,
             scope: ['user:email'],
         });
@@ -21,13 +21,21 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
 
     async validate(accessToken: string, refreshToken: string, profile: any) {
         const user = { email: '' }
+        console.log(profile, '-profile')
         if (profile.emails?.length) {
-            user.email = profile.emails[0].value;
+            const findUser = await this.userRepository.findByEmail(profile.emails[0].value);
+            if (!findUser){
+                user.email = profile.emails[0].value;
+                console.log(user, 'user')
+                return user
+            }
+            console.log(findUser, 'findUser')
+            return findUser
         }
-        console.log(profile)
+        return user
         // const token = this.jwtService.sign(user) // можем создать функцию создания нашего токена или обращаться к уже существующим функциям
         // done(null, { user, token });
-        return user
+
         // let email = profile.email;
         // if (!email) {
         //     const emails = await fetch('https://api.github.com/user/emails', {

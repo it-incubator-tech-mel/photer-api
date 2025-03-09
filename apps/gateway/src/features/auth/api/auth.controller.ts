@@ -1,20 +1,15 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { RegistrationDto } from './dto/input/registration.dto';
 import {
   Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
-  Inject,
-  Param,
   Post,
   Redirect,
   Req,
   Res,
   UseGuards
 } from '@nestjs/common';
-import { RegistrationDto } from './dto/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/input/login.dto';
 import { PasswordRecoveryDto } from './dto/input/password-recovery.dto';
@@ -22,7 +17,7 @@ import { NewPasswordDto } from './dto/input/new-password.dto';
 import { ConfirmRegistrationDto } from './dto/input/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/input/registration-email-resending.dto';
 import { RegistrationUserCommand } from '../application/use-cases/registration.use-case';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { Notification, ResultStatus } from '../../../core/notification/notification';
@@ -48,22 +43,9 @@ import {
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { AuthMeOutputDto } from './dto/output/auth-me.dto';
 import { UserQueryRepository } from '../infrastructure/users.query-repository';
-import * as passport from 'passport';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
-import {CurrentUserId} from "../../../core/decorators/param-decorators/current-user-id.decorator";
-import {Cookie} from "../../../core/decorators/param-decorators/cookie.decorator";
-import {Ip} from "@nestjs/common/decorators/http/route-params.decorator";
-import {UserAgent} from "../../../core/decorators/param-decorators/user-agent.decorator";
-import {LoginCommand} from "../application/use-cases/login.use-case";
-import {NewPasswordCommand} from "../application/use-cases/new-password.use-case";
-import {PasswordRecoveryUseCommand} from "../application/use-cases/password-recovery.use-case";
-import {LogoutCommand} from "../application/use-cases/logout.use-case";
-import {RefreshTokenCommand} from "../application/use-cases/refreshToken.use-case";
-import {ReCaptchaProvider} from "../domain/reCaptcha.adapter";
-import {JwtServiceProvider} from "../../../core/services/jwt/jwt-service-provider.service";
-import {JwtService} from "@nestjs/jwt";
 import {GithubGuard, GoogleGuard} from "../guards/Google-guard";
-import {Oauth2Config} from "../../../core/config/Oauth2.config";
+import {RegistrationDto} from "./dto/input/registration.dto";
 
 
 
@@ -74,13 +56,8 @@ export class AuthController {
     private readonly commandBus: CommandBus,
     private readonly userQueryRepository: UserQueryRepository,
     private readonly reCaptchaService: ReCaptchaService,
-  ) {
-  }
-    private readonly reCaptchaProvider: ReCaptchaProvider,
-    private readonly jwtServiceProvider: JwtServiceProvider,
-    private readonly jwtService: JwtService,
-    private config: Oauth2Config,
   ) {}
+
 
   @Post('registration')
   @ApiOperation({ summary: 'Registration in the system. Email will be send to passed email address' })
@@ -414,13 +391,6 @@ export class AuthController {
 
     return user;
   }
-
-  // @Get('oauth/:provider')
-  // @UseGuards(GoogleGuard)
-  // async oauthLogin(@Param('provider') provider: 'google' | 'github', @Req() req: Request, @Res() res: Response) {
-  //   passport.authenticate(provider)(req, res);
-  // }
-// http://localhost:3000/api/v1/auth/oauth/google/login
   @UseGuards(GoogleGuard)
   @Get('oauth/google/login')
   async googleLogin() {
@@ -450,7 +420,7 @@ export class AuthController {
   async oauthCallbackGithub(@Req() req: Request){
 
     if (!req.user) {
-      return {url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL'}
+      return {url: 'https://photer.ltd/api/v1'}
     }
 
     return {url: 'https://photer.ltd'}

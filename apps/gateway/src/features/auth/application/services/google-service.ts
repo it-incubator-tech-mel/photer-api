@@ -1,6 +1,7 @@
-import {Oauth2Config} from "../../../core/config/Oauth2.config";
+
 import axios from "axios";
-import {OauthTokenData} from "../api/dto/variable types/Oauth.type";
+import {Oauth2Config} from "../../../../core/config/Oauth2.config";
+import {OauthTokenData} from "../../api/dto/variable types/Oauth.type";
 
 class GoogleService {
     constructor(private config: Oauth2Config) {

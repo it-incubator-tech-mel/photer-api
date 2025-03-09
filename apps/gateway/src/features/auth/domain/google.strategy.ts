@@ -16,8 +16,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         super({
             clientID: config.googleClient,
             clientSecret: config.googleClientSecret,
-            callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
-            // callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/callback',
+            // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
+            callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/callback',
             // passReqToCallback: true,
             scope: ['email', 'profile'],
         });
@@ -26,11 +26,24 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     async validate(accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) {
         const user = { email: '' }
         if (profile.emails?.length) {
-            user.email = profile.emails[0].value;
+            const findUser = await this.userRepository.findByEmail(profile.emails[0].value);
+            console.log(findUser, 'findUser')
+            console.log(profile.emails[0].value, 'profile.emails[0].value')
+            if (!findUser){
+                user.email = profile.emails[0].value;
+                console.log(user, 'user')
+                return user
+            }
+            console.log(findUser, 'findUser')
+            return findUser
         }
-        // const token = this.jwtService.sign(user) // можем создать функцию создания нашего токена или обращаться к уже существующим функциям
-        // done(null, { user, token });
-        return user
+        // const user = { email: '' }
+        // if (profile.emails?.length) {
+        //     user.email = profile.emails[0].value;
+        // }
+        // // const token = this.jwtService.sign(user) // можем создать функцию создания нашего токена или обращаться к уже существующим функциям
+        // // done(null, { user, token });
+        // return user
     }
 }
 //https://photer.ltd/api/v1/auth/oauth/google/callback

@@ -1,6 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
-import {configValidation} from "../../../../common/config/config-validation";
+import { configValidation } from './config-validation';
 import {IsString} from "class-validator";
 
 @Injectable()
