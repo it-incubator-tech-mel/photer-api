@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Notification } from '../../../../core/notification/notification';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { User } from '../../domain/user.entity';
-import {UserRepository} from "../../infrastructure/users.repository";
+import { UserRepository } from '../../infrastructure/users.repository';
 
 @Injectable()
 export class AuthService {
@@ -25,5 +25,16 @@ export class AuthService {
     }
 
     return Notification.success(user.getId());
+  }
+
+  // jwt-strategy; refresh-token-strategy
+  async validateUserById(id: number): Promise<Notification> {
+    const user: User | null = await this.userRepository.findById(id);
+
+    if (!user) {
+      return Notification.notFound('Wrong user id');
+    }
+
+    return Notification.success();
   }
 }

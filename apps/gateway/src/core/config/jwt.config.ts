@@ -1,12 +1,12 @@
 import { IsNumber, IsString } from 'class-validator';
-import { configValidation } from '../../../../common/config/config-validation';
+import { configValidation } from './config-validation';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class JwtConfig {
   constructor(private configService: ConfigService<any, true>) {
-    console.log('in JwtConfig', configService);
+    // console.log('in JwtConfig', configService);
     configValidation.validateConfig(this);
   }
 

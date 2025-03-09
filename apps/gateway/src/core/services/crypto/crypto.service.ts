@@ -13,4 +13,8 @@ export class CryptoService {
   async compare(password: string, hash: string): Promise<boolean> {
     return bcrypt.compare(password, hash);
   }
+
+  async genSalt(): Promise<string> {
+    return bcrypt.genSalt();
+  }
 }

@@ -4,17 +4,14 @@ import { AppModule } from './app.module';
 import { INestApplication } from '@nestjs/common';
 import { appSetup } from './setup/app.setup';
 
-
-
 async function bootstrap() {
   const app: INestApplication = await NestFactory.create(AppModule);
 
-  app.enableCors();
-  // app.enableCors({
-  //   origin: '*', // Разрешаем все домены
-  //   methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-  //   allowedHeaders: 'Content-Type, Accept, Authorization',
-  // });
+  app.enableCors({
+    origin: '*', // Разрешаем все домены
+    methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+  });
 
   appSetup(app);
 

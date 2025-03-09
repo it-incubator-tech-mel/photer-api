@@ -1,58 +1,77 @@
-import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
-
-import {RefreshTokenRepo} from "../../infrastructure/refreshToken.repository";
-import {ConfigService} from "@nestjs/config";
-import { Notification } from '../../../../core/notification/notification';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Device } from '../../../devices/domain/device.entity';
 import {
-    AccessTokenPayload,
-    JwtServiceProvider,
-    RefreshTokenPayload
-} from "../../../../core/services/jwt/jwt-service-provider.service";
-import {JwtService} from "@nestjs/jwt";
-import {DeviceRepository} from "../../../devices/infrastructure/device.repository";
+  AccessTokenPayload,
+  JwtTokenService,
+  RefreshTokenPayload,
+} from '../../../../core/services/jwt/jwt-token.service';
+import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
+import { Notification } from '../../../../core/notification/notification';
+import { unixToISOString } from '../../../../core/utils/convert-unix-to-iso';
 
+/**
+  * on refreshToken update in device updates iat, exp the same
+  * exp will be > new Date() soon
+  * delete this
+*/
 
 export class RefreshTokenCommand {
-    constructor(
-        public readonly refreshToken: string) {}
+  constructor(
+    public userId: number,
+    public deviceId: string,
+    public iat: string,
+  ) {
+  }
 }
 
 @CommandHandler(RefreshTokenCommand)
-export class RefreshTokenCase
-    implements ICommandHandler<RefreshTokenCommand> {
-    constructor(
-        private readonly jwtService: JwtService,
-        private readonly jwtServiceProvider: JwtServiceProvider,
-        private readonly deviceRep: DeviceRepository,
-        private readonly refreshTokenRepo: RefreshTokenRepo,
-        private configService: ConfigService<any, true>
-    ) {}
-    async execute(command: RefreshTokenCommand){
-        const decodedRefreshToken: RefreshTokenPayload = await this.jwtService.decode<RefreshTokenPayload>(command.refreshToken);
-        return  this.createAccessTokenAndRefreshToken(decodedRefreshToken)
+export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand> {
+  constructor(
+    private readonly jwtTokenService: JwtTokenService,
+    private readonly deviceRepository: DeviceRepository,
+  ) {
+  }
+
+  async execute(
+    command: RefreshTokenCommand,
+  ): Promise<Notification<null | { accessToken: string; refreshToken: string }>> {
+    const { deviceId, userId, iat: issuedAt } = command;
+
+    const device: Device | null =
+      await this.deviceRepository.findOneByDeviceIdAndIat(
+        deviceId,
+        issuedAt,
+      );
+
+    if (!device) return Notification.unauthorized('Invalid refresh token')
+
+    // create payload for tokens
+    const JwtAccessTokenPayload: AccessTokenPayload = { userId };
+    const JwtRefreshTokenPayload: RefreshTokenPayload = { userId: command.userId, deviceId };
+
+    // generate tokens
+    const accessToken: string = await this.jwtTokenService.generateAccessToken(JwtAccessTokenPayload);
+    const refreshToken: string = await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
+
+    // update refresh token in db
+    // this.refreshTokenRepository.update(parser),
+
+    const decodedRefreshToken: RefreshTokenPayload = await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
+    if (!decodedRefreshToken) return Notification.unauthorized('Invalid refresh token');
+
+    if (decodedRefreshToken) {
+      const { iat } = decodedRefreshToken;
+
+      const issuedAt: string = unixToISOString(iat);
+
+      // TODO: update only iat? or exp also
+      await this.deviceRepository.updateIat(deviceId, issuedAt);
+
+      return Notification.success({
+        accessToken,
+        refreshToken,
+      });
     }
-
-    async createAccessTokenAndRefreshToken(payload: RefreshTokenPayload){
-
-        const JwtAccessTokenPayload: AccessTokenPayload = { userId: payload.userId };
-        const JwtRefreshTokenPayload: RefreshTokenPayload = { userId: payload.userId, deviceId: payload.deviceId };
-
-        const accessToken: string = await this.jwtServiceProvider.generateAccessToken(JwtAccessTokenPayload);
-        const refreshToken: string = await this.jwtServiceProvider.generateRefreshToken(JwtRefreshTokenPayload);
-        const parser = await this.jwtService.verify(refreshToken, {
-            secret: this.configService.get<string>('JWT_REFRESH_SECRET')
-        })
-        try {
-            await Promise.all([
-                this.deviceRep.updateDevice(parser),
-                this.refreshTokenRepo.updateRefreshToken(parser)
-            ])
-            return Notification.success({
-                accessToken,
-                refreshToken,
-            });
-        }catch (e){}
-
-    }
-
+    return Notification.unauthorized();
+  }
 }

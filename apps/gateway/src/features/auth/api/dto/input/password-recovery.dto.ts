@@ -4,17 +4,18 @@ import {ApiProperty} from "@nestjs/swagger";
 
 export class PasswordRecoveryDto {
     @ApiProperty({
-        nullable: false,
-        description: 'must be unique',
+        pattern: '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+        example: 'user@example.com',
+        description: 'Email of registered user',
     })
     @Trim()
     @IsNotEmpty({ message: 'Email is required' })
     @IsEmail({}, { message: 'Invalid email format' })
     email: string;
+
     @ApiProperty({
-        nullable: false,
-        description: 'must be unique',
+        maxLength: 100,
+        description: 'Google recaptchaValue',
     })
-    @Trim()
     recaptchaValue: string
 }

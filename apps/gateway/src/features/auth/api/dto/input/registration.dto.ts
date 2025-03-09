@@ -1,5 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString, Length, Matches } from 'class-validator';
-import { Trim } from '../../../../core/decorators/trim';
+import { Trim } from '../../../../../core/decorators/trim';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegistrationDto {
@@ -35,8 +35,4 @@ export class RegistrationDto {
         message: 'Username can only contain letters, numbers, underscores, and hyphens'
     })
     password: string;
-
-    // @IsBoolean()
-    // @IsNotEmpty({ message: 'Consent of service is required' })
-    // consentOfService: boolean;
 }

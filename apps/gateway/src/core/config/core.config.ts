@@ -1,5 +1,5 @@
 import { IsEnum, IsNumber, IsString } from 'class-validator';
-import { configValidation } from '../../../../common/config/config-validation';
+import { configValidation } from './config-validation';
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 
@@ -13,7 +13,7 @@ export enum Environments {
 @Injectable()
 export class CoreConfig {
   constructor(private configService: ConfigService<any, true>) {
-    console.log(configService);
+    // console.log('in CoreConfig', configService);
     configValidation.validateConfig(this);
   }
 
