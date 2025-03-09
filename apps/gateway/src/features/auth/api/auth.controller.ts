@@ -34,12 +34,14 @@ import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { AuthMeOutputDto } from './dto/output/auth-me.dto';
 import { UserQueryRepository } from '../infrastructure/users.query-repository';
 import * as passport from 'passport';
+import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly userQueryRepository: UserQueryRepository,
+    private readonly reCaptchaService: ReCaptchaService,
   ) {
   }
 
@@ -230,7 +232,7 @@ export class AuthController {
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto) {
-    //if (await this.reCaptchaService.isValue(passwordRecoveryDto.recaptchaValue)) {
+    if (await this.reCaptchaService.isValue(passwordRecoveryDto.recaptchaValue)) {
       const result: Notification = await this.commandBus.execute<
         PasswordRecoveryUseCommand,
         Notification
@@ -240,9 +242,9 @@ export class AuthController {
         throw new BadRequestException(result.extensions!);
       }
 
-    // } else {
-    //   throw new BadRequestException([{ field: 'Captcha', message: 'Incorrect captcha' }]);
-    // }
+    } else {
+      throw new BadRequestException([{ field: 'Captcha', message: 'Incorrect captcha' }]);
+    }
   }
 
   @Post('new-password')
