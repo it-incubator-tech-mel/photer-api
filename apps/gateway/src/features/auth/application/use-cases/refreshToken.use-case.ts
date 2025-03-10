@@ -37,6 +37,8 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
   ): Promise<Notification<null | { accessToken: string; refreshToken: string }>> {
     const { deviceId, userId, iat: issuedAt } = command;
 
+
+
     const device: Device | null =
       await this.deviceRepository.findOneByDeviceIdAndIat(
         deviceId,

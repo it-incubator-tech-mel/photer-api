@@ -4,7 +4,7 @@ import { CoreConfig } from './core.config';
 import { MailerConfig } from './mailer.config';
 import { JwtConfig } from './jwt.config';
 import {CaptchaConfig} from "./captcha.config";
-import {Oauth2Config} from "./Oauth2.config";
+import {Oauth2Config} from "./oauth2.config";
 
 @Global()
 @Module({

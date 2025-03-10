@@ -4,7 +4,7 @@ import {Strategy} from "passport-google-oauth20";
 import {OauthTokenData} from "../api/dto/variable types/Oauth.type";
 import {UserRepository} from "../infrastructure/users.repository";
 import {Notification} from "../../../core/notification/notification";
-import {Oauth2Config} from "../../../core/config/Oauth2.config";
+import {Oauth2Config} from "../../../core/config/oauth2.config";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

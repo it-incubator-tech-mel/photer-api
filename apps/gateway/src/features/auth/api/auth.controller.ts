@@ -1,4 +1,16 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Redirect,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { RegistrationDto } from './dto/input/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/input/login.dto';
@@ -35,6 +47,7 @@ import { AuthMeOutputDto } from './dto/output/auth-me.dto';
 import { UserQueryRepository } from '../infrastructure/users.query-repository';
 import * as passport from 'passport';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
+import { GoogleGuard } from '../../../core/guards/google.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -377,15 +390,46 @@ export class AuthController {
     return user;
   }
 
-  @Get('oauth/:provider')
-  // @UseGuards(AuthGuard('google'))
-  async oauthLogin(@Param('provider') provider: 'google' | 'github', @Req() req: Request, @Res() res: Response) {
-    passport.authenticate(provider)(req, res);
+  @UseGuards(GoogleGuard)
+  @Get('oauth/google/login')
+  async googleLogin() {
   }
 
-  @Get('oauth/:provider/callback')
+  // app.get('/auth/google',
+  // passport.authenticate('google', { scope: ['profile'] }));
+
+  @UseGuards(GoogleGuard)
+  @Get('oauth/google/callback')
+  @Redirect()
   @HttpCode(HttpStatus.OK)
-  async oauthCallback(@Param('provider') provider: 'google' | 'github') {
-    return passport.authenticate(provider)
+  async googleCallback(@Req() req: Request) {
+    // console.log(req.user);
+    // if (!req.user) {
+    //   return { url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL' };
+    // }
+    //
+    // return { url: 'https://photer.ltd' };
   }
+
+  // @UseGuards(GoogleGuard)
+  // @Get('google/redirect')
+  // @Redirect()
+  // async googleRedirect(@Req() req: Request) {
+  //   if (!req.user) {
+  //     return {
+  //       url: ${this.googleOAthSettings.GOOGLE_FRONTEND_REDIRECT_URL}?error=ERROR_AUTH_EMAIL,
+  //     };
+  //   }
+  //
+  //   return {
+  //     url: this.googleOAthSettings.GOOGLE_FRONTEND_REDIRECT_URL,
+  //   };
+  // }
+
+  // app.get('/auth/google/callback',
+  // passport.authenticate('google', { failureRedirect: '/login' }),
+  // function(req, res) {
+  //   // Successful authentication, redirect home.
+  //   res.redirect('/');
+  // });
 }
