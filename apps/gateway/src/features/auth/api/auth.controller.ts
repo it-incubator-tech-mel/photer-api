@@ -4,9 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
-  Redirect,
   Req,
   Res,
   UseGuards,
@@ -48,6 +46,8 @@ import { UserQueryRepository } from '../infrastructure/users.query-repository';
 import * as passport from 'passport';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
 import { GoogleGuard } from '../../../core/guards/google.guard';
+import { CurrentUserEmail } from '../../../core/decorators/param-decorators/current-user-email.decorator';
+import { OAuthCommand, OAuthUseCase } from '../application/use-cases/oauth.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -390,25 +390,42 @@ export class AuthController {
     return user;
   }
 
+  // http://localhost:3000/api/v1/auth/oauth/google/login
   @UseGuards(GoogleGuard)
   @Get('oauth/google/login')
   async googleLogin() {
   }
 
-  // app.get('/auth/google',
-  // passport.authenticate('google', { scope: ['profile'] }));
-
   @UseGuards(GoogleGuard)
   @Get('oauth/google/callback')
-  @Redirect()
   @HttpCode(HttpStatus.OK)
-  async googleCallback(@Req() req: Request) {
-    // console.log(req.user);
-    // if (!req.user) {
-    //   return { url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL' };
-    // }
-    //
-    // return { url: 'https://photer.ltd' };
+  async googleCallback(@CurrentUserEmail() email: string, @Req() req: any, @Res() res: Response,) {
+    if (!email) {
+      return { url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL' };
+    }
+
+    const result: Notification<null | {
+      accessToken: string;
+      refreshToken: string;
+    }> = await this.commandBus.execute<OAuthUseCase, Notification<null | {
+      accessToken: string;
+      refreshToken: string;
+    }>>(
+      new OAuthCommand(req.user),
+    );
+
+    if (result.status === ResultStatus.Unauthorized) {
+      throw new UnauthorizedException(result.errorMessage);
+    } else {
+      res.cookie('refreshToken', result.data.refreshToken, {
+        httpOnly: true, // cookie can only be accessed via http or https
+        secure: true, // send cookie only over https
+      });
+
+      res.status(HttpStatus.OK).send({
+        accessToken: result.data.accessToken,
+      });
+    }
   }
 
   // @UseGuards(GoogleGuard)
@@ -432,4 +449,15 @@ export class AuthController {
   //   // Successful authentication, redirect home.
   //   res.redirect('/');
   // });
+}
+
+type BodyTokens = {
+
+  createAccessToken: string,
+  createRefreshToken: string,
+
+}
+
+class CustomRequest {
+  user: BodyTokens
 }
