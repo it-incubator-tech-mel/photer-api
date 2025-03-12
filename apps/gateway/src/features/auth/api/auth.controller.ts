@@ -48,7 +48,16 @@ import {GithubGuard, GoogleGuard} from "../guards/Google-guard";
 import {RegistrationDto} from "./dto/input/registration.dto";
 
 
+type BodyTokens = {
 
+  createAccessToken: string,
+  createRefreshToken: string,
+
+}
+
+class CustomRequest {
+  user: BodyTokens
+}
 
 @Controller('auth')
 export class AuthController {
@@ -399,13 +408,23 @@ export class AuthController {
   @Get('oauth/google/callback')
   @Redirect()
   @HttpCode(HttpStatus.OK)
-  async oauthCallbackGoogle(@Req() req: Request){
-    console.log(req.user)
-    if (!req.user) {
-      return {url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL'}
+  async oauthCallbackGoogle(@Req() req: CustomRequest, @Res() res: Response){
+    const result: BodyTokens = {
+      createAccessToken: req.user.createAccessToken,
+      createRefreshToken: req.user.createRefreshToken,
+    };
+    if (result.createAccessToken && result.createRefreshToken){
+      res.cookie('refreshToken', result.createRefreshToken, {
+        httpOnly: true,
+        secure: true,
+      });
+      return {
+        url: 'https://photer.ltd',
+        accessToken: result.createAccessToken,
+      };
     }
-
-    return {url: 'https://photer.ltd'}
+    console.log(req.user, 'req.user')
+    return {url: 'https://photer.ltd/api/v1/auth/password-recovery'}
   }
 
 

@@ -42,9 +42,27 @@ export class UserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: { emailConfirmation: true },
+      include: { emailConfirmation: true, devices: true },
     });
     return user ? this.mapToDomain(user) : null;
+  }
+
+  async findByEmailNotMapper(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email, emailConfirmation: {isConfirmed: true}  },
+      include: { emailConfirmation: true, devices: true },
+    });
+    return user ? user : null;
+  }
+
+  async updateServiceForRegistration(id: number, provider: 'google' | 'github') {
+    console.log(id, 'id')
+    const user = await this.prisma.user.update({where: {id: id},
+      data:{
+        providers: provider
+      }})
+    console.log(user)
+    return user
   }
 
   async findById(id: number): Promise<User | null> {

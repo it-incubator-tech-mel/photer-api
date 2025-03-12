@@ -24,6 +24,9 @@ import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { UserQueryRepository } from './infrastructure/users.query-repository';
 import { BearerStrategy } from '../../core/strategies/bearer.strategies';
 import { RefreshTokenStrategy } from '../../core/strategies/refresh-token.strategy';
+import {GoogleStrategy} from "./domain/google.strategy";
+import {GithubStrategy} from "./domain/github.strategy";
+import {JwtServiceProvider} from "../../core/services/jwt/jwt-service-provider.service";
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -46,12 +49,15 @@ const repos: Provider[] = [
 const strategies: Provider[] = [
   BearerStrategy,
   LocalStrategy,
-  RefreshTokenStrategy
+  RefreshTokenStrategy,
+  GoogleStrategy,
+  GithubStrategy
 ];
 
 const services: Provider[] = [
   AuthService,
-  JwtTokenService
+  JwtTokenService,
+  JwtServiceProvider
 ];
 
 @Module({

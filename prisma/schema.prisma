@@ -16,6 +16,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
+  providers String   @default("application")
 
   emailConfirmation EmailConfirmation?
   passwordRecovery  PasswordRecovery?
