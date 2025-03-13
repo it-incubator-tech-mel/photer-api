@@ -26,6 +26,7 @@ import { BearerStrategy } from '../../core/strategies/bearer.strategies';
 import { RefreshTokenStrategy } from '../../core/strategies/refresh-token.strategy';
 import { GoogleStrategy } from '../../core/strategies/google.strategy';
 import { OAuthUseCase } from './application/use-cases/oauth.use-case';
+import { OAuthAccountRepository } from './infrastructure/oauth-account.repository';
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -44,6 +45,7 @@ const repos: Provider[] = [
   UserQueryRepository,
   DeviceRepository,
   RefreshTokenRepository,
+  OAuthAccountRepository,
 ];
 
 const strategies: Provider[] = [
