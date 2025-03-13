@@ -252,7 +252,7 @@ export class AuthController {
       >(new PasswordRecoveryUseCommand(passwordRecoveryDto.email));
 
       if (result.status === ResultStatus.NotFound) {
-        throw new BadRequestException(result.extensions!);
+        throw new NotFoundException(result.errorMessage);
       }
 
     } else {
