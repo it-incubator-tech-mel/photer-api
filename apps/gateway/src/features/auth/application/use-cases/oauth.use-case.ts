@@ -22,7 +22,7 @@ export class OAuthUseCase implements ICommandHandler<OAuthCommand> {
   ) {
   }
 
-  async execute(command: OAuthCommand): Promise< {} | null> {
+  async execute(command: OAuthCommand): Promise<any> {
 
     const user = { command };
 
