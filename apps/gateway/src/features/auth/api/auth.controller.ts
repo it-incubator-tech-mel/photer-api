@@ -5,11 +5,11 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Redirect,
   Req,
   Res,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
+import { RegistrationDto } from './dto/input/registration.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { LoginDto } from './dto/input/login.dto';
 import { PasswordRecoveryDto } from './dto/input/password-recovery.dto';
@@ -17,7 +17,7 @@ import { NewPasswordDto } from './dto/input/new-password.dto';
 import { ConfirmRegistrationDto } from './dto/input/confirm-registration.dto';
 import { RegistrationEmailResendingDto } from './dto/input/registration-email-resending.dto';
 import { RegistrationUserCommand } from '../application/use-cases/registration.use-case';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { Notification, ResultStatus } from '../../../core/notification/notification';
@@ -43,21 +43,11 @@ import {
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { AuthMeOutputDto } from './dto/output/auth-me.dto';
 import { UserQueryRepository } from '../infrastructure/users.query-repository';
+import * as passport from 'passport';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
-import {GithubGuard, GoogleGuard} from "../guards/Google-guard";
-import {RegistrationDto} from "./dto/input/registration.dto";
-
-
-type BodyTokens = {
-
-  createAccessToken: string,
-  createRefreshToken: string,
-
-}
-
-class CustomRequest {
-  user: BodyTokens
-}
+import { GoogleGuard } from '../../../core/guards/google.guard';
+import { CurrentUserEmail } from '../../../core/decorators/param-decorators/current-user-email.decorator';
+import { OAuthCommand, OAuthUseCase } from '../application/use-cases/oauth.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -65,8 +55,8 @@ export class AuthController {
     private readonly commandBus: CommandBus,
     private readonly userQueryRepository: UserQueryRepository,
     private readonly reCaptchaService: ReCaptchaService,
-  ) {}
-
+  ) {
+  }
 
   @Post('registration')
   @ApiOperation({ summary: 'Registration in the system. Email will be send to passed email address' })
@@ -268,7 +258,6 @@ export class AuthController {
     } else {
       throw new BadRequestException([{ field: 'Captcha', message: 'Incorrect captcha' }]);
     }
-
   }
 
   @Post('new-password')
@@ -400,48 +389,75 @@ export class AuthController {
 
     return user;
   }
+
+  // http://localhost:3000/api/v1/auth/oauth/google/login
   @UseGuards(GoogleGuard)
   @Get('oauth/google/login')
   async googleLogin() {
   }
+
   @UseGuards(GoogleGuard)
   @Get('oauth/google/callback')
-  @Redirect()
   @HttpCode(HttpStatus.OK)
-  async oauthCallbackGoogle(@Req() req: CustomRequest, @Res() res: Response){
-    const result: BodyTokens = {
-      createAccessToken: req.user.createAccessToken,
-      createRefreshToken: req.user.createRefreshToken,
-    };
-    if (result.createAccessToken && result.createRefreshToken){
-      res.cookie('refreshToken', result.createRefreshToken, {
-        httpOnly: true,
-        secure: true,
+  async googleCallback(@CurrentUserEmail() email: string, @Req() req: any, @Res() res: Response,) {
+    if (!email) {
+      return { url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL' };
+    }
+
+    const result: Notification<null | {
+      accessToken: string;
+      refreshToken: string;
+    }> = await this.commandBus.execute<OAuthUseCase, Notification<null | {
+      accessToken: string;
+      refreshToken: string;
+    }>>(
+      new OAuthCommand(req.user),
+    );
+
+    if (result.status === ResultStatus.Unauthorized) {
+      throw new UnauthorizedException(result.errorMessage);
+    } else {
+      res.cookie('refreshToken', result.data.refreshToken, {
+        httpOnly: true, // cookie can only be accessed via http or https
+        secure: true, // send cookie only over https
       });
-      return {
-        url: 'https://photer.ltd',
-        accessToken: result.createAccessToken,
-      };
+
+      res.status(HttpStatus.OK).send({
+        accessToken: result.data.accessToken,
+      });
     }
-    console.log(req.user, 'req.user')
-    return {url: 'https://photer.ltd/api/v1/auth/password-recovery'}
   }
 
+  // @UseGuards(GoogleGuard)
+  // @Get('google/redirect')
+  // @Redirect()
+  // async googleRedirect(@Req() req: Request) {
+  //   if (!req.user) {
+  //     return {
+  //       url: ${this.googleOAthSettings.GOOGLE_FRONTEND_REDIRECT_URL}?error=ERROR_AUTH_EMAIL,
+  //     };
+  //   }
+  //
+  //   return {
+  //     url: this.googleOAthSettings.GOOGLE_FRONTEND_REDIRECT_URL,
+  //   };
+  // }
 
-  @UseGuards(GithubGuard)
-  @Get('oauth/github/login')
-  async githubLogin() {
-  }
-  @UseGuards(GithubGuard)
-  @Get('oauth/github/callback')
-  @Redirect()
-  @HttpCode(HttpStatus.OK)
-  async oauthCallbackGithub(@Req() req: Request){
+  // app.get('/auth/google/callback',
+  // passport.authenticate('google', { failureRedirect: '/login' }),
+  // function(req, res) {
+  //   // Successful authentication, redirect home.
+  //   res.redirect('/');
+  // });
+}
 
-    if (!req.user) {
-      return {url: 'https://photer.ltd/api/v1'}
-    }
+type BodyTokens = {
 
-    return {url: 'https://photer.ltd'}
-  }
+  createAccessToken: string,
+  createRefreshToken: string,
+
+}
+
+class CustomRequest {
+  user: BodyTokens
 }
