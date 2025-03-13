@@ -24,8 +24,9 @@ import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { UserQueryRepository } from './infrastructure/users.query-repository';
 import { BearerStrategy } from '../../core/strategies/bearer.strategies';
 import { RefreshTokenStrategy } from '../../core/strategies/refresh-token.strategy';
-import { GoogleStrategy } from '../../core/strategies/google.strategy';
-import { OAuthUseCase } from './application/use-cases/oauth.use-case';
+import {GoogleStrategy} from "../../core/strategies/google.strategy";
+import {OAuthAccountRepository} from "./infrastructure/oauth-account.repository";
+import {OAuthUseCase} from "./application/use-cases/oauth.use-case";
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -44,6 +45,7 @@ const repos: Provider[] = [
   UserQueryRepository,
   DeviceRepository,
   RefreshTokenRepository,
+  OAuthAccountRepository,
 ];
 
 const strategies: Provider[] = [

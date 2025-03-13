@@ -55,15 +55,15 @@ export class UserRepository {
     return user ? user : null;
   }
 
-  async updateServiceForRegistration(id: number, provider: 'google' | 'github') {
-    console.log(id, 'id')
-    const user = await this.prisma.user.update({where: {id: id},
-      data:{
-        providers: provider
-      }})
-    console.log(user)
-    return user
-  }
+  // async updateServiceForRegistration(id: number, provider: 'google' | 'github') {
+  //   console.log(id, 'id')
+  //   const user = await this.prisma.user.update({where: {id: id},
+  //     data:{
+  //       providers: provider
+  //     }})
+  //   console.log(user)
+  //   return user
+  // }
 
   async findById(id: number): Promise<User | null> {
     const user = await this.prisma.user.findUnique({

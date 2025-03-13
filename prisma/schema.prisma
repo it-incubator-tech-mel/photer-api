@@ -11,12 +11,11 @@ generator client {
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @db.VarChar(30)
-  password  String   @db.VarChar(255)
+  password  String?   @db.VarChar(255)
   email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
-  providers String   @default("application")
 
   emailConfirmation EmailConfirmation?
   passwordRecovery  PasswordRecovery?

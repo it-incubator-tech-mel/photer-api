@@ -4,7 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Post,
+  Post, Redirect,
   Req,
   Res,
   UseGuards,
@@ -43,12 +43,20 @@ import {
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { AuthMeOutputDto } from './dto/output/auth-me.dto';
 import { UserQueryRepository } from '../infrastructure/users.query-repository';
-import * as passport from 'passport';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
 import { GoogleGuard } from '../../../core/guards/google.guard';
-import { CurrentUserEmail } from '../../../core/decorators/param-decorators/current-user-email.decorator';
-import { OAuthCommand, OAuthUseCase } from '../application/use-cases/oauth.use-case';
+import {User} from "../domain/user.entity";
+import {OAuthCommand} from "../application/use-cases/oauth.use-case";
+type BodyTokens = {
 
+  createAccessToken: string,
+  createRefreshToken: string,
+
+}
+
+class CustomRequest {
+  user: User
+}
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -398,35 +406,78 @@ export class AuthController {
 
   @UseGuards(GoogleGuard)
   @Get('oauth/google/callback')
+  @Redirect()
   @HttpCode(HttpStatus.OK)
-  async googleCallback(@CurrentUserEmail() email: string, @Req() req: any, @Res() res: Response,) {
-    if (!email) {
-      return { url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL' };
-    }
-
+  async oauthCallbackGoogle(
+      @Req() req: CustomRequest,
+      @Res() res: Response,
+      @Ip() ip: string,
+      @UserAgent() userAgent: string,){
     const result: Notification<null | {
       accessToken: string;
       refreshToken: string;
-    }> = await this.commandBus.execute<OAuthUseCase, Notification<null | {
+    }> = await this.commandBus.execute<OAuthCommand, Notification<null | {
       accessToken: string;
-      refreshToken: string;
+      refreshToken: string
     }>>(
-      new OAuthCommand(req.user),
-    );
+        new OAuthCommand(req.user, ip, userAgent));
 
-    if (result.status === ResultStatus.Unauthorized) {
+    if (result.status === ResultStatus.Unauthorized || !result.data) {
       throw new UnauthorizedException(result.errorMessage);
-    } else {
-      res.cookie('refreshToken', result.data.refreshToken, {
-        httpOnly: true, // cookie can only be accessed via http or https
-        secure: true, // send cookie only over https
-      });
-
-      res.status(HttpStatus.OK).send({
-        accessToken: result.data.accessToken,
-      });
     }
+
+    res.cookie('refreshToken', result.data.refreshToken, {
+      httpOnly: true, // cookie can only be accessed via http or https
+      secure: true, // send cookie only over https
+    });
+    // res.status(HttpStatus.OK).send({
+    //   accessToken: result.data.accessToken,
+    // });
+    return {
+      url: 'https://photer.ltd',
+      accessToken: result.data.accessToken,
+    };
+    // if (req.user.getId()){
+    //   return {
+    //     url: 'https://photer.ltd',
+    //   };
+    // }
+    // console.log(req.user, 'req.user')
+    // return {url: 'https://photer.ltd/api/v1/auth/password-recovery'}
   }
+
+  // @UseGuards(GoogleGuard)
+  // @Get('oauth/google/callback')
+  // @HttpCode(HttpStatus.OK)
+  // async googleCallback(@CurrentUserEmail() email: string, @Req() req: any, @Res() res: Response,) {
+  //   if (!email) {
+  //     return { url: 'https://photer.ltd?error=ERROR_AUTH_EMAIL' };
+  //   }
+  //
+  //
+  //   const result: Notification<null | {
+  //     accessToken: string;
+  //     refreshToken: string;
+  //   }> = await this.commandBus.execute<OAuthUseCase, Notification<null | {
+  //     accessToken: string;
+  //     refreshToken: string;
+  //   }>>(
+  //     new OAuthCommand(req.user),
+  //   );
+  //
+  //   if (result.status === ResultStatus.Unauthorized) {
+  //     throw new UnauthorizedException(result.errorMessage);
+  //   } else {
+  //     res.cookie('refreshToken', result.data.refreshToken, {
+  //       httpOnly: true, // cookie can only be accessed via http or https
+  //       secure: true, // send cookie only over https
+  //     });
+  //
+  //     res.status(HttpStatus.OK).send({
+  //       accessToken: result.data.accessToken,
+  //     });
+  //   }
+  // }
 
   // @UseGuards(GoogleGuard)
   // @Get('google/redirect')
@@ -451,13 +502,3 @@ export class AuthController {
   // });
 }
 
-type BodyTokens = {
-
-  createAccessToken: string,
-  createRefreshToken: string,
-
-}
-
-class CustomRequest {
-  user: BodyTokens
-}
