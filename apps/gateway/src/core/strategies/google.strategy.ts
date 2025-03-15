@@ -7,13 +7,14 @@ import { UnauthorizedException } from '../exception-filters/exceptions/exception
 import { UserRepository } from '../../features/auth/infrastructure/users.repository';
 import { User } from '../../features/auth/domain/user.entity';
 import { OAuthAccountRepository } from '../../features/auth/infrastructure/oauth-account.repository';
-import { ProviderType } from '@prisma/client';
-import { OAuthAccount } from '../../features/auth/domain/oauth-account.entity';
+import { AuthService } from '../../features/auth/application/services/auth-service';
+import { OAuthAccount, ProviderType } from '@prisma/client';
 
-////////////////////////////////
-// !!! logic must be corrected
-////////////////////////////////
-
+/**
+ * 1) find user by email --> + -->  2) merge oAuthAccount (may exist or no, register by other method)
+ *                           - -->  3) find by provideId  + --> 4) change email in oAuthAccount
+ *                                                        - --> 5) create user and oAuthAccount
+ */
 
 interface VerifyCallback {
   (error: any, user?: any, info?: any): void;
@@ -24,7 +25,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     private configService: ConfigService<any, true>,
     private readonly userRepository: UserRepository,
-    private readonly oauthAccountRepository: OAuthAccountRepository
+    private readonly oauthAccountRepository: OAuthAccountRepository,
+    private readonly authService: AuthService,
   ) {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT'),
@@ -43,7 +45,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     // console.log("GoogleStrategy profile", profile);
     const { id, displayName, username, name, emails } = profile;
 
-    // if there is no email in profile throw exception
+    // 1) find user by email
     if (!emails || !emails.length) {
       return done(new UnauthorizedException(), null);
     }
@@ -53,64 +55,62 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     let user: User;
 
-    if (!foundUser) {
-      // if user not found
-      const usernameFromProvider: string = username || displayName || email.split('@')[0];
-
-      // check user exists with such email
-      let existingUserByUsername: User = await this.userRepository.findByUsername(usernameFromProvider);
-
-      // generate unique username
-      let uniqueUsername: string = usernameFromProvider;
-      if (existingUserByUsername) {
-        uniqueUsername = `${usernameFromProvider}-${Math.floor(Math.random() * 1000)}`;
-      }
-
-      // create new user and confirm email
-      user = User.create(uniqueUsername, null, email);
-      user.confirmEmail();
-
-      // ??? send registration email
-      // await this.mailService.sendRegistrationEmail(email);
-
-      // save user in db
-      await this.userRepository.create(user);
-
-      // check OAuthProvider exists
-      let oauthAccount: OAuthAccount = await this.oauthAccountRepository.findByProviderAndProviderId(ProviderType.GOOGLE, id);
-
-      if (!oauthAccount) {
-        // create user provider
-        const oauthAccountData = {
-          userId: user.getId(),
-          provider: ProviderType.GOOGLE,
-          providerId: id,
-          email: email,
-        };
-
-        await this.oauthAccountRepository.create(oauthAccountData);
-      }
-    } else {
-      // if user exists
+    if (foundUser) {
+      // console.log("foundUser", foundUser);
+      // 2) merge oAuthAccount (may exist or no, register by other method)
       user = foundUser;
+      await this.oauthAccountRepository.updateOrCreate(foundUser.getId(), ProviderType.GOOGLE, id, email);
+    } else {
+      // 3) find by provideId
+      let oAuthAccount: OAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(ProviderType.GOOGLE, id);
 
-      // check OAuthProvider exists
-      let oauthAccount: OAuthAccount = await this.oauthAccountRepository.findByProviderAndProviderId(ProviderType.GOOGLE, id);
+      if (oAuthAccount) {
+        // console.log("oAuthAccount", oAuthAccount);
+        // 4) change email in oauthAccount
+        await this.oauthAccountRepository.updateEmail(id, ProviderType.GOOGLE, email);
+      } else {
+        // console.log("!oAuthAccount !foundUser");
+        // 5) create user and oAuthAccount
+        const usernameFromProvider: string = username || displayName || email.split('@')[0];
 
-      if (!oauthAccount) {
-        // create user provider
-        const oauthAccountData = {
-          userId: user.getId(),
-          provider: ProviderType.GOOGLE,
-          providerId: id,
-          email: email,
-        };
+        // id: 0
+        await this.authService.createUserWhenRegistrationByProvider(usernameFromProvider, email);
 
-        await this.oauthAccountRepository.create(oauthAccountData);
+        let createdUser: User = await this.userRepository.findByUsername(usernameFromProvider);
+
+        // console.log("createdUser id", createdUser.getId());
+
+        await this.oauthAccountRepository.create(createdUser.getId(), ProviderType.GOOGLE, id, email);
+
+        user = createdUser;
       }
     }
 
-    // return user
-    return done(null, user);
+    // console.log("user", user);
+    return user;
   }
 }
+
+
+/*  async validate(
+  accessToken: string,
+  refreshToken: string,
+  profile: Profile,
+  done: VerifyCallback,
+): Promise<any> {
+  const { id, displayName, username, emails } = profile;
+
+  if (!emails || !emails.length) {
+    return done(new UnauthorizedException(), null);
+  }
+
+  const email: string = emails[0].value;
+  const usernameFromProvider: string = username || displayName || email.split('@')[0];
+
+  try {
+    const user: User = await this.authService.registerWithProvider(usernameFromProvider, email, id);
+    return done(null, user);
+  } catch (error) {
+    return done(error, null);
+  }
+}*/

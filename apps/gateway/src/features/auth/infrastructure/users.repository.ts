@@ -40,6 +40,10 @@ export class UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
+/*    await this.prisma.user.delete({
+      where: { email },
+    })*/
+
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { emailConfirmation: true },

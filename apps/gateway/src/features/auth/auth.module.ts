@@ -12,7 +12,6 @@ import { DeviceModule } from '../devices/device.module';
 import { CryptoModule } from '../../core/services/crypto/crypto.module';
 import { MailerModule } from '../../core/services/mailler/mailer.module';
 import { DeviceRepository } from '../devices/infrastructure/device.repository';
-import { RefreshTokenRepository } from './infrastructure/refresh-token.repository';
 import { ReCaptchaModule } from '../../core/services/reCaptcha/reCaptcha.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtTokenService } from '../../core/services/jwt/jwt-token.service';
@@ -44,7 +43,6 @@ const repos: Provider[] = [
   UserRepository,
   UserQueryRepository,
   DeviceRepository,
-  RefreshTokenRepository,
   OAuthAccountRepository,
 ];
 

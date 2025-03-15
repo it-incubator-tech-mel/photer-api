@@ -1,3 +1,4 @@
+/*
 import { ProviderType } from '@prisma/client';
 
 export class OAuthAccount {
@@ -12,3 +13,4 @@ export class OAuthAccount {
     Object.assign(this, partial);
   }
 }
+*/

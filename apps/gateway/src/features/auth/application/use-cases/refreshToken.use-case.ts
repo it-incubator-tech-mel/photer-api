@@ -37,8 +37,6 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
   ): Promise<Notification<null | { accessToken: string; refreshToken: string }>> {
     const { deviceId, userId, iat: issuedAt } = command;
 
-
-
     const device: Device | null =
       await this.deviceRepository.findOneByDeviceIdAndIat(
         deviceId,
@@ -54,9 +52,6 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
     // generate tokens
     const accessToken: string = await this.jwtTokenService.generateAccessToken(JwtAccessTokenPayload);
     const refreshToken: string = await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
-
-    // update refresh token in db
-    // this.refreshTokenRepository.update(parser),
 
     const decodedRefreshToken: RefreshTokenPayload = await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
     if (!decodedRefreshToken) return Notification.unauthorized('Invalid refresh token');

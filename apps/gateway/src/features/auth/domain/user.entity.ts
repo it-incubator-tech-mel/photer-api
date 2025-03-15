@@ -5,7 +5,7 @@ export class User {
   private constructor(
     private readonly id: number,
     private username: string,
-    private password: string,
+    private password: string | null,
     private email: string,
     private createdAt: Date,
     private updatedAt: Date,
@@ -18,7 +18,7 @@ export class User {
   ) {
   }
 
-  static create(username: string, passwordHash: string, email: string): User {
+  static create(username: string, passwordHash: string | null, email: string): User {
     return new User(
       0, // In DB auto-increment
       username,
@@ -39,7 +39,7 @@ export class User {
   static restore(
     id: number,
     username: string,
-    password: string,
+    password: string | null,
     email: string,
     createdAt: Date,
     updatedAt: Date,
