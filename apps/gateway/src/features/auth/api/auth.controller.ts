@@ -21,7 +21,11 @@ import { Response } from 'express';
 import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { Notification, ResultStatus } from '../../../core/notification/notification';
-import { BadRequestException, UnauthorizedException } from '../../../core/exception-filters/exceptions/exception-types';
+import {
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+} from '../../../core/exception-filters/exceptions/exception-types';
 import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
 import { RegistrationEmailResendingCommand } from '../application/use-cases/registration-email-resending.use-case';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
@@ -251,7 +255,7 @@ export class AuthController {
       >(new PasswordRecoveryUseCommand(passwordRecoveryDto.email));
 
       if (result.status === ResultStatus.NotFound) {
-        throw new BadRequestException(result.extensions!);
+        throw new NotFoundException(result.errorMessage);
       }
 
     } else {
