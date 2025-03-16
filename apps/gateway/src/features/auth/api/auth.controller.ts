@@ -208,7 +208,7 @@ export class AuthController {
 
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: true, // send cookie only over https
+      // secure: true, // send cookie only over https
     });
 
     res.status(HttpStatus.OK).send({
@@ -315,8 +315,8 @@ export class AuthController {
 
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: true, // send cookie only over https
-      sameSite: 'strict', // protects against CSRF attacks
+      // secure: true, // send cookie only over https
+      // sameSite: 'strict', // protects against CSRF attacks
     });
 
     res.status(HttpStatus.OK).send({
@@ -362,8 +362,8 @@ export class AuthController {
 
     res.clearCookie('refreshToken', {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: true, // send cookie only over https
-      sameSite: 'strict', // protects against CSRF attacks
+      // secure: true, // send cookie only over https
+      // sameSite: 'strict', // protects against CSRF attacks
     });
 
     res.status(HttpStatus.NO_CONTENT).send();
@@ -419,7 +419,7 @@ export class AuthController {
 
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: true, // send cookie only over https
+      // secure: true, // send cookie only over https
     });
 
     return {
