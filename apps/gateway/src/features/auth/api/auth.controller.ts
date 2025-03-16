@@ -202,13 +202,15 @@ export class AuthController {
     }>>(
       new LoginCommand(userId, ip, userAgent, refreshToken));
 
+    console.log("result.data", result.data)
+
     if (result.status === ResultStatus.Unauthorized || !result.data) {
       throw new UnauthorizedException(result.errorMessage);
     }
 
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: false, // send cookie only over https
+      secure: true, // send cookie only over https
       sameSite: 'none'
     });
 
@@ -316,7 +318,7 @@ export class AuthController {
 
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: false, // send cookie only over https
+      secure: true, // send cookie only over https
       // sameSite: 'strict', // protects against CSRF attacks
       sameSite: 'none'
     });
@@ -364,7 +366,7 @@ export class AuthController {
 
     res.clearCookie('refreshToken', {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: false, // send cookie only over https
+      secure: true, // send cookie only over https
       // sameSite: 'strict', // protects against CSRF attacks
       sameSite: 'none'
     });
@@ -422,7 +424,7 @@ export class AuthController {
 
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
-      secure: false, // send cookie only over https
+      secure: true, // send cookie only over https
       sameSite: 'none'
     });
 
