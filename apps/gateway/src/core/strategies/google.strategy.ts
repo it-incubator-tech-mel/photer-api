@@ -45,72 +45,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     // console.log("GoogleStrategy profile", profile);
     const { id, displayName, username, name, emails } = profile;
 
-    // 1) find user by email
     if (!emails || !emails.length) {
       return done(new UnauthorizedException(), null);
     }
 
     const email: string = emails[0].value;
-    const foundUser: User = await this.userRepository.findByEmail(email);
 
-    let user: User;
-
-    if (foundUser) {
-      // console.log("foundUser", foundUser);
-      // 2) merge oAuthAccount (may exist or no, register by other method)
-      user = foundUser;
-      await this.oauthAccountRepository.updateOrCreate(foundUser.getId(), ProviderType.GOOGLE, id, email);
-    } else {
-      // 3) find by provideId
-      let oAuthAccount: OAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(ProviderType.GOOGLE, id);
-
-      if (oAuthAccount) {
-        // console.log("oAuthAccount", oAuthAccount);
-        // 4) change email in oauthAccount
-        await this.oauthAccountRepository.updateEmail(id, ProviderType.GOOGLE, email);
-      } else {
-        // console.log("!oAuthAccount !foundUser");
-        // 5) create user and oAuthAccount
-        const usernameFromProvider: string = username || displayName || email.split('@')[0];
-
-        // id: 0
-        await this.authService.createUserWhenRegistrationByProvider(usernameFromProvider, email);
-
-        let createdUser: User = await this.userRepository.findByUsername(usernameFromProvider);
-
-        // console.log("createdUser id", createdUser.getId());
-
-        await this.oauthAccountRepository.create(createdUser.getId(), ProviderType.GOOGLE, id, email);
-
-        user = createdUser;
-      }
-    }
+    const user: User = await this.authService.handleOAuthLogin(ProviderType.GOOGLE, id, email, username, displayName);
 
     // console.log("user", user);
     return user;
   }
 }
-
-
-/*  async validate(
-  accessToken: string,
-  refreshToken: string,
-  profile: Profile,
-  done: VerifyCallback,
-): Promise<any> {
-  const { id, displayName, username, emails } = profile;
-
-  if (!emails || !emails.length) {
-    return done(new UnauthorizedException(), null);
-  }
-
-  const email: string = emails[0].value;
-  const usernameFromProvider: string = username || displayName || email.split('@')[0];
-
-  try {
-    const user: User = await this.authService.registerWithProvider(usernameFromProvider, email, id);
-    return done(null, user);
-  } catch (error) {
-    return done(error, null);
-  }
-}*/

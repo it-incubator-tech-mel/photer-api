@@ -42,6 +42,50 @@ export class AuthService {
   }
 
   // GoogleStrategy
+  async handleOAuthLogin(
+    providerType: ProviderType,
+    providerId: string,
+    email: string,
+    username?: string,
+    displayName?: string,
+  ): Promise<User> {
+    let user: User;
+
+    // 1) find user by email
+    const foundUser: User = await this.userRepository.findByEmail(email);
+
+    if (foundUser) {
+      // console.log("foundUser", foundUser);
+      // 2) merge oAuthAccount (may exist or no, register by other method)
+      user = foundUser;
+      await this.oauthAccountRepository.updateOrCreate(foundUser.getId(), providerType, providerId, email);
+    } else {
+      // 3) find oAuthAccount by provideId
+      let oAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(providerType, providerId);
+
+      if (oAuthAccount) {
+        // console.log("oAuthAccount", oAuthAccount);
+        // 4) change email in oauthAccount
+        await this.oauthAccountRepository.updateEmail(providerId, providerType, email);
+      } else {
+        // console.log("!oAuthAccount !foundUser");
+        // 5) create user and oAuthAccount
+        const usernameFromProvider = username || displayName || email.split('@')[0];
+
+        // create user
+        await this.createUserWhenRegistrationByProvider(usernameFromProvider, email);
+
+        // find created user
+        user = await this.userRepository.findByUsername(usernameFromProvider);
+
+        // create new oAuthAccount for created user
+        await this.oauthAccountRepository.create(user.getId(), providerType, providerId, email);
+      }
+    }
+
+    return user;
+  }
+
   async createUserWhenRegistrationByProvider(userName: string, email: string): Promise<void> {
     let user: User;
 
@@ -64,19 +108,4 @@ export class AuthService {
     await this.userRepository.create(user);
     // return user
   }
-
-  // GoogleStrategy
-/*  async registerWithProvider(usernameFromProvider: string, email: string, providerId: string) {
-    // find by email
-    let user: User = await this.userRepository.findByEmail(email);
-
-    if (!user) {
-      // create if not exist
-      user = await this.createUserWhenRegistrationByProvider(usernameFromProvider, email);
-    }
-
-    await this.oauthAccountRepository.updateOrCreate(user.getId(), ProviderType.GOOGLE, providerId, email);
-
-    return user;
-  }*/
 }

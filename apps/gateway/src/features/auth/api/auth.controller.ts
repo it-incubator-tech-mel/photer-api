@@ -202,8 +202,6 @@ export class AuthController {
     }>>(
       new LoginCommand(userId, ip, userAgent, refreshToken));
 
-    console.log("result.data", result.data)
-
     if (result.status === ResultStatus.Unauthorized || !result.data) {
       throw new UnauthorizedException(result.errorMessage);
     }
@@ -408,7 +406,6 @@ export class AuthController {
     @Res() res: Response,
     @Ip() ip: string,
     @UserAgent() userAgent: string,){
-    console.log("user in controller", req.user);
     const result: Notification<null | {
       accessToken: string;
       refreshToken: string;
