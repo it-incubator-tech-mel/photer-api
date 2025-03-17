@@ -395,7 +395,6 @@ export class AuthController {
     return user;
   }
 
-  // http://localhost:3000/api/v1/auth/oauth/google/login
   @UseGuards(GoogleGuard)
   @Get('oauth/google/login')
   async googleLogin() {
