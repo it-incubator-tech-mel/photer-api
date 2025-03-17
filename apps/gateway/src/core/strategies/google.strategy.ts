@@ -8,7 +8,7 @@ import { UserRepository } from '../../features/auth/infrastructure/users.reposit
 import { User } from '../../features/auth/domain/user.entity';
 import { OAuthAccountRepository } from '../../features/auth/infrastructure/oauth-account.repository';
 import { AuthService } from '../../features/auth/application/services/auth-service';
-import { OAuthAccount, ProviderType } from '@prisma/client';
+import { ProviderType } from '@prisma/client';
 
 /**
  * 1) find user by email --> + -->  2) merge oAuthAccount (may exist or no, register by other method)
@@ -31,7 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/login',
+      callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
       //callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/callback',
       scope: ['email', 'profile'],
     });
