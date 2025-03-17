@@ -152,7 +152,7 @@ export class User {
 
     this.password = newPasswordHash;
     this.updatedAt = new Date();
-    this.recoveryCode = "";
+    this.recoveryCode = randomUUID();
     this.recoveryExpiration = new Date(0);
   }
 }
