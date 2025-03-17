@@ -89,11 +89,11 @@ export class UserRepository {
         where: { userId: user.getId() },
         update: {
           recoveryCode: user.getRecoveryCode() || "",
-          expirationDate: user.getConfirmationExpiration(),
+          expirationDate: user.getRecoveryExpiration(),
         },
         create: {
           recoveryCode: user.getRecoveryCode() || "",
-          expirationDate: user.getConfirmationExpiration(),
+          expirationDate: user.getRecoveryExpiration(),
           user: {
             connect: { id: user.getId() },
           },

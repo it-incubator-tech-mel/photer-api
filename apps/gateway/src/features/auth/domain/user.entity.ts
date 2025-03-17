@@ -112,6 +112,10 @@ export class User {
     return this.recoveryCode;
   }
 
+  getRecoveryExpiration(): Date | null {
+    return this.recoveryExpiration;
+  }
+
   // email confirmation methods
 
   confirmEmail(): void {
@@ -148,7 +152,7 @@ export class User {
 
     this.password = newPasswordHash;
     this.updatedAt = new Date();
-    this.recoveryCode = null;
-    this.recoveryExpiration = null;
+    this.recoveryCode = "";
+    this.recoveryExpiration = new Date(0);
   }
 }
