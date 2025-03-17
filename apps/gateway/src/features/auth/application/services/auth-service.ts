@@ -31,7 +31,7 @@ export class AuthService {
     const user: User | null =
       await this.userRepository.findByEmail(loginOrEmail);
 
-    if (!user || !(await this.cryptoService.compare(password, user.getPassword()))) {
+    if (!user|| !user.getPassword() || !(await this.cryptoService.compare(password, user.getPassword()))) {
       return Notification.unauthorized('Wrong email or password');
     }
 
