@@ -25,7 +25,7 @@ export class RegistrationUseCase
     private readonly cryptoService: CryptoService,
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
-    private coreConfig: CoreConfig,
+    private readonly coreConfig: CoreConfig,
   ) {
   }
 

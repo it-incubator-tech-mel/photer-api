@@ -415,7 +415,7 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized if the authentication fails.',
   })
-  @Redirect()
+  @Redirect('https://photer.ltd')
   @HttpCode(HttpStatus.OK)
   @UseGuards(GoogleGuard)
   async oauthCallbackGoogle(

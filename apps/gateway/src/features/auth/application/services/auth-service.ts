@@ -5,6 +5,13 @@ import { User } from '../../domain/user.entity';
 import { UserRepository } from '../../infrastructure/users.repository';
 import { ProviderType } from '@prisma/client';
 import { OAuthAccountRepository } from '../../infrastructure/oauth-account.repository';
+import {
+  registrationEmailTemplate
+} from '../../../../core/services/mailler/email-templates/registration-email-template';
+import { MailerService } from '../../../../core/services/mailler/mailer.service';
+import {
+  oAuthRegistrationEmailTemplate
+} from '../../../../core/services/mailler/email-templates/oauth-registration-email-template';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +19,7 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly cryptoService: CryptoService,
     private readonly oauthAccountRepository: OAuthAccountRepository,
+    private readonly mailerService: MailerService,
   ) {
   }
 
@@ -101,8 +109,12 @@ export class AuthService {
     user = User.create(uniqueUsername, null, email);
     user.confirmEmail();
 
-    // ??? send registration email
-    // await this.mailService.sendRegistrationEmail(email);
+    // send registration email
+    await this.mailerService.sendEmail(
+      user.getEmail(),
+      oAuthRegistrationEmailTemplate(user.getUsername()),
+      'Account Created Successfully',
+    );
 
     // save user in db
     await this.userRepository.create(user);
