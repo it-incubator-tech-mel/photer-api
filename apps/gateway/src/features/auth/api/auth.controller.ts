@@ -169,7 +169,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Try login user to the system' })
   @ApiResponse({
     status: 200,
-    description: 'Returns JWT accessToken (expired after 5 minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired after 24 hours).',
+    description: 'Returns JWT accessToken (expired after 60 seconds minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
   })
   @ApiResponse({
     status: 400,
@@ -395,15 +395,29 @@ export class AuthController {
     return user;
   }
 
-  @UseGuards(GoogleGuard)
   @Get('oauth/google/login')
+  @ApiOperation({ summary: 'Redirects user to Google authentication' })
+  @ApiResponse({
+    status: 200,
+    description: 'Redirects the user to Google OAuth login page.',
+  })
+  @UseGuards(GoogleGuard)
   async googleLogin() {
   }
 
-  @UseGuards(GoogleGuard)
   @Get('oauth/google/callback')
-  @Redirect()
+  @ApiOperation({ summary: 'Handles Google OAuth callback and issues tokens' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns JWT accessToken (expired after 60 seconds minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized if the authentication fails.',
+  })
+  // @Redirect()
   @HttpCode(HttpStatus.OK)
+  @UseGuards(GoogleGuard)
   async oauthCallbackGoogle(
     @Req() req: any,
     @Res() res: Response,
@@ -429,7 +443,7 @@ export class AuthController {
     });
 
     return {
-      url: 'https://photer.ltd',
+      // url: 'https://photer.ltd',
       accessToken: result.data.accessToken,
     };
   }
