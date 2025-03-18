@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Notification } from '../../../../core/notification/notification';
+import { Notification } from '../../../../../base/notification/notification';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { User } from '../../domain/user.entity';
 import { UserRepository } from '../../infrastructure/users.repository';
 import { ProviderType } from '@prisma/client';
 import { OAuthAccountRepository } from '../../infrastructure/oauth-account.repository';
-import {
-  registrationEmailTemplate
-} from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import {
   oAuthRegistrationEmailTemplate
@@ -49,7 +46,7 @@ export class AuthService {
     return Notification.success();
   }
 
-  // GoogleStrategy
+  // GoogleStrategy/GitHubStrategy
   async handleOAuthLogin(
     providerType: ProviderType,
     providerId: string,
@@ -63,7 +60,6 @@ export class AuthService {
     const foundUser: User = await this.userRepository.findByEmail(email);
 
     if (foundUser) {
-      // console.log("foundUser", foundUser);
       // 2) merge oAuthAccount (may exist or no, register by other method)
       user = foundUser;
       await this.oauthAccountRepository.updateOrCreate(foundUser.getId(), providerType, providerId, email);
@@ -72,11 +68,9 @@ export class AuthService {
       let oAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(providerType, providerId);
 
       if (oAuthAccount) {
-        // console.log("oAuthAccount", oAuthAccount);
         // 4) change email in oauthAccount
         await this.oauthAccountRepository.updateEmail(providerId, providerType, email);
       } else {
-        // console.log("!oAuthAccount !foundUser");
         // 5) create user and oAuthAccount
         const usernameFromProvider = username || displayName || email.split('@')[0];
 
@@ -94,6 +88,7 @@ export class AuthService {
     return user;
   }
 
+  // handleOAuthLogin
   async createUserWhenRegistrationByProvider(userName: string, email: string): Promise<void> {
     let user: User;
 
@@ -118,6 +113,5 @@ export class AuthService {
 
     // save user in db
     await this.userRepository.create(user);
-    // return user
   }
 }

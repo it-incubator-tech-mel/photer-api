@@ -1,19 +1,20 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Notification } from '../../../../core/notification/notification';
+import { Notification } from '../../../../../base/notification/notification';
 import { User } from '../../domain/user.entity';
-import {UserRepository} from "../../infrastructure/users.repository";
+import { UserRepository } from '../../infrastructure/users.repository';
 
 export class ConfirmRegistrationCommand {
-  constructor(public readonly code: string) {}
+  constructor(public readonly code: string) {
+  }
 }
 
 @CommandHandler(ConfirmRegistrationCommand)
 export class ConfirmRegistrationUseCase
-  implements ICommandHandler<ConfirmRegistrationCommand>
-{
+  implements ICommandHandler<ConfirmRegistrationCommand> {
   constructor(
     private readonly userRepository: UserRepository,
-  ) {}
+  ) {
+  }
 
   async execute(command: ConfirmRegistrationCommand): Promise<Notification> {
     const { code } = command;

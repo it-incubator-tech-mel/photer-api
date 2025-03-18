@@ -1,17 +1,17 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '../../infrastructure/users.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
-import { Notification } from '../../../../core/notification/notification';
+import { Notification } from '../../../../../base/notification/notification';
 import { User } from '../../domain/user.entity';
 import { CoreConfig } from '../../../../core/config/core.config';
 import {
-  passwordRecoveryEmailTemplate
+  passwordRecoveryEmailTemplate,
 } from '../../../../core/services/mailler/email-templates/password-recovery-email-template';
 
 export class PasswordRecoveryUseCommand {
   constructor(
     public readonly email: string,
-    ) {
+  ) {
   }
 }
 
@@ -33,13 +33,13 @@ export class PasswordRecoveryUseCase
 
     user.requestPasswordRecovery();
 
-    await this.userRepository.updateOrCreatePasswordRecovery(user)
+    await this.userRepository.updateOrCreatePasswordRecovery(user);
 
     this.mailerService.sendEmail(
       email,
       passwordRecoveryEmailTemplate(
         user.getRecoveryCode(),
-        this.coreConfig.baseUrl
+        this.coreConfig.baseUrl,
       ),
       'Password Recovery',
     );

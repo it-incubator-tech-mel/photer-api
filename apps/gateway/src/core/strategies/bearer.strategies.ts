@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
 import { AuthService } from '../../features/auth/application/services/auth-service';
-import { Notification, ResultStatus } from '../notification/notification';
+import { Notification, ResultStatus } from '../../../base/notification/notification';
 
 @Injectable()
 export class BearerStrategy extends PassportStrategy(Strategy) {

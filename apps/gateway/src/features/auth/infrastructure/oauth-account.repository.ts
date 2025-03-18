@@ -36,7 +36,7 @@ export class OAuthAccountRepository {
         userId: userId,
         provider: provider,
         providerId: providerId,
-        email: email
+        email: email,
       },
     });
 
@@ -46,8 +46,8 @@ export class OAuthAccountRepository {
   async updateEmail(providerId: string, provider: ProviderType, email: string): Promise<OAuthAccount> {
     const account = await this.prisma.oAuthAccount.update({
       where: { provider_providerId: { provider, providerId } },
-      data: { email: email }
-    })
+      data: { email: email },
+    });
 
     return account;
   }

@@ -40,10 +40,6 @@ export class UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-/*    await this.prisma.user.delete({
-      where: { email },
-    })*/
-
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { emailConfirmation: true },
@@ -82,17 +78,17 @@ export class UserRepository {
         where: { id: user.getId() },
         data: {
           updatedAt: user.getUpdatedAt(),
-          password: user.getPassword()
+          password: user.getPassword(),
         },
       }),
       this.prisma.passwordRecovery.upsert({
         where: { userId: user.getId() },
         update: {
-          recoveryCode: user.getRecoveryCode() || "",
+          recoveryCode: user.getRecoveryCode() || '',
           expirationDate: user.getRecoveryExpiration(),
         },
         create: {
-          recoveryCode: user.getRecoveryCode() || "",
+          recoveryCode: user.getRecoveryCode() || '',
           expirationDate: user.getRecoveryExpiration(),
           user: {
             connect: { id: user.getId() },
@@ -106,7 +102,7 @@ export class UserRepository {
     const prismaUser = await this.prisma.user.findFirst({
       where: {
         passwordRecovery: {
-          recoveryCode
+          recoveryCode,
         },
       },
       include: {

@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 import { configValidation } from './config-validation';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

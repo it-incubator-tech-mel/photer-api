@@ -10,8 +10,8 @@ export class UserQueryRepository {
 
   async findAuthenticatedUserById(id: number): Promise<AuthMeOutputDto> {
     const result = await this.prisma.user.findFirst({
-      where: { id }
-    })
+      where: { id },
+    });
 
     return UserMapper.toAuthMeOutput(result);
   }

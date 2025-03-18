@@ -14,9 +14,8 @@ export class ReCaptchaService {
       method: 'POST',
       body: `secret=${this.captchaConfig.captchaSecret}&response=${token}`,
     });
-    const response: ReCaptchaResponse = await result.json();
 
-    // return response.success
+    const response: ReCaptchaResponse = await result.json();
 
     if (!response.success) return false;
 

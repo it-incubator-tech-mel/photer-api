@@ -16,7 +16,7 @@ import {
 } from '../../../core/decorators/param-decorators/current-user-id-from-device.decorator';
 import { DeviceOutputDto } from './dto/output/device-output.dto';
 import { DevicesQueryRepository } from '../infrastructure/device.query-repository';
-import { Notification, ResultStatus } from '../../../core/notification/notification';
+import { Notification, ResultStatus } from '../../../../base/notification/notification';
 import { TerminateAllOtherUserDevicesCommand } from '../application/use-cases/terminate-all-other-user-devices.use-case';
 import { TerminateUserDeviceCommand } from '../application/use-cases/terminate-user-device.use-case';
 import { NotFoundException } from '../../../core/exception-filters/exceptions/exception-types';

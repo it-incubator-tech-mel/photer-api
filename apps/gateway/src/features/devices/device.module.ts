@@ -8,18 +8,19 @@ import { DevicesQueryRepository } from './infrastructure/device.query-repository
 
 const useCases: Provider[] = [
   TerminateAllOtherUserDevicesUseCase,
-  TerminateUserDeviceUseCase
+  TerminateUserDeviceUseCase,
 ];
 
 const repos: Provider[] = [
   DeviceRepository,
-  DevicesQueryRepository
-]
+  DevicesQueryRepository,
+];
 
 @Module({
   imports: [CqrsModule],
   controllers: [DeviceController],
   providers: [...useCases, ...repos],
-  exports: [DeviceRepository]
+  exports: [DeviceRepository],
 })
-export class DeviceModule {}
+export class DeviceModule {
+}

@@ -12,8 +12,7 @@ import { ConfigModule } from './core/config/config.module';
     DeviceModule,
   ],
   controllers: [],
-  providers: [
-
-  ],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule {
+}

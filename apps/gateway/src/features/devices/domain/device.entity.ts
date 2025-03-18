@@ -7,7 +7,8 @@ export class Device {
     private iat: Date,
     private exp: Date,
     private isDeleted: boolean,
-  ) {}
+  ) {
+  }
 
   static create(deviceId: string, userId: number, deviceName: string, ip: string, iat: number, exp: number): Device {
     return new Device(
@@ -17,7 +18,7 @@ export class Device {
       ip,
       new Date(iat * 1000),
       new Date(exp * 1000),
-      false
+      false,
     );
   }
 
@@ -37,7 +38,7 @@ export class Device {
       ip,
       iat,
       exp,
-      isDeleted
+      isDeleted,
     );
   }
 

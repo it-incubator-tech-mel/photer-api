@@ -1,9 +1,13 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { DeviceRepository } from "../../../devices/infrastructure/device.repository";
-import { Notification } from '../../../../core/notification/notification';
+import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
+import { Notification } from '../../../../../base/notification/notification';
 import { randomUUID } from 'node:crypto';
 import { Device } from '../../../devices/domain/device.entity';
-import { AccessTokenPayload, JwtTokenService, RefreshTokenPayload } from '../../../../core/services/jwt/jwt-token.service';
+import {
+  AccessTokenPayload,
+  JwtTokenService,
+  RefreshTokenPayload,
+} from '../../../../core/services/jwt/jwt-token.service';
 
 export class LoginCommand {
   constructor(
@@ -11,21 +15,22 @@ export class LoginCommand {
     public readonly ip: string,
     public readonly deviceName: string,
     public readonly refreshToken: string,
-  ) {}
+  ) {
+  }
 }
 
 @CommandHandler(LoginCommand)
 export class LoginUseCase
-  implements ICommandHandler<LoginCommand>
-{
+  implements ICommandHandler<LoginCommand> {
   constructor(
     private readonly jwtTokenService: JwtTokenService,
     private readonly deviceRepository: DeviceRepository,
-  ) {}
+  ) {
+  }
 
   async execute(
     command: LoginCommand,
-  ): Promise< {} | null> {
+  ): Promise<{} | null> {
 
     // pass login if refreshToken not passed (not valid)
     if (command.refreshToken) {
@@ -63,7 +68,7 @@ export class LoginUseCase
       command.deviceName,
       command.ip,
       iat,
-      exp
+      exp,
     );
 
     await this.deviceRepository.create(device);

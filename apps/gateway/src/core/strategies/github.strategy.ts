@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile } from 'passport';
-import { Strategy } from 'passport-google-oauth20';
+import { Strategy } from 'passport-github2';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
 import { User } from '../../features/auth/domain/user.entity';
@@ -19,16 +19,16 @@ interface VerifyCallback {
 }
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor(
     private configService: ConfigService<any, true>,
     private readonly authService: AuthService,
   ) {
     super({
-      clientID: configService.get<string>('GOOGLE_CLIENT'),
-      clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
-      scope: ['email', 'profile'],
+      clientID: configService.get<string>('GITHUB_CLIENT'),
+      clientSecret: configService.get<string>('GITHUB_CLIENT_SECRET'),
+      callbackURL: 'https://photer.ltd/api/v1/auth/oauth/github/callback',
+      scope: ['user:email'],
     });
   }
 
@@ -46,7 +46,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     const email: string = emails[0].value;
 
-    const user: User = await this.authService.handleOAuthLogin(ProviderType.GOOGLE, id, email, username, displayName);
+    const user: User = await this.authService.handleOAuthLogin(ProviderType.GITHUB, id, email, username, displayName);
 
     return user;
   }

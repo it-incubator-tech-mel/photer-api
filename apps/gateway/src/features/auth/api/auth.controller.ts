@@ -20,7 +20,7 @@ import { RegistrationUserCommand } from '../application/use-cases/registration.u
 import { Response } from 'express';
 import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
-import { Notification, ResultStatus } from '../../../core/notification/notification';
+import { Notification, ResultStatus } from '../../../../base/notification/notification';
 import {
   BadRequestException,
   NotFoundException,
@@ -49,6 +49,7 @@ import { AuthMeOutputDto } from './dto/output/auth-me.dto';
 import { UserQueryRepository } from '../infrastructure/users.query-repository';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
 import { GoogleGuard } from '../../../core/guards/google.guard';
+import { GitHubGuard } from '../../../core/guards/github.guard';
 import { OAuthCommand } from '../application/use-cases/oauth.use-case';
 
 @Controller('auth')
@@ -444,6 +445,58 @@ export class AuthController {
 
     return {
       // url: 'https://photer.ltd',
+      accessToken: result.data.accessToken,
+    };
+  }
+
+  @Get('oauth/github/login')
+  @ApiOperation({ summary: 'Redirects user to GitHub authentication' })
+  @ApiResponse({
+    status: 200,
+    description: 'Redirects the user to GitHub OAuth login page.',
+  })
+  @UseGuards(GitHubGuard)
+  async githubLogin() {
+  }
+
+  @Get('oauth/github/callback')
+  @ApiOperation({ summary: 'Handles GitHubGuard OAuth callback and issues tokens' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns JWT accessToken (expired after 60 seconds minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized if the authentication fails.',
+  })
+  @Redirect('https://photer.ltd')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(GitHubGuard)
+  async oauthCallbackGithub(
+    @Req() req: any,
+    @Res() res: Response,
+    @Ip() ip: string,
+    @UserAgent() userAgent: string,){
+    const result: Notification<null | {
+      accessToken: string;
+      refreshToken: string;
+    }> = await this.commandBus.execute<OAuthCommand, Notification<null | {
+      accessToken: string;
+      refreshToken: string
+    }>>(
+      new OAuthCommand(req.user, ip, userAgent));
+
+    if (result.status === ResultStatus.Unauthorized || !result.data) {
+      throw new UnauthorizedException(result.errorMessage);
+    }
+
+    res.cookie('refreshToken', result.data.refreshToken, {
+      httpOnly: true, // cookie can only be accessed via http or https
+      secure: true, // send cookie only over https
+      sameSite: 'none'
+    });
+
+    return {
       accessToken: result.data.accessToken,
     };
   }

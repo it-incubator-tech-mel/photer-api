@@ -1,4 +1,4 @@
-import { Notification } from '../../../../core/notification/notification';
+import { Notification } from '../../../../../base/notification/notification';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import {
   AccessTokenPayload,
