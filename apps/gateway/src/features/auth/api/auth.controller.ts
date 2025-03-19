@@ -134,7 +134,7 @@ export class AuthController {
   }
 
   @Post('registration-email-resending')
-  @ApiOperation({ summary: 'Resend confirmation registration. Email if user exists' })
+  @ApiOperation({ summary: 'Resend confirmation registration email if user exists' })
   @ApiResponse({
     status: 204,
     description: 'Input data is accepted.Email with confirmation code will be send to passed email address.Confirmation code should be inside link as query param, for example: https://some-front.com/confirm-registration?code=youtcodehere',
@@ -172,7 +172,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Try login user to the system' })
   @ApiResponse({
     status: 200,
-    description: 'Returns JWT accessToken (expired after 60 seconds minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
+    description: 'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
   })
   @ApiResponse({
     status: 400,
@@ -216,7 +216,8 @@ export class AuthController {
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
-      sameSite: 'none'
+      // sameSite: 'strict', // protects against CSRF attacks
+      sameSite: 'none',
     });
 
     res.status(HttpStatus.OK).send({
@@ -266,6 +267,36 @@ export class AuthController {
     }
   }
 
+  @Post('password-recovery-resending')
+  @ApiOperation({ summary: 'Resend password recovery link via email' })
+  @ApiResponse({ status: 204, description: 'Email with a new recovery link has been sent' })
+  @ApiResponse({
+    status: 400,
+    description: 'If the inputModel has invalid email (for example 222^gmail.com)',
+    type: APIErrorResult,
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 400,
+          message: 'Validation failed',
+          errorsMessages: [],
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'If user with this email does not exist' })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resendRecoveryLink(@Body() dto: PasswordRecoveryResendingDto) {
+    const result: Notification = await this.commandBus.execute(
+      new PasswordRecoveryResendingCommand(dto.email),
+    );
+
+    if (result.status === ResultStatus.NotFound) {
+      throw new NotFoundException('User with this email does not exist');
+    }
+  }
+
   @Post('new-password')
   @ApiOperation({ summary: 'Confirm password recovery' })
   @ApiResponse({ status: 204, description: 'If code is valid and new password is accepted' })
@@ -296,41 +327,12 @@ export class AuthController {
     }
   }
 
-  @Post('password-recovery-resending')
-  @ApiOperation({ summary: 'Resend password recovery link via email' })
-  @ApiResponse({ status: 204, description: 'Email with a new recovery link has been sent' })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect value (for incorrect password length) or RecoveryCode is incorrect or expired',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 404, description: 'If user with this email does not exist' })
-  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async resendRecoveryLink(@Body() dto: PasswordRecoveryResendingDto) {
-    const result: Notification = await this.commandBus.execute(
-      new PasswordRecoveryResendingCommand(dto.email),
-    );
-
-    if (result.status === ResultStatus.NotFound) {
-      throw new NotFoundException('User with this email does not exist');
-    }
-  }
-
   @Post('refresh-token')
   @ApiSecurity('refreshToken')
-  @ApiOperation({ summary: 'Generate new pair of access and refresh token. Update date in Device' })
+  @ApiOperation({ summary: 'Generate new pair of access and refresh token' })
   @ApiResponse({
-    status: 200, description: 'Returns JWT accessToken in body and JWT refreshToken in cookie (http-only, secure).',
+    status: 200,
+    description: 'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(RefreshTokenAuthGuard)
@@ -355,7 +357,7 @@ export class AuthController {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
       // sameSite: 'strict', // protects against CSRF attacks
-      sameSite: 'none'
+      sameSite: 'none',
     });
 
     res.status(HttpStatus.OK).send({
@@ -365,27 +367,10 @@ export class AuthController {
 
   @Post('logout')
   @ApiSecurity('refreshToken')
-  @ApiOperation({ summary: 'Logout in account' })
-  @ApiResponse({
-    status: 204, description: 'Are you really want to log out\n' +
-      'of your account ___email name___?',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect values',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
+  @ApiOperation({ summary: 'In cookie client must send correct refreshToken that will be revoked' })
+  @ApiResponse({ status: 204, description: 'Logout successfully' })
   @UseGuards(RefreshTokenAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
     @CurrentDeviceId() deviceId: string,
     @CurrentDeviceIat() iat: string,
@@ -403,7 +388,7 @@ export class AuthController {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
       // sameSite: 'strict', // protects against CSRF attacks
-      sameSite: 'none'
+      sameSite: 'none',
     });
 
     res.status(HttpStatus.NO_CONTENT).send();
@@ -434,7 +419,9 @@ export class AuthController {
     status: 200,
     description: 'Redirects the user to Google OAuth login page.',
   })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @UseGuards(GoogleGuard)
+  @HttpCode(HttpStatus.OK)
   async googleLogin() {
   }
 
@@ -442,12 +429,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Handles Google OAuth callback and issues tokens' })
   @ApiResponse({
     status: 200,
-    description: 'Returns JWT accessToken (expired after 60 seconds minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
+    description: 'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
   })
   @ApiResponse({
     status: 401,
     description: 'Unauthorized if the authentication fails.',
   })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @Redirect('https://photer.ltd')
   @HttpCode(HttpStatus.OK)
   @UseGuards(GoogleGuard)
@@ -455,7 +443,7 @@ export class AuthController {
     @Req() req: any,
     @Res() res: Response,
     @Ip() ip: string,
-    @UserAgent() userAgent: string,){
+    @UserAgent() userAgent: string) {
     const result: Notification<null | {
       accessToken: string;
       refreshToken: string;
@@ -472,7 +460,7 @@ export class AuthController {
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
-      sameSite: 'none'
+      sameSite: 'none',
     });
 
     return {
@@ -483,10 +471,9 @@ export class AuthController {
 
   @Get('oauth/github/login')
   @ApiOperation({ summary: 'Redirects user to GitHub authentication' })
-  @ApiResponse({
-    status: 200,
-    description: 'Redirects the user to GitHub OAuth login page.',
-  })
+  @ApiResponse({ status: 200, description: 'Redirects the user to GitHub OAuth login page.' })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
+  @HttpCode(HttpStatus.OK)
   @UseGuards(GitHubGuard)
   async githubLogin() {
   }
@@ -495,12 +482,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Handles GitHubGuard OAuth callback and issues tokens' })
   @ApiResponse({
     status: 200,
-    description: 'Returns JWT accessToken (expired after 60 seconds minutes) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
+    description: 'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
   })
   @ApiResponse({
     status: 401,
     description: 'Unauthorized if the authentication fails.',
   })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
   @Redirect('https://photer.ltd')
   @HttpCode(HttpStatus.OK)
   @UseGuards(GitHubGuard)
@@ -508,7 +496,7 @@ export class AuthController {
     @Req() req: any,
     @Res() res: Response,
     @Ip() ip: string,
-    @UserAgent() userAgent: string,){
+    @UserAgent() userAgent: string) {
     const result: Notification<null | {
       accessToken: string;
       refreshToken: string;
@@ -525,7 +513,8 @@ export class AuthController {
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
-      sameSite: 'none'
+      // sameSite: 'strict', // protects against CSRF attacks
+      sameSite: 'none',
     });
 
     return {
