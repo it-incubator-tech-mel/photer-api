@@ -70,7 +70,7 @@ export class AuthService {
         // send registration email
         await this.mailerService.sendEmail(
           foundUser.getEmail(),
-          oAuthRegistrationEmailTemplate(user.getUsername()),
+          oAuthRegistrationEmailTemplate(foundUser.getUsername()),
           'Account Created Successfully',
         );
       } else {
