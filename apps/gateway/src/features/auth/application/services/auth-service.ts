@@ -46,7 +46,7 @@ export class AuthService {
     return Notification.success();
   }
 
-  // GoogleStrategy/GitHubStrategy
+  // GoogleStrategy
   async handleOAuthLogin(
     providerType: ProviderType,
     providerId: string,
@@ -59,36 +59,50 @@ export class AuthService {
     // 1) find user by email
     const foundUser: User = await this.userRepository.findByEmail(email);
 
+
+    // 2) find oAuthAccount by provideId and providerType
+    let oAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(providerType, providerId);
+
     if (foundUser) {
-      // 2) merge oAuthAccount (may exist or no, register by other method)
-      user = foundUser;
-      await this.oauthAccountRepository.updateOrCreate(foundUser.getId(), providerType, providerId, email);
-    } else {
-      // 3) find oAuthAccount by provideId
-      let oAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(providerType, providerId);
+      if (!oAuthAccount) {
+        // 4) create oAuthAccount; send email
+        await this.oauthAccountRepository.create(foundUser.getId(), providerType, providerId, email);
 
-      if (oAuthAccount) {
-        // 4) change email in oauthAccount
-        await this.oauthAccountRepository.updateEmail(providerId, providerType, email);
+        // send registration email
+        await this.mailerService.sendEmail(
+          user.getEmail(),
+          oAuthRegistrationEmailTemplate(user.getUsername()),
+          'Account Created Successfully',
+        );
       } else {
-        // 5) create user and oAuthAccount
-        const usernameFromProvider = username || displayName || email.split('@')[0];
-
-        // create user
-        await this.createUserWhenRegistrationByProvider(usernameFromProvider, email);
-
-        // find created user
-        user = await this.userRepository.findByUsername(usernameFromProvider);
-
-        // create new oAuthAccount for created user
-        await this.oauthAccountRepository.create(user.getId(), providerType, providerId, email);
+        // 3) merge oAuthAccount (update email)
+        await this.oauthAccountRepository.updateEmail(providerId, providerType, email);
       }
+      user = foundUser;
+    } else {
+      // 5) create user; create oAuthAccount; send email
+      const usernameFromProvider: string = username || displayName || email.split('@')[0];
+
+      // create user
+      await this.createUserWhenRegistrationByProvider(usernameFromProvider, email);
+
+      // find created user
+      user = await this.userRepository.findByUsername(usernameFromProvider);
+
+      // create new oAuthAccount for created user
+      await this.oauthAccountRepository.create(user.getId(), providerType, providerId, email);
+
+      // send registration email
+      await this.mailerService.sendEmail(
+        user.getEmail(),
+        oAuthRegistrationEmailTemplate(user.getUsername()),
+        'Account Created Successfully',
+      );
     }
 
     return user;
   }
 
-  // handleOAuthLogin
   async createUserWhenRegistrationByProvider(userName: string, email: string): Promise<void> {
     let user: User;
 
@@ -100,18 +114,11 @@ export class AuthService {
       uniqueUsername = `${userName}-${Math.floor(Math.random() * 1000)}`;
     }
 
-    // create new user and confirm email
+    // create new domain user and confirm email
     user = User.create(uniqueUsername, null, email);
     user.confirmEmail();
 
-    // send registration email
-    await this.mailerService.sendEmail(
-      user.getEmail(),
-      oAuthRegistrationEmailTemplate(user.getUsername()),
-      'Account Created Successfully',
-    );
-
-    // save user in db
+    // save domain user in db
     await this.userRepository.create(user);
   }
 }
