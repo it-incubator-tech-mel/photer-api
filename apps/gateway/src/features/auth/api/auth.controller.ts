@@ -326,7 +326,6 @@ export class AuthController {
     }
   }
 
-
   @Post('refresh-token')
   @ApiSecurity('refreshToken')
   @ApiOperation({ summary: 'Generate new pair of access and refresh token. Update date in Device' })

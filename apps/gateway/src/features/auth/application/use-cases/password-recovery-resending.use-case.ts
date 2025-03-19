@@ -15,7 +15,7 @@ export class PasswordRecoveryResendingCommand {
 }
 
 @CommandHandler(PasswordRecoveryResendingCommand)
-export class ResendRecoveryLinkUseCase implements ICommandHandler<PasswordRecoveryResendingCommand> {
+export class PasswordRecoveryResendingUseCase implements ICommandHandler<PasswordRecoveryResendingCommand> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
