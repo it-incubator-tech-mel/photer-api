@@ -51,6 +51,8 @@ import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.ser
 import { GoogleGuard } from '../../../core/guards/google.guard';
 import { GitHubGuard } from '../../../core/guards/github.guard';
 import { OAuthCommand } from '../application/use-cases/oauth.use-case';
+import { PasswordRecoveryResendingDto } from './dto/input/password-recovery-resending.dto';
+import { PasswordRecoveryResendingCommand } from '../application/use-cases/password-recovery-resending.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -293,6 +295,23 @@ export class AuthController {
       throw new BadRequestException(result.extensions!);
     }
   }
+
+  @Post('password-recovery-resending')
+  @ApiOperation({ summary: 'Resend password recovery link via email' })
+  @ApiResponse({ status: 204, description: 'Email with a new recovery link has been sent' })
+  @ApiResponse({ status: 404, description: 'If user with this email does not exist' })
+  @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resendRecoveryLink(@Body() dto: PasswordRecoveryResendingDto) {
+    const result: Notification = await this.commandBus.execute(
+      new PasswordRecoveryResendingCommand(dto.email),
+    );
+
+    if (result.status === ResultStatus.NotFound) {
+      throw new NotFoundException('User with this email does not exist');
+    }
+  }
+
 
   @Post('refresh-token')
   @ApiSecurity('refreshToken')
