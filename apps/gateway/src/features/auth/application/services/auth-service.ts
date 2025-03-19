@@ -59,7 +59,6 @@ export class AuthService {
     // 1) find user by email
     const foundUser: User = await this.userRepository.findByEmail(email);
 
-
     // 2) find oAuthAccount by provideId and providerType
     let oAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(providerType, providerId);
 
@@ -70,7 +69,7 @@ export class AuthService {
 
         // send registration email
         await this.mailerService.sendEmail(
-          user.getEmail(),
+          foundUser.getEmail(),
           oAuthRegistrationEmailTemplate(user.getUsername()),
           'Account Created Successfully',
         );
