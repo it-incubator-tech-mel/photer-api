@@ -12,6 +12,7 @@ export class UserQueryRepository {
     const result = await this.prisma.user.findFirst({
       where: { id },
     });
+    console.log(result, 'result')
 
     return UserMapper.toAuthMeOutput(result);
   }

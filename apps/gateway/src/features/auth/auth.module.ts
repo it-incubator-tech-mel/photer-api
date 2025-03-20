@@ -28,6 +28,7 @@ import { OAuthUseCase } from './application/use-cases/oauth.use-case';
 import { OAuthAccountRepository } from './infrastructure/oauth-account.repository';
 import { GitHubStrategy } from '../../core/strategies/github.strategy';
 import { PasswordRecoveryResendingUseCase } from './application/use-cases/password-recovery-resending.use-case';
+import {JwtStrategy} from "../../core/strategies/jwt.strategies";
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -55,6 +56,7 @@ const strategies: Provider[] = [
   RefreshTokenStrategy,
   GoogleStrategy,
   GitHubStrategy,
+  JwtStrategy,
 ];
 
 const services: Provider[] = [

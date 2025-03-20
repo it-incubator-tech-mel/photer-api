@@ -46,6 +46,16 @@ export class AuthService {
     return Notification.success();
   }
 
+  async validateUserByIdAndReturnBodyUser(id: number): Promise<Notification<User>> {
+    const user: User | null = await this.userRepository.findById(id);
+
+    if (!user) {
+      return Notification.notFound('Wrong user id');
+    }
+
+    return Notification.success(user);
+  }
+
   // GoogleStrategy
   async handleOAuthLogin(
     providerType: ProviderType,

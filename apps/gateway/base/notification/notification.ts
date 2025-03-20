@@ -26,7 +26,7 @@ export class Notification<T = null> {
     this.extensions = extensions;
   }
 
-  static success<T = null>(data: T = null as T): Notification<T> {
+  static success<T = null>(data: T = null as T | any): Notification<T> {
     return new Notification(ResultStatus.Success, data);
   }
 

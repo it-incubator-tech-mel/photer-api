@@ -53,7 +53,8 @@ import { GitHubGuard } from '../../../core/guards/github.guard';
 import { OAuthCommand } from '../application/use-cases/oauth.use-case';
 import { PasswordRecoveryResendingDto } from './dto/input/password-recovery-resending.dto';
 import { PasswordRecoveryResendingCommand } from '../application/use-cases/password-recovery-resending.use-case';
-
+import {SkipThrottle, ThrottlerGuard} from "@nestjs/throttler";
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -326,7 +327,7 @@ export class AuthController {
       throw new BadRequestException(result.extensions!);
     }
   }
-
+  @SkipThrottle()
   @Post('refresh-token')
   @ApiSecurity('refreshToken')
   @ApiOperation({ summary: 'Generate new pair of access and refresh token' })
@@ -364,7 +365,7 @@ export class AuthController {
       accessToken: result.data.accessToken!,
     });
   }
-
+  @SkipThrottle()
   @Post('logout')
   @ApiSecurity('refreshToken')
   @ApiOperation({ summary: 'In cookie client must send correct refreshToken that will be revoked' })
@@ -393,7 +394,7 @@ export class AuthController {
 
     res.status(HttpStatus.NO_CONTENT).send();
   }
-
+  @SkipThrottle()
   @Get('me')
   @ApiSecurity('bearer')
   @ApiOperation({ summary: 'Get information about current user' })
@@ -407,7 +408,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async authMe(@CurrentUserId() userId: number) {
     const user: AuthMeOutputDto = await this.userQueryRepository.findAuthenticatedUserById(userId);
-
     if (!user) throw new UnauthorizedException();
 
     return user;
