@@ -436,7 +436,7 @@ export class AuthController {
     description: 'Unauthorized if the authentication fails.',
   })
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
-  @Redirect('https://photer.ltd')
+  @Redirect('https://photer.ltd/oauth')
   @HttpCode(HttpStatus.OK)
   @UseGuards(GoogleGuard)
   async oauthCallbackGoogle(
@@ -484,7 +484,7 @@ export class AuthController {
     description: 'Unauthorized if the authentication fails.',
   })
   @ApiResponse({ status: 429, description: 'More than 5 attempts from one IP-address during 10 seconds' })
-  @Redirect('https://photer.ltd')
+  @Redirect('https://photer.ltd/oauth')
   @HttpCode(HttpStatus.OK)
   @UseGuards(GitHubGuard)
   async oauthCallbackGithub(
