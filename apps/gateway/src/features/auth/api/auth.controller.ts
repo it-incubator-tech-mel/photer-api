@@ -462,11 +462,6 @@ export class AuthController {
       secure: true, // send cookie only over https
       sameSite: 'none',
     });
-
-    return {
-      // url: 'https://photer.ltd',
-      accessToken: result.data.accessToken,
-    };
   }
 
   @Get('oauth/github/login')
@@ -516,9 +511,5 @@ export class AuthController {
       // sameSite: 'strict', // protects against CSRF attacks
       sameSite: 'none',
     });
-
-    return {
-      accessToken: result.data.accessToken,
-    };
   }
 }
