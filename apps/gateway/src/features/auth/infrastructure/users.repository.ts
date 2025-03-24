@@ -4,8 +4,7 @@ import { User } from '../domain/user.entity';
 
 @Injectable()
 export class UserRepository {
-  constructor(private prisma: PrismaService) {
-  }
+  constructor(private prisma: PrismaService) {}
 
   async create(user: User): Promise<void> {
     await this.prisma.user.create({
@@ -55,9 +54,7 @@ export class UserRepository {
     return user ? this.mapToDomain(user) : null;
   }
 
-  async findByConfirmationCode(
-    confirmationCode: string,
-  ): Promise<User | null> {
+  async findByConfirmationCode(confirmationCode: string): Promise<User | null> {
     const prismaUser = await this.prisma.user.findFirst({
       where: {
         emailConfirmation: {

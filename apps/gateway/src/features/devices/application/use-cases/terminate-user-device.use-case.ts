@@ -14,9 +14,7 @@ export class TerminateUserDeviceCommand {
 export class TerminateUserDeviceUseCase
   implements ICommandHandler<TerminateUserDeviceCommand>
 {
-  constructor(
-    private readonly deviceRepository: DeviceRepository,
-  ) {}
+  constructor(private readonly deviceRepository: DeviceRepository) {}
 
   async execute(command: TerminateUserDeviceCommand): Promise<Notification> {
     const { deviceId, userId } = command;
@@ -34,10 +32,7 @@ export class TerminateUserDeviceUseCase
       );
     }
 
-    await this.deviceRepository.deleteOneByDeviceIdAndUserId(
-      deviceId,
-      userId,
-    );
+    await this.deviceRepository.deleteOneByDeviceIdAndUserId(deviceId, userId);
 
     return Notification.success();
   }

@@ -5,18 +5,20 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param, ParseUUIDPipe,
+  Param,
+  ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
 import { RefreshTokenAuthGuard } from '../../../core/guards/refresh-token-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { CurrentDeviceId } from '../../../core/decorators/param-decorators/current-device-id.decorator';
-import {
-  CurrentUserIdFromDevice
-} from '../../../core/decorators/param-decorators/current-user-id-from-device.decorator';
+import { CurrentUserIdFromDevice } from '../../../core/decorators/param-decorators/current-user-id-from-device.decorator';
 import { DeviceOutputDto } from './dto/output/device-output.dto';
 import { DevicesQueryRepository } from '../infrastructure/device.query-repository';
-import { Notification, ResultStatus } from '../../../../base/notification/notification';
+import {
+  Notification,
+  ResultStatus,
+} from '../../../../base/notification/notification';
 import { TerminateAllOtherUserDevicesCommand } from '../application/use-cases/terminate-all-other-user-devices.use-case';
 import { TerminateUserDeviceCommand } from '../application/use-cases/terminate-user-device.use-case';
 import { NotFoundException } from '../../../core/exception-filters/exceptions/exception-types';
@@ -32,24 +34,27 @@ export class DeviceController {
 
   @Get()
   @ApiSecurity('refreshToken')
-  @ApiOperation({ summary: 'Returns all devices with active sessions for current user' })
+  @ApiOperation({
+    summary: 'Returns all devices with active sessions for current user',
+  })
   @ApiResponse({
     status: 200,
     description: 'Success',
     type: DeviceOutputDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getUserDevices(
-    @CurrentUserIdFromDevice() userId: number,
-  ) {
-    const result: DeviceOutputDto[] = await this.devicesQueryRepository.findAll(userId);
+  async getUserDevices(@CurrentUserIdFromDevice() userId: number) {
+    const result: DeviceOutputDto[] =
+      await this.devicesQueryRepository.findAll(userId);
 
     return result;
   }
 
   @Delete()
   @ApiSecurity('refreshToken')
-  @ApiOperation({ summary: 'Terminate all other (exclude current) device\'s sessions' })
+  @ApiOperation({
+    summary: "Terminate all other (exclude current) device's sessions",
+  })
   @ApiResponse({
     status: 204,
     description: 'No content',
@@ -78,7 +83,10 @@ export class DeviceController {
     description: 'No content',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'If try to delete the deviceId of other user' })
+  @ApiResponse({
+    status: 403,
+    description: 'If try to delete the deviceId of other user',
+  })
   @ApiResponse({ status: 404, description: 'Not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async terminateUserDevices(

@@ -4,10 +4,12 @@ import { OAuthAccount, ProviderType } from '@prisma/client';
 
 @Injectable()
 export class OAuthAccountRepository {
-  constructor(private readonly prisma: PrismaService) {
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findByProviderTypeAndProviderId(provider: ProviderType, providerId: string): Promise<OAuthAccount | null> {
+  async findByProviderTypeAndProviderId(
+    provider: ProviderType,
+    providerId: string,
+  ): Promise<OAuthAccount | null> {
     const account = await this.prisma.oAuthAccount.findUnique({
       where: { provider_providerId: { provider, providerId } },
     });
@@ -15,7 +17,12 @@ export class OAuthAccountRepository {
     return account ? account : null;
   }
 
-  async create(userId: number, provider: ProviderType, providerId: string, email: string): Promise<OAuthAccount> {
+  async create(
+    userId: number,
+    provider: ProviderType,
+    providerId: string,
+    email: string,
+  ): Promise<OAuthAccount> {
     const account = await this.prisma.oAuthAccount.create({
       data: {
         userId: userId,
@@ -28,7 +35,12 @@ export class OAuthAccountRepository {
     return account;
   }
 
-  async updateOrCreate(userId: number, provider: ProviderType, providerId: string, email: string): Promise<OAuthAccount> {
+  async updateOrCreate(
+    userId: number,
+    provider: ProviderType,
+    providerId: string,
+    email: string,
+  ): Promise<OAuthAccount> {
     const account = await this.prisma.oAuthAccount.upsert({
       where: { provider_providerId: { provider, providerId } },
       update: { email },
@@ -43,7 +55,11 @@ export class OAuthAccountRepository {
     return account;
   }
 
-  async updateEmail(providerId: string, provider: ProviderType, email: string): Promise<OAuthAccount> {
+  async updateEmail(
+    providerId: string,
+    provider: ProviderType,
+    email: string,
+  ): Promise<OAuthAccount> {
     const account = await this.prisma.oAuthAccount.update({
       where: { provider_providerId: { provider, providerId } },
       data: { email: email },

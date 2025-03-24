@@ -17,7 +17,8 @@ export function swaggerSetup(app: INestApplication) {
     .addApiKey(
       {
         type: 'apiKey',
-        description: 'JWT refreshToken inside cookie. Must be correct, and must not expire',
+        description:
+          'JWT refreshToken inside cookie. Must be correct, and must not expire',
         name: 'refreshToken',
         in: 'cookie',
       },

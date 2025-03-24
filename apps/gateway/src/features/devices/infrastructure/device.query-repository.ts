@@ -4,10 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class DevicesQueryRepository {
-  constructor(
-    private prisma: PrismaService,
-  ) {
-  }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(userId: number): Promise<DeviceOutputDto[]> {
     const result = await this.prisma.device.findMany({

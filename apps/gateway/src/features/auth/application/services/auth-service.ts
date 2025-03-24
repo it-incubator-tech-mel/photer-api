@@ -6,9 +6,7 @@ import { UserRepository } from '../../infrastructure/users.repository';
 import { ProviderType } from '@prisma/client';
 import { OAuthAccountRepository } from '../../infrastructure/oauth-account.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
-import {
-  oAuthRegistrationEmailTemplate
-} from '../../../../core/services/mailler/email-templates/oauth-registration-email-template';
+import { oAuthRegistrationEmailTemplate } from '../../../../core/services/mailler/email-templates/oauth-registration-email-template';
 
 @Injectable()
 export class AuthService {
@@ -17,8 +15,7 @@ export class AuthService {
     private readonly cryptoService: CryptoService,
     private readonly oauthAccountRepository: OAuthAccountRepository,
     private readonly mailerService: MailerService,
-  ) {
-  }
+  ) {}
 
   // local-strategy
   async validateUser(
@@ -28,7 +25,11 @@ export class AuthService {
     const user: User | null =
       await this.userRepository.findByEmail(loginOrEmail);
 
-    if (!user|| !user.getPassword() || !(await this.cryptoService.compare(password, user.getPassword()))) {
+    if (
+      !user ||
+      !user.getPassword() ||
+      !(await this.cryptoService.compare(password, user.getPassword()))
+    ) {
       return Notification.unauthorized('Wrong email or password');
     }
 
@@ -60,12 +61,21 @@ export class AuthService {
     const foundUser: User = await this.userRepository.findByEmail(email);
 
     // 2) find oAuthAccount by provideId and providerType
-    let oAuthAccount = await this.oauthAccountRepository.findByProviderTypeAndProviderId(providerType, providerId);
+    const oAuthAccount =
+      await this.oauthAccountRepository.findByProviderTypeAndProviderId(
+        providerType,
+        providerId,
+      );
 
     if (foundUser) {
       if (!oAuthAccount) {
         // 4) create oAuthAccount; send email
-        await this.oauthAccountRepository.create(foundUser.getId(), providerType, providerId, email);
+        await this.oauthAccountRepository.create(
+          foundUser.getId(),
+          providerType,
+          providerId,
+          email,
+        );
 
         // send registration email
         await this.mailerService.sendEmail(
@@ -75,21 +85,34 @@ export class AuthService {
         );
       } else {
         // 3) merge oAuthAccount (update email)
-        await this.oauthAccountRepository.updateEmail(providerId, providerType, email);
+        await this.oauthAccountRepository.updateEmail(
+          providerId,
+          providerType,
+          email,
+        );
       }
       user = foundUser;
     } else {
       // 5) create user; create oAuthAccount; send email
-      const usernameFromProvider: string = username || displayName || email.split('@')[0];
+      const usernameFromProvider: string =
+        username || displayName || email.split('@')[0];
 
       // create user
-      await this.createUserWhenRegistrationByProvider(usernameFromProvider, email);
+      await this.createUserWhenRegistrationByProvider(
+        usernameFromProvider,
+        email,
+      );
 
       // find created user
       user = await this.userRepository.findByUsername(usernameFromProvider);
 
       // create new oAuthAccount for created user
-      await this.oauthAccountRepository.create(user.getId(), providerType, providerId, email);
+      await this.oauthAccountRepository.create(
+        user.getId(),
+        providerType,
+        providerId,
+        email,
+      );
 
       // send registration email
       await this.mailerService.sendEmail(
@@ -102,10 +125,14 @@ export class AuthService {
     return user;
   }
 
-  async createUserWhenRegistrationByProvider(userName: string, email: string): Promise<void> {
+  async createUserWhenRegistrationByProvider(
+    userName: string,
+    email: string,
+  ): Promise<void> {
     let user: User;
 
-    let existingUserByUsername: User = await this.userRepository.findByUsername(userName);
+    const existingUserByUsername: User =
+      await this.userRepository.findByUsername(userName);
 
     // generate unique username
     let uniqueUsername: string = userName;

@@ -5,7 +5,9 @@ export const configValidation = {
     const errors: ValidationError[] = validateSync(config);
     if (errors.length > 0) {
       const sortedMessages: string = errors
-        .map((error: ValidationError) => Object.values(error.constraints || {}).join(', '))
+        .map((error: ValidationError) =>
+          Object.values(error.constraints || {}).join(', '),
+        )
         .join('; ');
       throw new Error('Validation failed: ' + sortedMessages);
     }

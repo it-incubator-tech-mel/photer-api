@@ -3,10 +3,10 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Profile } from 'passport';
 import { Strategy } from 'passport-github2';
 import { ConfigService } from '@nestjs/config';
-import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
-import { User } from '../../features/auth/domain/user.entity';
-import { AuthService } from '../../features/auth/application/services/auth-service';
 import { ProviderType } from '@prisma/client';
+import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
+import { AuthService } from '../../features/auth/application/services/auth-service';
+import { User } from '../../features/auth/domain/user.entity';
 
 /**
  * 1) find user by email -->
@@ -28,7 +28,8 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
     super({
       clientID: configService.get<string>('GITHUB_CLIENT'),
       clientSecret: configService.get<string>('GITHUB_CLIENT_SECRET'),
-      callbackURL: 'https://photer.ltd/api/v1/auth/oauth/github/callback',
+      // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/github/callback',
+      callbackURL: 'http://localhost:3000/api/v1/auth/oauth/github/login',
       scope: ['user:email'],
     });
   }
@@ -47,8 +48,14 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
 
     const email: string = emails[0].value;
 
-    const user: User = await this.authService.handleOAuthLogin(ProviderType.GITHUB, id, email, username, displayName);
+    const user: User = await this.authService.handleOAuthLogin(
+      ProviderType.GITHUB,
+      id,
+      email,
+      username,
+      displayName,
+    );
 
-    return user;
+    return done(null, user);
   }
 }

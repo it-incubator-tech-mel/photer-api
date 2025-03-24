@@ -4,17 +4,14 @@ import { User } from '../../domain/user.entity';
 import { UserRepository } from '../../infrastructure/users.repository';
 
 export class ConfirmRegistrationCommand {
-  constructor(public readonly code: string) {
-  }
+  constructor(public readonly code: string) {}
 }
 
 @CommandHandler(ConfirmRegistrationCommand)
 export class ConfirmRegistrationUseCase
-  implements ICommandHandler<ConfirmRegistrationCommand> {
-  constructor(
-    private readonly userRepository: UserRepository,
-  ) {
-  }
+  implements ICommandHandler<ConfirmRegistrationCommand>
+{
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute(command: ConfirmRegistrationCommand): Promise<Notification> {
     const { code } = command;

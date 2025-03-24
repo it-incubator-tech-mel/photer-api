@@ -5,14 +5,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from './core/config/config.module';
 
 @Module({
-  imports: [
-    ConfigModule,
-    PrismaModule,
-    AuthModule,
-    DeviceModule,
-  ],
+  imports: [ConfigModule, PrismaModule, AuthModule, DeviceModule],
   controllers: [],
   providers: [],
 })
-export class AppModule {
-}
+export class AppModule {}

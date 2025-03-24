@@ -1,6 +1,6 @@
 export const passwordRecoveryEmailTemplate = (
   recoveryCode: string,
-  baseUrl: string
+  baseUrl: string,
 ): string => {
   return `
     <h1>Password recovery</h1>

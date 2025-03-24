@@ -13,11 +13,11 @@ export class TerminateAllOtherUserDevicesCommand {
 export class TerminateAllOtherUserDevicesUseCase
   implements ICommandHandler<TerminateAllOtherUserDevicesCommand>
 {
-  constructor(
-    private readonly deviceRepository: DeviceRepository,
-  ) {}
+  constructor(private readonly deviceRepository: DeviceRepository) {}
 
-  async execute(command: TerminateAllOtherUserDevicesCommand): Promise<Notification> {
+  async execute(
+    command: TerminateAllOtherUserDevicesCommand,
+  ): Promise<Notification> {
     const { deviceId, userId } = command;
 
     await this.deviceRepository.deleteAllOtherByDeviceIdAndUserId(

@@ -11,10 +11,7 @@ const useCases: Provider[] = [
   TerminateUserDeviceUseCase,
 ];
 
-const repos: Provider[] = [
-  DeviceRepository,
-  DevicesQueryRepository,
-];
+const repos: Provider[] = [DeviceRepository, DevicesQueryRepository];
 
 @Module({
   imports: [CqrsModule],
@@ -22,5 +19,4 @@ const repos: Provider[] = [
   providers: [...useCases, ...repos],
   exports: [DeviceRepository],
 })
-export class DeviceModule {
-}
+export class DeviceModule {}

@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty } from 'class-validator';
 import { Trim } from '../../../../../core/decorators/trim';
-import {ApiProperty} from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class PasswordRecoveryResendingDto {
   @ApiProperty({

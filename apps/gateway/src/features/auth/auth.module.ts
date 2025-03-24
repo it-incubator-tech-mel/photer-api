@@ -23,11 +23,11 @@ import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { UserQueryRepository } from './infrastructure/users.query-repository';
 import { BearerStrategy } from '../../core/strategies/bearer.strategies';
 import { RefreshTokenStrategy } from '../../core/strategies/refresh-token.strategy';
-import { GoogleStrategy } from '../../core/strategies/google.strategy';
 import { OAuthUseCase } from './application/use-cases/oauth.use-case';
 import { OAuthAccountRepository } from './infrastructure/oauth-account.repository';
-import { GitHubStrategy } from '../../core/strategies/github.strategy';
 import { PasswordRecoveryResendingUseCase } from './application/use-cases/password-recovery-resending.use-case';
+import { GoogleStrategy } from '../../core/strategies/google.strategy';
+import { GitHubStrategy } from '../../core/strategies/github.strategy';
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -39,7 +39,7 @@ const useCases: Provider[] = [
   RefreshTokenUseCase,
   LogoutUseCase,
   OAuthUseCase,
-  PasswordRecoveryResendingUseCase
+  PasswordRecoveryResendingUseCase,
 ];
 
 const repos: Provider[] = [
@@ -57,10 +57,7 @@ const strategies: Provider[] = [
   GitHubStrategy,
 ];
 
-const services: Provider[] = [
-  AuthService,
-  JwtTokenService,
-];
+const services: Provider[] = [AuthService, JwtTokenService];
 
 @Module({
   imports: [
@@ -72,7 +69,8 @@ const services: Provider[] = [
     JwtModule.registerAsync({
       useFactory: (jwtConfig: JwtConfig) => {
         const jwtSecret: string = jwtConfig.jwtSecret;
-        const jwtAccessExpirationTime: string = jwtConfig.jwtAccessExpirationTime;
+        const jwtAccessExpirationTime: string =
+          jwtConfig.jwtAccessExpirationTime;
 
         return {
           global: true,
@@ -90,5 +88,4 @@ const services: Provider[] = [
   providers: [...useCases, ...repos, ...strategies, ...services],
   exports: [],
 })
-export class AuthModule {
-}
+export class AuthModule {}

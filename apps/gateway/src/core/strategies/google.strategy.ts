@@ -28,7 +28,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
+      // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
+      callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/login',
       scope: ['email', 'profile'],
     });
   }
@@ -47,8 +48,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     const email: string = emails[0].value;
 
-    const user: User = await this.authService.handleOAuthLogin(ProviderType.GOOGLE, id, email, username, displayName);
+    const user: User = await this.authService.handleOAuthLogin(
+      ProviderType.GOOGLE,
+      id,
+      email,
+      username,
+      displayName,
+    );
 
-    return user;
+    return done(null, user);
   }
 }
