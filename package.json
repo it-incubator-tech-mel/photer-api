@@ -1,7 +1,7 @@
 {
   "name": "photer-api",
   "version": "0.0.1",
-  "description": "",
+  "description": "API for Photer application",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
