@@ -1,7 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import {
-  registrationEmailTemplate,
-} from '../../../../core/services/mailler/email-templates/registration-email-template';
+import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { Notification } from '../../../../../base/notification/notification';
@@ -14,20 +12,19 @@ export class RegistrationUserCommand {
     public readonly username: string,
     public readonly email: string,
     public readonly password: string,
-  ) {
-  }
+  ) {}
 }
 
 @CommandHandler(RegistrationUserCommand)
 export class RegistrationUseCase
-  implements ICommandHandler<RegistrationUserCommand> {
+  implements ICommandHandler<RegistrationUserCommand>
+{
   constructor(
     private readonly cryptoService: CryptoService,
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
     private readonly coreConfig: CoreConfig,
-  ) {
-  }
+  ) {}
 
   async execute(
     command: RegistrationUserCommand,
@@ -44,7 +41,8 @@ export class RegistrationUseCase
         {
           message: 'User with such credentials already exists',
           field: 'login',
-        }]);
+        },
+      ]);
     }
 
     if (userByEmail) {
@@ -68,7 +66,10 @@ export class RegistrationUseCase
 
     await this.mailerService.sendEmail(
       user.getEmail(),
-      registrationEmailTemplate(user.getConfirmationCode(), this.coreConfig.baseUrl),
+      registrationEmailTemplate(
+        user.getConfirmationCode(),
+        this.coreConfig.baseUrl,
+      ),
       'Registration Confirmation',
     );
 

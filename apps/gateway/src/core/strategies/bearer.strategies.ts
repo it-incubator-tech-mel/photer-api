@@ -4,15 +4,17 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
 import { AuthService } from '../../features/auth/application/services/auth-service';
-import { Notification, ResultStatus } from '../../../base/notification/notification';
+import {
+  Notification,
+  ResultStatus,
+} from '../../../base/notification/notification';
 
 @Injectable()
 export class BearerStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService<any, true>,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
   ) {
-
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -23,7 +25,8 @@ export class BearerStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     const { userId } = payload;
 
-    const result: Notification = await this.authService.validateUserById(userId);
+    const result: Notification =
+      await this.authService.validateUserById(userId);
 
     if (result.status === ResultStatus.NotFound) {
       throw new UnauthorizedException();

@@ -17,44 +17,48 @@ import { ProviderType } from '@prisma/client';
  */
 //http://localhost:3000/api/v1/auth/oauth/github
 interface VerifyCallback {
-    (error: any, user?: any, info?: any): void;
+  (error: any, user?: any, info?: any): void;
 }
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
-    constructor(
-        private configService: ConfigService<any, true>,
-        private readonly userRepository: UserRepository,
-        private readonly oauthAccountRepository: OAuthAccountRepository,
-        private readonly authService: AuthService,
-    ) {
-        super({
-            clientID: configService.get<string>('GITHUB_CLIENT'),
-            clientSecret: configService.get<string>('GITHUB_CLIENT_SECRET'),
-            // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/github/callback',
-            callbackURL: 'http://localhost:3000/api/v1/auth/oauth/github/callback',
-            scope: ['email', 'profile'],
-        });
+  constructor(
+    private configService: ConfigService<any, true>,
+    private readonly userRepository: UserRepository,
+    private readonly oauthAccountRepository: OAuthAccountRepository,
+    private readonly authService: AuthService,
+  ) {
+    super({
+      clientID: configService.get<string>('GITHUB_CLIENT'),
+      clientSecret: configService.get<string>('GITHUB_CLIENT_SECRET'),
+      // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/github/callback',
+      callbackURL: 'http://localhost:3000/api/v1/auth/oauth/github/callback',
+      scope: ['email', 'profile'],
+    });
+  }
+
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+    done: VerifyCallback,
+  ): Promise<any> {
+    const { id, displayName, username, name, emails } = profile;
+
+    if (!emails || !emails.length) {
+      return done(new UnauthorizedException(), null);
     }
 
-    async validate(
-        accessToken: string,
-        refreshToken: string,
-        profile: Profile,
-        done: VerifyCallback,
-    ): Promise<any> {
-        console.log("GithubStrategies profile", profile);
-        const { id, displayName, username, name, emails } = profile;
+    const email: string = emails[0].value;
 
-        if (!emails || !emails.length) {
-            return done(new UnauthorizedException(), null);
-        }
+    const user: User = await this.authService.handleOAuthLogin(
+      ProviderType.GITHUB,
+      id,
+      email,
+      username,
+      displayName,
+    );
 
-        const email: string = emails[0].value;
-
-        const user: User = await this.authService.handleOAuthLogin(ProviderType.GITHUB, id, email, username, displayName);
-
-        // console.log("user", user);
-        return user;
-    }
+    return user;
+  }
 }

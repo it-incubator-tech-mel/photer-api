@@ -6,27 +6,21 @@ export class LogoutCommand {
   constructor(
     public readonly deviceId: string,
     public readonly iat: string,
-  ) {
-  }
+  ) {}
 }
 
 @CommandHandler(LogoutCommand)
 export class LogoutUseCase implements ICommandHandler<LogoutCommand> {
-  constructor(
-    private readonly deviceRepository: DeviceRepository,
-  ) {
-  }
+  constructor(private readonly deviceRepository: DeviceRepository) {}
 
   async execute(command: LogoutCommand): Promise<Notification> {
     const { deviceId, iat } = command;
 
     const isDeleted: boolean =
-      await this.deviceRepository.deleteOneByDeviceIdAndIAt(
-        deviceId,
-        iat,
-      );
+      await this.deviceRepository.deleteOneByDeviceIdAndIAt(deviceId, iat);
 
-    if (!isDeleted) return Notification.unauthorized('Invalid or expired token');
+    if (!isDeleted)
+      return Notification.unauthorized('Invalid or expired token');
 
     return Notification.success();
   }

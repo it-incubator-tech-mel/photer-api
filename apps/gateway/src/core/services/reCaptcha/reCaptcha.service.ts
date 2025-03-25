@@ -3,17 +3,19 @@ import { CaptchaConfig } from '../../config/captcha.config';
 
 @Injectable()
 export class ReCaptchaService {
-  constructor(private captchaConfig: CaptchaConfig) {
-  }
+  constructor(private captchaConfig: CaptchaConfig) {}
 
   async isValue(token: string): Promise<boolean> {
-    const result: Response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+    const result: Response = await fetch(
+      'https://www.google.com/recaptcha/api/siteverify',
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        method: 'POST',
+        body: `secret=${this.captchaConfig.captchaSecret}&response=${token}`,
       },
-      method: 'POST',
-      body: `secret=${this.captchaConfig.captchaSecret}&response=${token}`,
-    });
+    );
 
     const response: ReCaptchaResponse = await result.json();
 
@@ -29,4 +31,4 @@ export type ReCaptchaResponse = {
   hostname: string;
   'error-codes': any[];
   score: number;
-}
+};

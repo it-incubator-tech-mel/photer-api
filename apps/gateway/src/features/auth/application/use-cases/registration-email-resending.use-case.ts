@@ -1,9 +1,10 @@
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
-import {
-  registrationEmailTemplate,
-} from '../../../../core/services/mailler/email-templates/registration-email-template';
+import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { CoreConfig } from '../../../../core/config/core.config';
-import { Notification, ResultStatus } from '../../../../../base/notification/notification';
+import {
+  Notification,
+  ResultStatus,
+} from '../../../../../base/notification/notification';
 import { randomUUID } from 'crypto';
 import { User } from '../../domain/user.entity';
 import { add } from 'date-fns';
@@ -12,21 +13,22 @@ import { ICommandHandler } from '@nestjs/cqrs/dist/interfaces/commands/command-h
 import { UserRepository } from '../../infrastructure/users.repository';
 
 export class RegistrationEmailResendingCommand {
-  constructor(public readonly email: string) {
-  }
+  constructor(public readonly email: string) {}
 }
 
 @CommandHandler(RegistrationEmailResendingCommand)
 export class RegistrationEmailResendingUseCase
-  implements ICommandHandler<RegistrationEmailResendingCommand> {
+  implements ICommandHandler<RegistrationEmailResendingCommand>
+{
   constructor(
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
     private readonly coreConfig: CoreConfig,
-  ) {
-  }
+  ) {}
 
-  async execute(command: RegistrationEmailResendingCommand): Promise<Notification> {
+  async execute(
+    command: RegistrationEmailResendingCommand,
+  ): Promise<Notification> {
     const { email } = command;
     const user: User = await this.userRepository.findByEmail(email);
 
@@ -40,12 +42,17 @@ export class RegistrationEmailResendingUseCase
       this.resendConfirmation(user);
       await this.userRepository.updateConfirmation(user);
     } catch (error) {
-      return Notification.badRequest([{ message: error.message, field: 'email' }]);
+      return Notification.badRequest([
+        { message: error.message, field: 'email' },
+      ]);
     }
 
     this.mailerService.sendEmail(
       email,
-      registrationEmailTemplate(user.getConfirmationCode(), this.coreConfig.baseUrl),
+      registrationEmailTemplate(
+        user.getConfirmationCode(),
+        this.coreConfig.baseUrl,
+      ),
       'Registration Confirmation',
     );
 
@@ -57,6 +64,9 @@ export class RegistrationEmailResendingUseCase
       throw new Error('Email already confirmed');
     }
 
-    user.updateConfirmationCode(randomUUID(), add(new Date(), { hours: 1, minutes: 30 }));
+    user.updateConfirmationCode(
+      randomUUID(),
+      add(new Date(), { hours: 1, minutes: 30 }),
+    );
   }
 }

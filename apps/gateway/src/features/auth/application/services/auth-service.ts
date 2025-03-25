@@ -67,8 +67,6 @@ export class AuthService {
     username?: string,
     displayName?: string,
   ): Promise<User> {
-    let user: User;
-
     // 1) find user by email
     const foundUser: User = await this.userRepository.findByEmail(email);
 
@@ -79,62 +77,53 @@ export class AuthService {
         providerId,
       );
 
-    if (foundUser) {
-      if (!oAuthAccount) {
-        // 4) create oAuthAccount; send email
-        await this.oauthAccountRepository.create(
-          foundUser.getId(),
-          providerType,
-          providerId,
-          email,
-        );
-
-        // send registration email
-        await this.mailerService.sendEmail(
-          foundUser.getEmail(),
-          oAuthRegistrationEmailTemplate(foundUser.getUsername()),
-          'Account Created Successfully',
-        );
-      } else {
-        // 3) merge oAuthAccount (update email)
-        await this.oauthAccountRepository.updateEmail(
-          providerId,
-          providerType,
-          email,
-        );
-      }
-      user = foundUser;
-    } else {
-      // 5) create user; create oAuthAccount; send email
-      const usernameFromProvider: string =
-        username || displayName || email.split('@')[0];
-
-      // create user
-      await this.createUserWhenRegistrationByProvider(
-        usernameFromProvider,
+    if (oAuthAccount) {
+      // 3) oAuthAccount found, update email and return user
+      await this.oauthAccountRepository.updateEmail(
+        providerId,
+        providerType,
         email,
       );
+      return (
+        foundUser ?? (await this.userRepository.findById(oAuthAccount.userId))
+      );
+    }
 
-      // find created user
-      user = await this.userRepository.findByUsername(usernameFromProvider);
-
-      // create new oAuthAccount for created user
+    if (foundUser) {
+      // 4) If foundUser, but oAuthAccount no, create oAuthAccount
       await this.oauthAccountRepository.create(
-        user.getId(),
+        foundUser.getId(),
         providerType,
         providerId,
         email,
       );
-
-      // send registration email
-      await this.mailerService.sendEmail(
-        user.getEmail(),
-        oAuthRegistrationEmailTemplate(user.getUsername()),
-        'Account Created Successfully',
-      );
+      return foundUser;
     }
 
-    return user;
+    // 5) If no user, create user and oAuthAccount
+    const usernameFromProvider: string =
+      username || displayName || email.split('@')[0];
+    await this.createUserWhenRegistrationByProvider(
+      usernameFromProvider,
+      email,
+    );
+
+    const newUser: User =
+      await this.userRepository.findByUsername(usernameFromProvider);
+    await this.oauthAccountRepository.create(
+      newUser.getId(),
+      providerType,
+      providerId,
+      email,
+    );
+
+    await this.mailerService.sendEmail(
+      newUser.getEmail(),
+      oAuthRegistrationEmailTemplate(newUser.getUsername()),
+      'Account Created Successfully',
+    );
+
+    return newUser;
   }
 
   async createUserWhenRegistrationByProvider(

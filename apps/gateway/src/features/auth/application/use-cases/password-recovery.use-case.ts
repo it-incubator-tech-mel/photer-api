@@ -4,26 +4,21 @@ import { MailerService } from '../../../../core/services/mailler/mailer.service'
 import { Notification } from '../../../../../base/notification/notification';
 import { User } from '../../domain/user.entity';
 import { CoreConfig } from '../../../../core/config/core.config';
-import {
-  passwordRecoveryEmailTemplate,
-} from '../../../../core/services/mailler/email-templates/password-recovery-email-template';
+import { passwordRecoveryEmailTemplate } from '../../../../core/services/mailler/email-templates/password-recovery-email-template';
 
 export class PasswordRecoveryUseCommand {
-  constructor(
-    public readonly email: string,
-  ) {
-  }
+  constructor(public readonly email: string) {}
 }
 
 @CommandHandler(PasswordRecoveryUseCommand)
 export class PasswordRecoveryUseCase
-  implements ICommandHandler<PasswordRecoveryUseCommand> {
+  implements ICommandHandler<PasswordRecoveryUseCommand>
+{
   constructor(
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
     private readonly coreConfig: CoreConfig,
-  ) {
-  }
+  ) {}
 
   async execute(command: PasswordRecoveryUseCommand): Promise<Notification> {
     const { email } = command;

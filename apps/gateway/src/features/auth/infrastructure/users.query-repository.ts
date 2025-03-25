@@ -5,14 +5,12 @@ import { UserMapper } from './mappers/user.mpper';
 
 @Injectable()
 export class UserQueryRepository {
-  constructor(private prisma: PrismaService) {
-  }
+  constructor(private prisma: PrismaService) {}
 
   async findAuthenticatedUserById(id: number): Promise<AuthMeOutputDto> {
     const result = await this.prisma.user.findFirst({
       where: { id },
     });
-    console.log(result, 'result')
 
     return UserMapper.toAuthMeOutput(result);
   }

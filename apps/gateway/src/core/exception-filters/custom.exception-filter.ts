@@ -18,7 +18,6 @@ import { CustomError } from './exceptions/custom-error';
  * - Useful for validation errors or business logic errors you define yourself.
  */
 
-
 @Catch(CustomError)
 export class CustomExceptionFilter implements ExceptionFilter {
   catch(exception: CustomError, host: ArgumentsHost) {

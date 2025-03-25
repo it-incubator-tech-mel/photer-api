@@ -8,13 +8,6 @@ import { User } from '../../features/auth/domain/user.entity';
 import { AuthService } from '../../features/auth/application/services/auth-service';
 import { ProviderType } from '@prisma/client';
 
-/**
- * 1) find user by email -->
- * 2) find oAuthAccount by provideId and providerType --> 1+ && 2+ --> 3) merge oAuthAccount (update email)
- *                                                        1+ && 2- --> 4) create oAuthAccount; send email
- *                                                        1- --> 5) create user; create oAuthAccount; send email
- */
-
 interface VerifyCallback {
   (error: any, user?: any, info?: any): void;
 }
@@ -28,7 +21,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
+      // callbackURL: 'https://photer.ltd/api/v1/auth/oauth/google/callback',
+      callbackURL: 'http://localhost:3000/api/v1/auth/oauth/google/callback',
       scope: ['email', 'profile'],
     });
   }
@@ -47,8 +41,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     const email: string = emails[0].value;
 
-    const user: User = await this.authService.handleOAuthLogin(ProviderType.GOOGLE, id, email, username, displayName);
+    const user: User = await this.authService.handleOAuthLogin(
+      ProviderType.GOOGLE,
+      id,
+      email,
+      username,
+      displayName,
+    );
 
-    return user;
+    return done(null, user);
   }
 }

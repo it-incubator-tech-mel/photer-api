@@ -6,32 +6,32 @@ import { NewPasswordDto } from '../../api/dto/input/new-password.dto';
 import { User } from '../../domain/user.entity';
 
 export class NewPasswordCommand {
-  constructor(
-    public readonly newPasswordDto: NewPasswordDto,
-  ) {
-  }
+  constructor(public readonly newPasswordDto: NewPasswordDto) {}
 }
 
 @CommandHandler(NewPasswordCommand)
-export class NewPasswordUseCase
-  implements ICommandHandler<NewPasswordCommand> {
+export class NewPasswordUseCase implements ICommandHandler<NewPasswordCommand> {
   constructor(
     private readonly cryptoService: CryptoService,
     private readonly userRepository: UserRepository,
-  ) {
-  }
+  ) {}
 
-  async execute(
-    command: NewPasswordCommand,
-  ) {
+  async execute(command: NewPasswordCommand) {
     const { newPassword, recoveryCode } = command.newPasswordDto;
 
-    const user: User | null = await this.userRepository.findUserByRecoveryCode(recoveryCode);
+    const user: User | null =
+      await this.userRepository.findUserByRecoveryCode(recoveryCode);
 
-    if (!user) return Notification.badRequest([{ message: 'Incorrect recovery code', field: 'recoveryCode' }]);
+    if (!user)
+      return Notification.badRequest([
+        { message: 'Incorrect recovery code', field: 'recoveryCode' },
+      ]);
 
     const salt: string = await this.cryptoService.genSalt();
-    const newPasswordHash: string = await this.cryptoService.createHash(newPassword, salt);
+    const newPasswordHash: string = await this.cryptoService.createHash(
+      newPassword,
+      salt,
+    );
 
     try {
       user.updatePassword(newPasswordHash);
@@ -39,7 +39,9 @@ export class NewPasswordUseCase
 
       return Notification.success();
     } catch (err) {
-      return Notification.badRequest([{ message: err.message, field: 'recoveryCode' }]);
+      return Notification.badRequest([
+        { message: err.message, field: 'recoveryCode' },
+      ]);
     }
   }
 }

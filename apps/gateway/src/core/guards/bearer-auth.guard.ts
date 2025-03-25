@@ -1,4 +1,4 @@
-import {ConsoleLogger, ExecutionContext, Injectable} from '@nestjs/common';
+import { ConsoleLogger, ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()

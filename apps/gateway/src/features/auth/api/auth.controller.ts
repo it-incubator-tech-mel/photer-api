@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Redirect,
   Req,
@@ -50,12 +51,14 @@ import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { AuthMeOutputDto } from './dto/output/auth-me.dto';
 import { UserQueryRepository } from '../infrastructure/users.query-repository';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
-import { GoogleGuard } from '../../../core/guards/google.guard';
-import { GitHubGuard } from '../../../core/guards/github.guard';
 import { OAuthCommand } from '../application/use-cases/oauth.use-case';
 import { PasswordRecoveryResendingDto } from './dto/input/password-recovery-resending.dto';
 import { PasswordRecoveryResendingCommand } from '../application/use-cases/password-recovery-resending.use-case';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
+import { CurrentUser } from '../../../core/decorators/param-decorators/current-user.decorator';
+import { OAuthLoginGuard } from '../../../core/guards/oauth/oauth.guard';
+import { User } from '../domain/user.entity';
+
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
@@ -388,6 +391,7 @@ export class AuthController {
       throw new BadRequestException(result.extensions!);
     }
   }
+
   @SkipThrottle()
   @Post('refresh-token')
   @ApiSecurity('refreshToken')
@@ -429,6 +433,7 @@ export class AuthController {
       accessToken: result.data.accessToken!,
     });
   }
+
   @SkipThrottle()
   @Post('logout')
   @ApiSecurity('refreshToken')
@@ -477,140 +482,66 @@ export class AuthController {
   async authMe(@CurrentUserId() userId: number) {
     const user: AuthMeOutputDto =
       await this.userQueryRepository.findAuthenticatedUserById(userId);
+
     if (!user) throw new UnauthorizedException();
 
     return user;
   }
 
-  @Get('oauth/google/login')
-  @ApiOperation({ summary: 'Redirects user to Google authentication' })
+  @Get('oauth/:provider/login')
+  @ApiOperation({ summary: 'Redirects user to OAuth authentication' })
   @ApiResponse({
     status: 200,
-    description: 'Redirects the user to Google OAuth login page.',
+    description: 'Redirects user to the OAuth login page',
   })
   @ApiResponse({
     status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
+    description: 'Too many requests from the same IP in a short time',
   })
-  @UseGuards(GoogleGuard)
+  @UseGuards(OAuthLoginGuard)
   @HttpCode(HttpStatus.OK)
-  async googleLogin() {}
+  async oauthLogin() {}
 
-  @Get('oauth/google/callback')
-  @ApiOperation({ summary: 'Handles Google OAuth callback and issues tokens' })
+  @Get('oauth/:provider/callback')
+  @ApiOperation({ summary: 'Handles OAuth callback and issues tokens' })
   @ApiResponse({
     status: 200,
-    description:
-      'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
+    description: 'Issues JWT accessToken and refreshToken in cookie',
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized if the authentication fails.',
+    description: 'Unauthorized if authentication fails',
   })
   @ApiResponse({
     status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
+    description: 'Too many requests from the same IP in a short time',
   })
   @Redirect('https://photer.ltd')
+  @UseGuards(OAuthLoginGuard)
   @HttpCode(HttpStatus.OK)
-  @UseGuards(GoogleGuard)
-  async oauthCallbackGoogle(
+  async oauthCallback(
+    @Param('provider') provider: 'google' | 'github',
     @Req() req: any,
     @Res() res: Response,
     @Ip() ip: string,
     @UserAgent() userAgent: string,
+    @CurrentUser() user: User,
   ) {
-    const result: Notification<null | {
+    const result: Notification<{
       accessToken: string;
       refreshToken: string;
-    }> = await this.commandBus.execute<
-      OAuthCommand,
-      Notification<null | {
-        accessToken: string;
-        refreshToken: string;
-      }>
-    >(new OAuthCommand(req.user, ip, userAgent));
+    } | null> = await this.commandBus.execute(
+      new OAuthCommand(user, ip, userAgent),
+    );
 
     if (result.status === ResultStatus.Unauthorized || !result.data) {
       throw new UnauthorizedException(result.errorMessage);
     }
 
     res.cookie('refreshToken', result.data.refreshToken, {
-      httpOnly: true, // cookie can only be accessed via http or https
-      secure: true, // send cookie only over https
+      httpOnly: true,
+      secure: true,
       sameSite: 'none',
     });
-
-    return {
-      // url: 'https://photer.ltd',
-      accessToken: result.data.accessToken,
-    };
-  }
-
-  @Get('oauth/github/login')
-  @ApiOperation({ summary: 'Redirects user to GitHub authentication' })
-  @ApiResponse({
-    status: 200,
-    description: 'Redirects the user to GitHub OAuth login page.',
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(GitHubGuard)
-  async githubLogin() {}
-
-  @Get('oauth/github/callback')
-  @ApiOperation({
-    summary: 'Handles GitHubGuard OAuth callback and issues tokens',
-  })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized if the authentication fails.',
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
-  @Redirect('https://photer.ltd')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(GitHubGuard)
-  async oauthCallbackGithub(
-    @Req() req: any,
-    @Res() res: Response,
-    @Ip() ip: string,
-    @UserAgent() userAgent: string,
-  ) {
-    const result: Notification<null | {
-      accessToken: string;
-      refreshToken: string;
-    }> = await this.commandBus.execute<
-      OAuthCommand,
-      Notification<null | {
-        accessToken: string;
-        refreshToken: string;
-      }>
-    >(new OAuthCommand(req.user, ip, userAgent));
-
-    if (result.status === ResultStatus.Unauthorized || !result.data) {
-      throw new UnauthorizedException(result.errorMessage);
-    }
-
-    res.cookie('refreshToken', result.data.refreshToken, {
-      httpOnly: true, // cookie can only be accessed via http or https
-      secure: true, // send cookie only over https
-      // sameSite: 'strict', // protects against CSRF attacks
-      sameSite: 'none',
-    });
-
-    return {
-      accessToken: result.data.accessToken,
-    };
   }
 }

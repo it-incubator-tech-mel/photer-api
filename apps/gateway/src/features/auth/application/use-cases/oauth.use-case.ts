@@ -14,8 +14,8 @@ export class OAuthCommand {
   constructor(
     public readonly user: User,
     public readonly ip: string,
-    public readonly deviceName: string) {
-  }
+    public readonly deviceName: string,
+  ) {}
 }
 
 @CommandHandler(OAuthCommand)
@@ -23,23 +23,29 @@ export class OAuthUseCase implements ICommandHandler<OAuthCommand> {
   constructor(
     private readonly jwtTokenService: JwtTokenService,
     private readonly deviceRepository: DeviceRepository,
-  ) {
-  }
+  ) {}
 
   async execute(command: OAuthCommand): Promise<any> {
-
-    const {user, ip, deviceName} = command;
+    const { user, ip, deviceName } = command;
     const JwtAccessTokenPayload: AccessTokenPayload = { userId: user.getId() };
     const deviceId: string = randomUUID();
-    const JwtRefreshTokenPayload: RefreshTokenPayload = { userId: user.getId(), deviceId };
+    const JwtRefreshTokenPayload: RefreshTokenPayload = {
+      userId: user.getId(),
+      deviceId,
+    };
 
     // generate tokens
-    const accessToken: string = await this.jwtTokenService.generateAccessToken(JwtAccessTokenPayload);
-    const refreshToken: string = await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
+    const accessToken: string = await this.jwtTokenService.generateAccessToken(
+      JwtAccessTokenPayload,
+    );
+    const refreshToken: string =
+      await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
 
     // decode refresh token
-    const decodedRefreshToken: RefreshTokenPayload = await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
-    if (!decodedRefreshToken) return Notification.unauthorized('Invalid refresh token');
+    const decodedRefreshToken: RefreshTokenPayload =
+      await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
+    if (!decodedRefreshToken)
+      return Notification.unauthorized('Invalid refresh token');
 
     // add refresh token to db
 
@@ -51,7 +57,7 @@ export class OAuthUseCase implements ICommandHandler<OAuthCommand> {
       deviceName,
       ip,
       iat,
-      exp
+      exp,
     );
 
     await this.deviceRepository.create(device);
