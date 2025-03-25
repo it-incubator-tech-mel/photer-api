@@ -1,9 +1,13 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { DeviceRepository } from "../../../devices/infrastructure/device.repository";
-import { Notification } from '../../../../core/notification/notification';
+import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
+import { Notification } from '../../../../../base/notification/notification';
 import { randomUUID } from 'node:crypto';
 import { Device } from '../../../devices/domain/device.entity';
-import { AccessTokenPayload, JwtTokenService, RefreshTokenPayload } from '../../../../core/services/jwt/jwt-token.service';
+import {
+  AccessTokenPayload,
+  JwtTokenService,
+  RefreshTokenPayload,
+} from '../../../../core/services/jwt/jwt-token.service';
 
 export class LoginCommand {
   constructor(
@@ -15,22 +19,19 @@ export class LoginCommand {
 }
 
 @CommandHandler(LoginCommand)
-export class LoginUseCase
-  implements ICommandHandler<LoginCommand>
-{
+export class LoginUseCase implements ICommandHandler<LoginCommand> {
   constructor(
     private readonly jwtTokenService: JwtTokenService,
     private readonly deviceRepository: DeviceRepository,
   ) {}
 
-  async execute(
-    command: LoginCommand,
-  ): Promise< {} | null> {
-
+  async execute(command: LoginCommand): Promise<{} | null> {
     // pass login if refreshToken not passed (not valid)
     if (command.refreshToken) {
       try {
-        await this.jwtTokenService.verify<RefreshTokenPayload>(command.refreshToken);
+        await this.jwtTokenService.verify<RefreshTokenPayload>(
+          command.refreshToken,
+        );
 
         return Notification.unauthorized(
           'Refresh token is still valid. Logout before logging in again',
@@ -41,17 +42,27 @@ export class LoginUseCase
     }
 
     // create payload for tokens
-    const JwtAccessTokenPayload: AccessTokenPayload = { userId: command.userId };
+    const JwtAccessTokenPayload: AccessTokenPayload = {
+      userId: command.userId,
+    };
     const deviceId: string = randomUUID();
-    const JwtRefreshTokenPayload: RefreshTokenPayload = { userId: command.userId, deviceId };
+    const JwtRefreshTokenPayload: RefreshTokenPayload = {
+      userId: command.userId,
+      deviceId,
+    };
 
     // generate tokens
-    const accessToken: string = await this.jwtTokenService.generateAccessToken(JwtAccessTokenPayload);
-    const refreshToken: string = await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
+    const accessToken: string = await this.jwtTokenService.generateAccessToken(
+      JwtAccessTokenPayload,
+    );
+    const refreshToken: string =
+      await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
 
     // decode refresh token
-    const decodedRefreshToken: RefreshTokenPayload = await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
-    if (!decodedRefreshToken) return Notification.unauthorized('Invalid refresh token');
+    const decodedRefreshToken: RefreshTokenPayload =
+      await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
+    if (!decodedRefreshToken)
+      return Notification.unauthorized('Invalid refresh token');
 
     // add refresh token to db
 
@@ -63,7 +74,7 @@ export class LoginUseCase
       command.deviceName,
       command.ip,
       iat,
-      exp
+      exp,
     );
 
     await this.deviceRepository.create(device);

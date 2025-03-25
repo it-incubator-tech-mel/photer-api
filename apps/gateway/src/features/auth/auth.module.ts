@@ -12,7 +12,6 @@ import { DeviceModule } from '../devices/device.module';
 import { CryptoModule } from '../../core/services/crypto/crypto.module';
 import { MailerModule } from '../../core/services/mailler/mailer.module';
 import { DeviceRepository } from '../devices/infrastructure/device.repository';
-import { RefreshTokenRepository } from './infrastructure/refresh-token.repository';
 import { ReCaptchaModule } from '../../core/services/reCaptcha/reCaptcha.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtTokenService } from '../../core/services/jwt/jwt-token.service';
@@ -24,6 +23,12 @@ import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { UserQueryRepository } from './infrastructure/users.query-repository';
 import { BearerStrategy } from '../../core/strategies/bearer.strategies';
 import { RefreshTokenStrategy } from '../../core/strategies/refresh-token.strategy';
+import { GoogleStrategy } from '../../core/strategies/google.strategy';
+import { OAuthUseCase } from './application/use-cases/oauth.use-case';
+import { OAuthAccountRepository } from './infrastructure/oauth-account.repository';
+import { GitHubStrategy } from '../../core/strategies/github.strategy';
+import { PasswordRecoveryResendingUseCase } from './application/use-cases/password-recovery-resending.use-case';
+import { JwtStrategy } from '../../core/strategies/jwt.strategies';
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -34,25 +39,27 @@ const useCases: Provider[] = [
   LoginUseCase,
   RefreshTokenUseCase,
   LogoutUseCase,
+  OAuthUseCase,
+  PasswordRecoveryResendingUseCase,
 ];
 
 const repos: Provider[] = [
   UserRepository,
   UserQueryRepository,
   DeviceRepository,
-  RefreshTokenRepository,
+  OAuthAccountRepository,
 ];
 
 const strategies: Provider[] = [
   BearerStrategy,
   LocalStrategy,
-  RefreshTokenStrategy
+  RefreshTokenStrategy,
+  GoogleStrategy,
+  GitHubStrategy,
+  JwtStrategy,
 ];
 
-const services: Provider[] = [
-  AuthService,
-  JwtTokenService
-];
+const services: Provider[] = [AuthService, JwtTokenService];
 
 @Module({
   imports: [
@@ -64,7 +71,8 @@ const services: Provider[] = [
     JwtModule.registerAsync({
       useFactory: (jwtConfig: JwtConfig) => {
         const jwtSecret: string = jwtConfig.jwtSecret;
-        const jwtAccessExpirationTime: string = jwtConfig.jwtAccessExpirationTime;
+        const jwtAccessExpirationTime: string =
+          jwtConfig.jwtAccessExpirationTime;
 
         return {
           global: true,
@@ -82,5 +90,4 @@ const services: Provider[] = [
   providers: [...useCases, ...repos, ...strategies, ...services],
   exports: [],
 })
-export class AuthModule {
-}
+export class AuthModule {}

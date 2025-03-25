@@ -3,7 +3,7 @@ import {
   registrationEmailTemplate,
 } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { CoreConfig } from '../../../../core/config/core.config';
-import { Notification, ResultStatus } from '../../../../core/notification/notification';
+import { Notification, ResultStatus } from '../../../../../base/notification/notification';
 import { randomUUID } from 'crypto';
 import { User } from '../../domain/user.entity';
 import { add } from 'date-fns';

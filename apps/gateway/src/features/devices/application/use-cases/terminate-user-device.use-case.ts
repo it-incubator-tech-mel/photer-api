@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Device } from '../../domain/device.entity';
 import { DeviceRepository } from '../../infrastructure/device.repository';
-import { Notification } from '../../../../core/notification/notification';
+import { Notification } from '../../../../../base/notification/notification';
 
 export class TerminateUserDeviceCommand {
   constructor(

@@ -5,7 +5,7 @@ export class User {
   private constructor(
     private readonly id: number,
     private username: string,
-    private password: string,
+    private password: string | null,
     private email: string,
     private createdAt: Date,
     private updatedAt: Date,
@@ -15,10 +15,13 @@ export class User {
     private isConfirmed: boolean,
     private recoveryCode: string | null,
     private recoveryExpiration: Date | null,
-  ) {
-  }
+  ) {}
 
-  static create(username: string, passwordHash: string, email: string): User {
+  static create(
+    username: string,
+    passwordHash: string | null,
+    email: string,
+  ): User {
     return new User(
       0, // In DB auto-increment
       username,
@@ -39,7 +42,7 @@ export class User {
   static restore(
     id: number,
     username: string,
-    password: string,
+    password: string | null,
     email: string,
     createdAt: Date,
     updatedAt: Date,
@@ -112,6 +115,10 @@ export class User {
     return this.recoveryCode;
   }
 
+  getRecoveryExpiration(): Date | null {
+    return this.recoveryExpiration;
+  }
+
   // email confirmation methods
 
   confirmEmail(): void {
@@ -148,7 +155,7 @@ export class User {
 
     this.password = newPasswordHash;
     this.updatedAt = new Date();
-    this.recoveryCode = null;
-    this.recoveryExpiration = null;
+    this.recoveryCode = randomUUID();
+    this.recoveryExpiration = new Date(0);
   }
 }

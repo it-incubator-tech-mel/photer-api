@@ -1,16 +1,18 @@
-import { validateSync } from 'class-validator';
+import { validateSync, ValidationError } from 'class-validator';
 
 export const configValidation = {
   validateConfig: (config: any) => {
-    const errors = validateSync(config);
+    const errors: ValidationError[] = validateSync(config);
     if (errors.length > 0) {
-      const sortedMessages = errors
-        .map((error) => Object.values(error.constraints || {}).join(', '))
+      const sortedMessages: string = errors
+        .map((error: ValidationError) =>
+          Object.values(error.constraints || {}).join(', '),
+        )
         .join('; ');
       throw new Error('Validation failed: ' + sortedMessages);
     }
   },
   getEnumValues: (environments: Object) => {
     return Object.values(environments);
-  }
-}
+  },
+};

@@ -1,7 +1,7 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { Notification } from '../notification/notification';
+import { Notification } from '../../../base/notification/notification';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
 import { AuthService } from '../../features/auth/application/services/auth-service';
 
@@ -16,11 +16,10 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(email: string, password: string): Promise<any> {
-    const result: Notification<number> =
-      await this.authService.validateUser(
-        email,
-        password,
-      );
+    const result: Notification<number> = await this.authService.validateUser(
+      email,
+      password,
+    );
 
     const userId: number = result.data;
     if (!userId) {

@@ -3,13 +3,13 @@ import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config'
 import { CoreConfig } from './core.config';
 import { MailerConfig } from './mailer.config';
 import { JwtConfig } from './jwt.config';
-import {CaptchaConfig} from "./captcha.config";
-import {Oauth2Config} from "./Oauth2.config";
+import { CaptchaConfig } from './captcha.config';
+import { Oauth2Config } from './oauth2.config';
 
 @Global()
 @Module({
   imports: [
-    NestConfigModule.forRoot({ // <-- Перенесли сюда
+    NestConfigModule.forRoot({
       envFilePath: [
         process.env.ENV_FILE_PATH?.trim() || '',
         `.env.${process.env.ENV_TYPE}.local`,
@@ -44,8 +44,9 @@ import {Oauth2Config} from "./Oauth2.config";
       provide: Oauth2Config,
       useFactory: (configService: ConfigService<any, true>) => new Oauth2Config(configService),
       inject: [ConfigService],
-    }
+    },
   ],
   exports: [CoreConfig, MailerConfig, JwtConfig, CaptchaConfig, Oauth2Config],
 })
-export class ConfigModule {}
+export class ConfigModule {
+}

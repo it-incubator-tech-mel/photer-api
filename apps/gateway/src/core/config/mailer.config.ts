@@ -11,20 +11,20 @@ export class MailerConfig {
   }
 
   @IsString({
-    message: 'Set Env variable MAILER_HOST, example: smtp.example.com',
+    message: 'Set Env variable EMAIL_HOST, example: smtp.example.com',
   })
   emailHost: string = this.configService.get<string>('EMAIL_HOST');
 
-  @IsNumber({}, { message: 'Set Env variable MAILER_PORT, example: 587' })
+  @IsNumber({}, { message: 'Set Env variable EMAIL_PORT, example: 587' })
   emailPort: number = Number(this.configService.get('EMAIL_PORT'));
 
   @IsString({
-    message: 'Set Env variable MAILER_USER, example: user@example.com',
+    message: 'Set Env variable EMAIL_USER, example: user@example.com',
   })
   emailUser: string = this.configService.get<string>('EMAIL_USER');
 
   @IsString({
-    message: 'Set Env variable MAILER_PASSWORD, example: secretpassword',
+    message: 'Set Env variable EMAIL_PASSWORD, example: secretpassword',
   })
   emailPassword: string = this.configService.get<string>('EMAIL_PASSWORD');
 }

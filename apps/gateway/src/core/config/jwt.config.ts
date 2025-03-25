@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 import { configValidation } from './config-validation';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -18,10 +18,14 @@ export class JwtConfig {
   @IsString({
     message: 'Set Env variable JWT_ACCESS_EXPIRATION_TIME, example: 60s',
   })
-  jwtAccessExpirationTime: string = this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME');
+  jwtAccessExpirationTime: string = this.configService.get<string>(
+    'JWT_ACCESS_EXPIRATION_TIME',
+  );
 
   @IsString({
     message: 'Set Env variable JWT_REFRESH_EXPIRATION_TIME, example: 5m',
   })
-  jwtRefreshExpirationTime: string = this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME');
+  jwtRefreshExpirationTime: string = this.configService.get<string>(
+    'JWT_REFRESH_EXPIRATION_TIME',
+  );
 }

@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { UserRepository } from '../../infrastructure/users.repository';
-import { Notification } from '../../../../core/notification/notification';
+import { Notification } from '../../../../../base/notification/notification';
 import { NewPasswordDto } from '../../api/dto/input/new-password.dto';
 import { User } from '../../domain/user.entity';
 
@@ -28,7 +28,7 @@ export class NewPasswordUseCase
 
     const user: User | null = await this.userRepository.findUserByRecoveryCode(recoveryCode);
 
-    if (!user) return Notification.badRequest([{ message: 'Incorrect recovery code', field: 'recoveryCode' }])
+    if (!user) return Notification.badRequest([{ message: 'Incorrect recovery code', field: 'recoveryCode' }]);
 
     const salt: string = await this.cryptoService.genSalt();
     const newPasswordHash: string = await this.cryptoService.createHash(newPassword, salt);

@@ -5,8 +5,8 @@ import { AuthService } from '../../features/auth/application/services/auth-servi
 import { ConfigService } from '@nestjs/config';
 import { RequestWithDeviceAndCookies } from '../../../base/types/request-with-device-and-cookie';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
-import { unixToISOString } from '../utils/convert-unix-to-iso';
-import { Notification, ResultStatus } from '../notification/notification';
+import { unixToISOString } from '../../../base/utils/convert-unix-to-iso';
+import { Notification, ResultStatus } from '../../../base/notification/notification';
 
 /**
  * 1) extract token from cookie -> validate

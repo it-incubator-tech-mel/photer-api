@@ -4,10 +4,7 @@ import { Device } from '../domain/device.entity';
 
 @Injectable()
 export class DeviceRepository {
-  constructor(
-    private prisma: PrismaService,
-  ) {
-  }
+  constructor(private prisma: PrismaService) {}
 
   async create(device: Device): Promise<boolean> {
     try {

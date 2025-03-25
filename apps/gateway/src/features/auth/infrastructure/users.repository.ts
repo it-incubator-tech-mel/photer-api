@@ -4,8 +4,7 @@ import { User } from '../domain/user.entity';
 
 @Injectable()
 export class UserRepository {
-  constructor(private prisma: PrismaService) {
-  }
+  constructor(private prisma: PrismaService) {}
 
   async create(user: User): Promise<void> {
     await this.prisma.user.create({
@@ -55,9 +54,7 @@ export class UserRepository {
     return user ? this.mapToDomain(user) : null;
   }
 
-  async findByConfirmationCode(
-    confirmationCode: string,
-  ): Promise<User | null> {
+  async findByConfirmationCode(confirmationCode: string): Promise<User | null> {
     const prismaUser = await this.prisma.user.findFirst({
       where: {
         emailConfirmation: {
@@ -78,18 +75,18 @@ export class UserRepository {
         where: { id: user.getId() },
         data: {
           updatedAt: user.getUpdatedAt(),
-          password: user.getPassword()
+          password: user.getPassword(),
         },
       }),
       this.prisma.passwordRecovery.upsert({
         where: { userId: user.getId() },
         update: {
-          recoveryCode: user.getRecoveryCode() || "",
-          expirationDate: user.getConfirmationExpiration(),
+          recoveryCode: user.getRecoveryCode() || '',
+          expirationDate: user.getRecoveryExpiration(),
         },
         create: {
-          recoveryCode: user.getRecoveryCode() || "",
-          expirationDate: user.getConfirmationExpiration(),
+          recoveryCode: user.getRecoveryCode() || '',
+          expirationDate: user.getRecoveryExpiration(),
           user: {
             connect: { id: user.getId() },
           },
@@ -102,7 +99,7 @@ export class UserRepository {
     const prismaUser = await this.prisma.user.findFirst({
       where: {
         passwordRecovery: {
-          recoveryCode
+          recoveryCode,
         },
       },
       include: {

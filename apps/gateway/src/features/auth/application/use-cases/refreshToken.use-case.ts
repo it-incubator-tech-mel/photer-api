@@ -6,14 +6,14 @@ import {
   RefreshTokenPayload,
 } from '../../../../core/services/jwt/jwt-token.service';
 import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
-import { Notification } from '../../../../core/notification/notification';
-import { unixToISOString } from '../../../../core/utils/convert-unix-to-iso';
+import { Notification } from '../../../../../base/notification/notification';
+import { unixToISOString } from '../../../../../base/utils/convert-unix-to-iso';
 
 /**
-  * on refreshToken update in device updates iat, exp the same
-  * exp will be > new Date() soon
-  * delete this
-*/
+ * on refreshToken update in device updates iat, exp the same
+ * exp will be > new Date() soon
+ * delete this
+ */
 
 export class RefreshTokenCommand {
   constructor(
@@ -43,7 +43,7 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
         issuedAt,
       );
 
-    if (!device) return Notification.unauthorized('Invalid refresh token')
+    if (!device) return Notification.unauthorized('Invalid refresh token');
 
     // create payload for tokens
     const JwtAccessTokenPayload: AccessTokenPayload = { userId };
@@ -52,9 +52,6 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
     // generate tokens
     const accessToken: string = await this.jwtTokenService.generateAccessToken(JwtAccessTokenPayload);
     const refreshToken: string = await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
-
-    // update refresh token in db
-    // this.refreshTokenRepository.update(parser),
 
     const decodedRefreshToken: RefreshTokenPayload = await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
     if (!decodedRefreshToken) return Notification.unauthorized('Invalid refresh token');

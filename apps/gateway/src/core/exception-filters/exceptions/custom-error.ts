@@ -1,4 +1,4 @@
-// export class CustomError extends HttpException {
+// export class CustomError extends Error {
 export class CustomError extends Error {
   constructor(
     public readonly statusCode: number,

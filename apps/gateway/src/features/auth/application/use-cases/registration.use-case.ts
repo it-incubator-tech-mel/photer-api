@@ -4,7 +4,7 @@ import {
 } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
-import { Notification } from '../../../../core/notification/notification';
+import { Notification } from '../../../../../base/notification/notification';
 import { User } from '../../domain/user.entity';
 import { CoreConfig } from '../../../../core/config/core.config';
 import { UserRepository } from '../../infrastructure/users.repository';
@@ -25,7 +25,7 @@ export class RegistrationUseCase
     private readonly cryptoService: CryptoService,
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
-    private coreConfig: CoreConfig,
+    private readonly coreConfig: CoreConfig,
   ) {
   }
 
