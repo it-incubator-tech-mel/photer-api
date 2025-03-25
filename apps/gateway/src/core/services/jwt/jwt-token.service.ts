@@ -16,7 +16,7 @@ export class RefreshTokenPayload extends AccessTokenPayload {
 export class JwtTokenService {
   constructor(
     private nestJwtService: NestJwtService,
-    private jwtConfig: JwtConfig
+    private jwtConfig: JwtConfig,
   ) {}
 
   async generateAccessToken(payload: AccessTokenPayload): Promise<string> {

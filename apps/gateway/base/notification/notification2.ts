@@ -3,7 +3,7 @@ export class Notification<T = null> {
     this.data = data;
   }
 
-  messages: {message: string, key: string}[] = [];
+  messages: { message: string; key: string }[] = [];
   code = 0;
   data: T | null = null;
 
@@ -18,7 +18,7 @@ export class Notification<T = null> {
     code?: number,
   ) {
     this.code = code ?? 1;
-    this.messages.push({message, key});
+    this.messages.push({ message, key });
   }
 
   addData(data: T) {

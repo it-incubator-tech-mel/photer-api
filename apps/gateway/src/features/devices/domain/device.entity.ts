@@ -7,10 +7,16 @@ export class Device {
     private iat: Date,
     private exp: Date,
     private isDeleted: boolean,
-  ) {
-  }
+  ) {}
 
-  static create(deviceId: string, userId: number, deviceName: string, ip: string, iat: number, exp: number): Device {
+  static create(
+    deviceId: string,
+    userId: number,
+    deviceName: string,
+    ip: string,
+    iat: number,
+    exp: number,
+  ): Device {
     return new Device(
       deviceId,
       userId,
@@ -31,15 +37,7 @@ export class Device {
     exp: Date,
     isDeleted: boolean,
   ): Device {
-    return new Device(
-      id,
-      userId,
-      deviceName,
-      ip,
-      iat,
-      exp,
-      isDeleted,
-    );
+    return new Device(id, userId, deviceName, ip, iat, exp, isDeleted);
   }
 
   getId(): string {

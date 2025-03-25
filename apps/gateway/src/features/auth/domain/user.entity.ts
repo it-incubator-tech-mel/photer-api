@@ -15,10 +15,13 @@ export class User {
     private isConfirmed: boolean,
     private recoveryCode: string | null,
     private recoveryExpiration: Date | null,
-  ) {
-  }
+  ) {}
 
-  static create(username: string, passwordHash: string | null, email: string): User {
+  static create(
+    username: string,
+    passwordHash: string | null,
+    email: string,
+  ): User {
     return new User(
       0, // In DB auto-increment
       username,
