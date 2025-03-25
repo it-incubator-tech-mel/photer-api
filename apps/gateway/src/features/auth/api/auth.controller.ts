@@ -516,7 +516,7 @@ export class AuthController {
     status: 429,
     description: 'Too many requests from the same IP in a short time',
   })
-  @Redirect('https://photer.ltd')
+  @Redirect('https://photer.ltd/oauth')
   @UseGuards(OAuthLoginGuard)
   @HttpCode(HttpStatus.OK)
   async oauthCallback(
