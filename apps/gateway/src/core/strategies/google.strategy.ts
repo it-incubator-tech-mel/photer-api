@@ -8,13 +8,6 @@ import { User } from '../../features/auth/domain/user.entity';
 import { AuthService } from '../../features/auth/application/services/auth-service';
 import { ProviderType } from '@prisma/client';
 
-/**
- * 1) find user by email -->
- * 2) find oAuthAccount by provideId and providerType --> 1+ && 2+ --> 3) merge oAuthAccount (update email)
- *                                                        1+ && 2- --> 4) create oAuthAccount; send email
- *                                                        1- --> 5) create user; create oAuthAccount; send email
- */
-
 interface VerifyCallback {
   (error: any, user?: any, info?: any): void;
 }
