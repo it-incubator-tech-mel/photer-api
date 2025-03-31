@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../gateway/src/app.module';
+
 import { Transport } from '@nestjs/microservices';
+import { AppModuleBroker } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice(AppModule, {
+  const app = await NestFactory.createMicroservice(AppModuleBroker, {
     transport: Transport.RMQ,
     options: {
       urls: [
