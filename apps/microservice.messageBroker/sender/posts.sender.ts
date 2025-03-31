@@ -1,10 +1,5 @@
 import { Controller } from '@nestjs/common';
-import {
-  Ctx,
-  MessagePattern,
-  Payload,
-  RmqContext,
-} from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class PostsSenderController {
