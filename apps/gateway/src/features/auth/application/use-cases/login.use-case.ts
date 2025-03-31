@@ -40,7 +40,6 @@ export class LoginUseCase implements ICommandHandler<LoginCommand> {
         // Invalid refresh token, proceeding with login
       }
     }
-
     // create payload for tokens
     const JwtAccessTokenPayload: AccessTokenPayload = {
       userId: command.userId,
@@ -50,20 +49,17 @@ export class LoginUseCase implements ICommandHandler<LoginCommand> {
       userId: command.userId,
       deviceId,
     };
-
     // generate tokens
     const accessToken: string = await this.jwtTokenService.generateAccessToken(
       JwtAccessTokenPayload,
     );
     const refreshToken: string =
       await this.jwtTokenService.generateRefreshToken(JwtRefreshTokenPayload);
-
     // decode refresh token
     const decodedRefreshToken: RefreshTokenPayload =
       await this.jwtTokenService.decode<RefreshTokenPayload>(refreshToken);
     if (!decodedRefreshToken)
       return Notification.unauthorized('Invalid refresh token');
-
     // add refresh token to db
 
     // create device
@@ -76,9 +72,7 @@ export class LoginUseCase implements ICommandHandler<LoginCommand> {
       iat,
       exp,
     );
-
     await this.deviceRepository.create(device);
-
     return Notification.success({
       accessToken,
       refreshToken,
