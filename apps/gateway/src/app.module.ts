@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from './core/config/config.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { PostsModule } from './features/posts/posts.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     PrismaModule,
     AuthModule,
     DeviceModule,
+    PostsModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {
