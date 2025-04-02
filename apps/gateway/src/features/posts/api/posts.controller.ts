@@ -10,7 +10,6 @@ import {
   Put,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.dto';
@@ -43,7 +42,7 @@ export class PostsController {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
-    return { message: 'registration' };
+    return { message: '' };
   }
   @Get('/:id')
   @ApiOperation({ summary: 'returns post by id' })
@@ -68,7 +67,7 @@ export class PostsController {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
-    return { message: 'registration' };
+    return { message: '/:id' };
   }
 
   @Post('/create')
@@ -109,7 +108,7 @@ export class PostsController {
     const payload: number[] = [1, 2, 3];
     console.log(body);
 
-    return { message: 'registration' };
+    return { message: '/create' };
   }
 
   @Put('/:id')
@@ -145,10 +144,10 @@ export class PostsController {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
-    return { message: 'registration' };
+    return { message: '/:id' };
   }
 
-  @Delete('/delete/:id')
+  @Delete('/delete/:id') //
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
     status: 204,
