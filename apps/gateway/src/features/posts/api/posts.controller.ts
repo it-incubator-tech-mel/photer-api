@@ -106,6 +106,7 @@ export class PostsController {
   async createPosts(@Body() body: CreatePostDto): Promise<Observable<number>> {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
+    console.log(body);
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
