@@ -11,6 +11,7 @@
     "build:gateway": "nest build gateway",
     "start:gateway": "nest start gateway",
     "start:dev:gateway": "cross-env ENV_TYPE=development nest start gateway --watch",
+    "start:dev:storage": "cross-env ENV_TYPE=development nest start storage --watch",
     "start:debug:gateway": "cross-env ENV_TYPE=development nest start gateway --debug --watch",
     "start:prod:gateway": "node dist/apps/gateway/main",
     "migrate:dev": "npx prisma migrate deploy",
