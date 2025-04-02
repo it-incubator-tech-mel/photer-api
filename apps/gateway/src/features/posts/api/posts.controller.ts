@@ -38,11 +38,12 @@ export class PostsController {
       },
     },
   })
-  async getAllPosts(): Promise<Observable<number>> {
+  async getAllPosts() {
+    //: Promise<Observable<number>>
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return { message: 'registration' };
   }
   @Get('/:id')
   @ApiOperation({ summary: 'returns post by id' })
@@ -63,13 +64,13 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.OK)
-  async getPosts(): Promise<Observable<number>> {
+  async getPosts() {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return { message: 'registration' };
   }
-  
+
   @Post('/create')
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
@@ -103,14 +104,14 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.CREATED)
-  async createPosts(@Body() body: CreatePostDto): Promise<Observable<number>> {
+  async createPosts(@Body() body: CreatePostDto) {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
     console.log(body);
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return { message: 'registration' };
   }
-  
+
   @Put('/:id')
   @ApiOperation({ summary: 'update existing posts by id with input model' })
   @ApiResponse({
@@ -140,13 +141,13 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async updatePosts(): Promise<Observable<number>> {
+  async updatePosts() {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return { message: 'registration' };
   }
-  
+
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
@@ -162,13 +163,13 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deletePosts(): Promise<Observable<number>> {
+  async deletePosts() {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-  
+
   @Get('/Profile/:id')
   @ApiOperation({
     summary: 'returns profile - (unauthorized user has access to only 8 posts)',
@@ -190,10 +191,10 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.OK)
-  async getMyPosts(): Promise<Observable<number>> {
+  async getMyPosts() {
     const pattern = { cmd: 'getPosts' };
     const payload: number[] = [1, 2, 3];
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return { message: 'registration' };
   }
 }
