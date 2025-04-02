@@ -69,6 +69,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
+  
   @Post('/create')
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
@@ -108,6 +109,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
+  
   @Put('/:id')
   @ApiOperation({ summary: 'update existing posts by id with input model' })
   @ApiResponse({
@@ -143,6 +145,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
+  
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
@@ -164,6 +167,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
+  
   @Get('/Profile/:id')
   @ApiOperation({
     summary: 'returns profile - (unauthorized user has access to only 8 posts)',
