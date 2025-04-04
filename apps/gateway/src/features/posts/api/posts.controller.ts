@@ -15,6 +15,7 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.dto';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
+import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
 
 @Controller('posts')
 export class PostsController {
@@ -38,11 +39,11 @@ export class PostsController {
       },
     },
   })
-  async getAllPosts(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
+  async getAllPosts(): Promise<Observable<OutputPostType[]>> {
+    const pattern = { cmd: 'getAllPosts' };
+    const payload = []; // будет лежать токен пользователя или ничего
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @Get('/:id')
   @ApiOperation({ summary: 'returns post by id' })
@@ -69,7 +70,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-  
+
   @Post('/create')
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
@@ -98,19 +99,13 @@ export class PostsController {
       },
     },
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Not Found',
-  })
   @HttpCode(HttpStatus.CREATED)
   async createPosts(@Body() body: CreatePostDto): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
-    console.log(body);
+    const pattern = { cmd: 'createPost' };
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return this.storageProxyClient.send<number>(pattern, body); // Nest subscribes on Observable and wait for result
   }
-  
+
   @Put('/:id')
   @ApiOperation({ summary: 'update existing posts by id with input model' })
   @ApiResponse({
@@ -146,7 +141,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-  
+
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
@@ -168,7 +163,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-  
+
   @Get('/Profile/:id')
   @ApiOperation({
     summary: 'returns profile - (unauthorized user has access to only 8 posts)',

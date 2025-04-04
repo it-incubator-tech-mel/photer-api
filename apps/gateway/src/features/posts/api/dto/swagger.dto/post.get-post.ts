@@ -5,10 +5,21 @@ export class PostGetPost {
   id: string;
   @ApiProperty({ description: 'Description of the post' })
   description: string;
-  @ApiProperty({ description: 'Array of photo URLs', type: [String] })
+  @ApiProperty({
+    description: 'Array of photo URLs',
+    type: [String],
+    example: [
+      'https://bucket.s3.amazonaws.com/photo1.jpg',
+      'https://bucket.s3.amazonaws.com/photo2.jpg',
+    ],
+  })
   photo: string[];
   @ApiProperty({ description: 'User ID of the post creator' })
   userId: string;
+  @ApiProperty({ description: 'User name of the post creator' })
+  userName: string;
+  @ApiProperty({ description: 'User name of the post creator' })
+  status: boolean;
   @ApiProperty({
     description: 'Creation date of the post',
     type: String,

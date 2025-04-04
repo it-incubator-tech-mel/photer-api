@@ -1,20 +1,30 @@
+import { OutputPostType } from '../api/dto/output/Output.post.type';
+import { PostSchema } from '../../../../../storage/mongo.schemas/postSchemaModel';
+
 export class Post {
   private constructor(
-    private readonly id: number,
+    private readonly id: string,
     private description: string,
     private photo: string[],
     private userId: string,
+    private userName: string,
     private createdAt: Date,
     private updatedAt: Date,
     private isDeleted: boolean,
   ) {}
 
-  static create(description: string, photo: string[], userId: string): Post {
+  static create(
+    description: string,
+    photo: string[],
+    userId: string,
+    userName: string,
+  ): Post {
     return new Post(
-      0, // In DB auto-increment
+      '0', // In DB auto-increment
       description,
       photo,
       userId,
+      userName,
       new Date(),
       new Date(),
       false,
@@ -23,10 +33,11 @@ export class Post {
 
   // create User using data from db
   static restore(
-    id: number,
+    id: string,
     description: string,
     photo: string[],
     userId: string,
+    userName: string,
     createdAt: Date,
     updatedAt: Date,
     isDeleted: boolean,
@@ -36,6 +47,7 @@ export class Post {
       description,
       photo,
       userId,
+      userName,
       createdAt,
       updatedAt,
       isDeleted,
@@ -44,7 +56,7 @@ export class Post {
 
   // getters
 
-  getId(): number {
+  getId(): string {
     return this.id;
   }
 
@@ -66,5 +78,17 @@ export class Post {
 
   getIsDeleted(): boolean {
     return this.isDeleted;
+  }
+
+  static getViewModel(post: PostSchema): OutputPostType {
+    return {
+      id: post.id,
+      description: post.description,
+      photo: post.photo,
+      userId: post.userId,
+      userName: post.userName,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    };
   }
 }
