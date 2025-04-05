@@ -2,12 +2,26 @@ import { Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PostsController } from './api/posts.controller';
+import { GetAllPostsUseCase } from '@posts/aplication/use-case/get-all-posts.use-case';
+import { PostRepository } from '@posts/infrastructure/post.repository';
+import { GetMyProfileUseCase } from '@posts/aplication/use-case/get-my-profile';
+import { CreatePostUseCase } from '@posts/aplication/use-case/create-post.use-case';
+import { MulterModule } from '@nestjs/platform-express';
+import { StorageModule } from '../../../../storage/src/storage.module';
+import { StorageService } from '../../../../storage/src/storage.service';
 
-const useCases: Provider[] = [];
+const useCases: Provider[] = [
+  GetAllPostsUseCase,
+  GetMyProfileUseCase,
+  CreatePostUseCase,
+];
+const repos: Provider[] = [PostRepository];
 
 @Module({
   imports: [
+    MulterModule.register({ dest: './uploads' }),
     CqrsModule,
+    StorageModule,
     ClientsModule.register([
       {
         name: 'STORAGE_SERVICE',
@@ -25,7 +39,7 @@ const useCases: Provider[] = [];
     ]),
   ],
   controllers: [PostsController],
-  providers: [...useCases],
+  providers: [...useCases, ...repos, StorageService],
   exports: [],
 })
 export class PostsModule {}

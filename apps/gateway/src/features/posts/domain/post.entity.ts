@@ -1,15 +1,16 @@
 import { OutputPostType } from '../api/dto/output/Output.post.type';
-import { PostSchema } from '../../../../../storage/mongo.schemas/postSchemaModel';
+import { User } from '../../auth/domain/user.entity';
 
 export class Post {
   private constructor(
-    private readonly id: string,
+    private readonly id: number,
     private description: string,
     private photo: string[],
     private userId: string,
-    private userName: string,
+    private user: User,
     private createdAt: Date,
     private updatedAt: Date,
+    private status: boolean,
     private isDeleted: boolean,
   ) {}
 
@@ -17,46 +18,49 @@ export class Post {
     description: string,
     photo: string[],
     userId: string,
-    userName: string,
+    user: User,
   ): Post {
     return new Post(
-      '0', // In DB auto-increment
+      0, // In DB auto-increment
       description,
       photo,
       userId,
-      userName,
+      user,
       new Date(),
       new Date(),
+      false,
       false,
     );
   }
 
   // create User using data from db
   static restore(
-    id: string,
+    id: null,
     description: string,
     photo: string[],
     userId: string,
-    userName: string,
+    user: User,
     createdAt: Date,
     updatedAt: Date,
     isDeleted: boolean,
+    status: boolean,
   ): Post {
     return new Post(
       id,
       description,
       photo,
       userId,
-      userName,
+      user,
       createdAt,
       updatedAt,
       isDeleted,
+      status,
     );
   }
 
   // getters
 
-  getId(): string {
+  getId(): number {
     return this.id;
   }
 
@@ -80,13 +84,13 @@ export class Post {
     return this.isDeleted;
   }
 
-  static getViewModel(post: PostSchema): OutputPostType {
+  static getViewModel(post: Post): OutputPostType {
     return {
       id: post.id,
       description: post.description,
       photo: post.photo,
       userId: post.userId,
-      userName: post.userName,
+      userName: post.user.getUsername(),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     };

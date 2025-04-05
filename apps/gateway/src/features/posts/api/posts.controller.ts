@@ -8,6 +8,10 @@ import {
   Inject,
   Post,
   Put,
+  UploadedFile,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
@@ -16,11 +20,19 @@ import { APIErrorResult } from '../../../core/swagger/api-error/error-response.d
 import { CreatePostDto } from './dto/input/create-post.dto';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
 import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
+import { CommandBus } from '@nestjs/cqrs';
+import { GetAllPostsCommand } from '@posts/aplication/use-case/get-all-posts.use-case';
+import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
+import { memoryStorage } from 'multer';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     @Inject('STORAGE_SERVICE') private storageProxyClient: ClientProxy,
+    private commandBus: CommandBus,
+    // private storageService: StorageService,
   ) {}
 
   @Get()
@@ -40,10 +52,8 @@ export class PostsController {
     },
   })
   async getAllPosts(): Promise<Observable<OutputPostType[]>> {
-    const pattern = { cmd: 'getAllPosts' };
-    const payload = []; // будет лежать токен пользователя или ничего
-
-    return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
+    return this.commandBus.execute(new GetAllPostsCommand());
+    // return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @Get('/:id')
   @ApiOperation({ summary: 'returns post by id' })
@@ -70,7 +80,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-
+  @UseGuards(BearerAuthGuard)
   @Post('/create')
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
@@ -99,11 +109,33 @@ export class PostsController {
       },
     },
   })
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 800 * 800 },
+    }),
+  )
   @HttpCode(HttpStatus.CREATED)
-  async createPosts(@Body() body: CreatePostDto): Promise<Observable<number>> {
-    const pattern = { cmd: 'createPost' };
+  createPosts(
+    // @UploadedFiles() photo: Express.Multer.File[],
+    @UploadedFile() photo: Express.Multer.File,
+    @Body() body: CreatePostDto,
+    @CurrentUserId() userId: number,
+  ) {
+    if (!photo) {
+      throw new Error('No files uploaded.');
+    }
 
-    return this.storageProxyClient.send<number>(pattern, body); // Nest subscribes on Observable and wait for result
+    const payload_0 = {
+      buffer: photo.buffer,
+      filename: photo.originalname,
+      mimetype: 'image/png',
+    };
+    const pattern = { cmd: 'createPost' };
+    const payload = { photo: payload_0, userId: userId };
+    const savePhoto = this.storageProxyClient.send(pattern, payload);
+    console.log(savePhoto);
+    return savePhoto;
   }
 
   @Put('/:id')

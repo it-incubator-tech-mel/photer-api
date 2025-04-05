@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Express } from 'express';
 
 export class PostGetPost {
   @ApiProperty({ description: 'ID of the post' })
@@ -13,7 +14,7 @@ export class PostGetPost {
       'https://bucket.s3.amazonaws.com/photo2.jpg',
     ],
   })
-  photo: string[];
+  photo: Express.Multer.File[];
   @ApiProperty({ description: 'User ID of the post creator' })
   userId: string;
   @ApiProperty({ description: 'User name of the post creator' })

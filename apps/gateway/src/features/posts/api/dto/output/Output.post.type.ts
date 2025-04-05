@@ -1,5 +1,5 @@
 export class OutputPostType {
-  id: string;
+  id: number;
   description: string;
   photo: string[];
   userId: string;

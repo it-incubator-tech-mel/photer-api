@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { StorageModule } from './storage.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { MongoClient, ServerApiVersion } from 'mongodb';
 
 async function bootstrap() {
   // const app = await NestFactory.create(StorageModule);
