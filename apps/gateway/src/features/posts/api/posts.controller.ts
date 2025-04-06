@@ -26,11 +26,12 @@ import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
+import process from 'process';
 
 @Controller('posts')
 export class PostsController {
   constructor(
-    @Inject('STORAGE_SERVICE') private storageProxyClient: ClientProxy,
+    @Inject('STORAGE_POST_SERVICE') private storageProxyClient: ClientProxy,
     private commandBus: CommandBus,
     // private storageService: StorageService,
   ) {}
@@ -125,17 +126,9 @@ export class PostsController {
     if (!photo) {
       throw new Error('No files uploaded.');
     }
-
-    const payload_0 = {
-      buffer: photo.buffer,
-      filename: photo.originalname,
-      mimetype: 'image/png',
-    };
-    console.log(photo.buffer, '----------buffer');
     const pattern = { cmd: 'createPost' };
-    const payload = { photo: payload_0, userId: userId };
+    const payload = { photo: photo, userId: userId };
     const savePhoto = this.storageProxyClient.send(pattern, payload);
-    console.log(savePhoto);
     return savePhoto;
   }
 

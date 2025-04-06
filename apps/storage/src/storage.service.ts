@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { YandexConfig } from './config/Yandex-config';
 @Injectable()
 export class StorageService {
   s3client: S3Client;
-  constructor() {
+  constructor(private readonly yandexConfig: YandexConfig) {
     const REGION = 'us-east-1';
     this.s3client = new S3Client({
       region: REGION,
       endpoint: 'https://storage.yandexcloud.net',
       credentials: {
-        secretAccessKey: 'YCP3VFx8FUiL5KoPQLNs06zHlW2vitUPD55v68up',
+        secretAccessKey: yandexConfig.yandexSecret,
         accessKeyId: 'YCAJERHyJNJ4DYvc9V9B3x63Q',
       },
     });
@@ -20,6 +21,7 @@ export class StorageService {
       Bucket: 'inctagram-photer',
       Key: `${fileName}.png`,
       Body: file.photo.buffer,
+      mimetype: file.photo.mimetype,
     };
     const command = new PutObjectCommand(bucketParam);
     const photos = await this.s3client.send(command);
