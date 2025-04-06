@@ -131,6 +131,7 @@ export class PostsController {
       filename: photo.originalname,
       mimetype: 'image/png',
     };
+    console.log(photo.buffer, '----------buffer');
     const pattern = { cmd: 'createPost' };
     const payload = { photo: payload_0, userId: userId };
     const savePhoto = this.storageProxyClient.send(pattern, payload);
