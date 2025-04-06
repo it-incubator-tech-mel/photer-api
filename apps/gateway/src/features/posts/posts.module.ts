@@ -5,21 +5,14 @@ import { PostsController } from './api/posts.controller';
 import { GetAllPostsUseCase } from '@posts/aplication/use-case/get-all-posts.use-case';
 import { PostRepository } from '@posts/infrastructure/post.repository';
 import { GetMyProfileUseCase } from '@posts/aplication/use-case/get-my-profile';
-import { CreatePostUseCase } from '@posts/aplication/use-case/create-post.use-case';
+import { CreatePostUseCase } from '@storage/post/aplication/create-post.use-case';
 import { MulterModule } from '@nestjs/platform-express';
 import { StorageModule } from '../../../../storage/src/storage.module';
-import { StorageService } from '../../../../storage/src/storage.service';
-import { CoreConfig } from '../../core/config/core.config';
-import { ConfigService } from '@nestjs/config';
 
-const useCases: Provider[] = [
-  GetAllPostsUseCase,
-  GetMyProfileUseCase,
-  CreatePostUseCase,
-];
+const useCases: Provider[] = [GetAllPostsUseCase, GetMyProfileUseCase];
 const repos: Provider[] = [PostRepository];
-const configService = new ConfigService<any, true>();
-const portForTPC = configService.get<number>('PORT_TPC');
+// const configService = new ConfigService<any, true>();
+// const portForTPC = configService.get<number>('TCP');
 @Module({
   imports: [
     MulterModule.register({ dest: './uploads' }),
@@ -42,7 +35,7 @@ const portForTPC = configService.get<number>('PORT_TPC');
       {
         name: 'STORAGE_POST_SERVICE',
         transport: Transport.TCP,
-        options: { host: '0.0.0.0', port: portForTPC },
+        options: { host: '0.0.0.0', port: 3830 },
       },
     ]),
   ],

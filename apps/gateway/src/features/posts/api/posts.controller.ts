@@ -23,7 +23,7 @@ import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
 import { CommandBus } from '@nestjs/cqrs';
 import { GetAllPostsCommand } from '@posts/aplication/use-case/get-all-posts.use-case';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
 import process from 'process';
@@ -82,7 +82,7 @@ export class PostsController {
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @UseGuards(BearerAuthGuard)
-  @Post('/create')
+  @Post('')
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
     status: 201,
@@ -111,15 +111,15 @@ export class PostsController {
     },
   })
   @UseInterceptors(
-    FileInterceptor('photo', {
+    FilesInterceptor('photo', 10, {
       storage: memoryStorage(),
-      limits: { fileSize: 5 * 800 * 800 },
+      limits: { fileSize: 5 * 600 * 600 },
     }),
   )
   @HttpCode(HttpStatus.CREATED)
   createPosts(
-    // @UploadedFiles() photo: Express.Multer.File[],
-    @UploadedFile() photo: Express.Multer.File,
+    @UploadedFiles() photo: Express.Multer.File[],
+    // @UploadedFile() photo: Express.Multer.File,
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
@@ -127,10 +127,50 @@ export class PostsController {
       throw new Error('No files uploaded.');
     }
     const pattern = { cmd: 'createPost' };
-    const payload = { photo: photo, userId: userId };
-    const savePhoto = this.storageProxyClient.send(pattern, payload);
+    const savePhoto = this.storageProxyClient.send(pattern, { photo, userId });
     return savePhoto;
   }
+  // @UseGuards(BearerAuthGuard)
+  // @Post('/create')
+  // @ApiOperation({ summary: 'Create new Post' })
+  // @ApiResponse({
+  //   status: 201,
+  // })
+  // @ApiResponse({
+  //   status: 400,
+  //   description: 'If the inputModel has incorrect values',
+  //   type: APIErrorResult,
+  //   content: {
+  //     'application/json': {
+  //       example: {
+  //         statusCode: 400,
+  //         message: 'Validation failed',
+  //         errorsMessages: [],
+  //       },
+  //     },
+  //   },
+  // })
+  // @UseInterceptors(
+  //   FileInterceptor('photo', {
+  //     storage: memoryStorage(),
+  //     limits: { fileSize: 5 * 600 * 600 },
+  //   }),
+  // )
+  // @HttpCode(HttpStatus.CREATED)
+  // createPosts(
+  //   // @UploadedFiles() photo: Express.Multer.File[],
+  //   @UploadedFile() photo: Express.Multer.File,
+  //   @Body() body: CreatePostDto,
+  //   @CurrentUserId() userId: number,
+  // ) {
+  //   if (!photo) {
+  //     throw new Error('No files uploaded.');
+  //   }
+  //   const pattern = { cmd: 'createPost' };
+  //   const payload = { photo: photo, userId: userId };
+  //   const savePhoto = this.storageProxyClient.send(pattern, payload);
+  //   return savePhoto;
+  // }
 
   @Put('/:id')
   @ApiOperation({ summary: 'update existing posts by id with input model' })

@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const configService = new ConfigService<any, true>();
-  const portForTPC = configService.get<number>('PORT_TPC');
+  const portForTPC = configService.get<number>('PORT_TCP');
 
   // const RABBITMQ_URL =
   //   'amqps://gxiiwfbk:t4hYrGI_EYvl3sf_bSdk5U5VS7uTa63P@rat.rmq2.cloudamqp.com/gxiiwfbk';
@@ -17,7 +17,7 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: {
       host: '0.0.0.0',
-      port: portForTPC,
+      port: 3830,
     },
   };
 

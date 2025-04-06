@@ -9,7 +9,7 @@ export class CreatePostDto {
   })
   @IsString()
   @Trim()
-  @Length(0, 500, {
+  @Length(null, 500, {
     message: 'The description must contain up to 500 characters.',
   })
   description: string | null;

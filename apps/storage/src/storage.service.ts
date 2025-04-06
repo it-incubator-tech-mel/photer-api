@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { YandexConfig } from './config/Yandex-config';
+import { PhotoType } from '@storage/post/type/photo.type';
 @Injectable()
 export class StorageService {
   s3client: S3Client;
@@ -15,20 +16,20 @@ export class StorageService {
       },
     });
   }
-  async uploadStream(file: { photo: any; userId: number }) {
-    const fileName = `posts/${file.userId}/${new Date().toISOString()}-${Math.floor(Math.random() * 10000)}`;
-    const bucketParam = {
-      Bucket: 'inctagram-photer',
-      Key: `${fileName}.png`,
-      Body: file.photo.buffer,
-      mimetype: file.photo.mimetype,
-    };
-    const command = new PutObjectCommand(bucketParam);
+  async uploadStream(command: PutObjectCommand, bucketParam: any) {
+    // const fileName = `posts/${file.userId}/${new Date().toISOString()}-${Math.floor(Math.random() * 10000)}`;
+    // const bucketParam = {
+    //   Bucket: 'inctagram-photer',
+    //   Key: `${fileName}.png`,
+    //   Body: file.photo.buffer,
+    //   mimetype: file.photo.mimetype,
+    // };
+    // const command = new PutObjectCommand(bucketParam);
     const photos = await this.s3client.send(command);
     return {
-      key: fileName,
+      key: bucketParam.key,
       location: [
-        `https://storage.yandexcloud.net/${bucketParam.Bucket}/${fileName}.png`,
+        `https://storage.yandexcloud.net/${bucketParam.Bucket}/${bucketParam.key}.png`,
       ],
       photos,
     };
