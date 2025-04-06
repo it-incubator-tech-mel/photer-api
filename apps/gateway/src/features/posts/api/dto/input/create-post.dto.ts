@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Trim } from '../../../../../core/decorators/trim';
-import { ArrayNotEmpty, IsArray, IsString, Length } from 'class-validator';
+import { IsString, Length } from 'class-validator';
+import { Express } from 'express';
 
 export class CreatePostDto {
   @ApiProperty({
@@ -11,14 +12,11 @@ export class CreatePostDto {
   @Length(0, 500, {
     message: 'The description must contain up to 500 characters.',
   })
-  description: string;
-  @ApiProperty({
-    description: 'Array of photo URLs',
-    type: [String],
-    required: true,
-  })
-  @IsArray()
-  @ArrayNotEmpty({ message: 'The photo array must not be empty.' })
-  @IsString({ each: true })
-  photo: string[];
+  description: string | null;
+  // @ApiProperty({
+  //   description: 'Array of JPG images',
+  //   type: 'string',
+  //   format: 'binary',
+  // })
+  // photo: Express.Multer.File[];
 }

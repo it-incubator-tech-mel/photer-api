@@ -8,6 +8,10 @@ import {
   Inject,
   Post,
   Put,
+  UploadedFile,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
@@ -15,11 +19,21 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.dto';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
+import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
+import { CommandBus } from '@nestjs/cqrs';
+import { GetAllPostsCommand } from '@posts/aplication/use-case/get-all-posts.use-case';
+import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
+import { memoryStorage } from 'multer';
+import process from 'process';
 
 @Controller('posts')
 export class PostsController {
   constructor(
-    @Inject('STORAGE_SERVICE') private storageProxyClient: ClientProxy,
+    @Inject('STORAGE_POST_SERVICE') private storageProxyClient: ClientProxy,
+    private commandBus: CommandBus,
+    // private storageService: StorageService,
   ) {}
 
   @Get()
@@ -38,11 +52,9 @@ export class PostsController {
       },
     },
   })
-  async getAllPosts(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
-
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+  async getAllPosts(): Promise<Observable<OutputPostType[]>> {
+    return this.commandBus.execute(new GetAllPostsCommand());
+    // return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @Get('/:id')
   @ApiOperation({ summary: 'returns post by id' })
@@ -69,7 +81,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-  
+  @UseGuards(BearerAuthGuard)
   @Post('/create')
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
@@ -98,18 +110,28 @@ export class PostsController {
       },
     },
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Not Found',
-  })
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 800 * 800 },
+    }),
+  )
   @HttpCode(HttpStatus.CREATED)
-  async createPosts(@Body() body: CreatePostDto): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
-
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+  createPosts(
+    // @UploadedFiles() photo: Express.Multer.File[],
+    @UploadedFile() photo: Express.Multer.File,
+    @Body() body: CreatePostDto,
+    @CurrentUserId() userId: number,
+  ) {
+    if (!photo) {
+      throw new Error('No files uploaded.');
+    }
+    const pattern = { cmd: 'createPost' };
+    const payload = { photo: photo, userId: userId };
+    const savePhoto = this.storageProxyClient.send(pattern, payload);
+    return savePhoto;
   }
-  
+
   @Put('/:id')
   @ApiOperation({ summary: 'update existing posts by id with input model' })
   @ApiResponse({
@@ -145,7 +167,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-  
+
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
@@ -167,7 +189,7 @@ export class PostsController {
 
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
-  
+
   @Get('/Profile/:id')
   @ApiOperation({
     summary: 'returns profile - (unauthorized user has access to only 8 posts)',

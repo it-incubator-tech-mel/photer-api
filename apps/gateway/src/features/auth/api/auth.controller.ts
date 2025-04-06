@@ -235,7 +235,6 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res() res: Response,
   ) {
-    console.log('start');
     const result: Notification<null | {
       accessToken: string;
       refreshToken: string;
@@ -250,7 +249,6 @@ export class AuthController {
     if (result.status === ResultStatus.Unauthorized || !result.data) {
       throw new UnauthorizedException(result.errorMessage);
     }
-    console.log('finish');
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
