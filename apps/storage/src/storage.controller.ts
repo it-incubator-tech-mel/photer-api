@@ -35,5 +35,14 @@ export class StorageController {
     };
     return this.storageService.uploadStream(file);
   }
-
+  // @MessagePattern({ cmd: 'getPosts' })
+  // async accumulate(data: number[]): Promise<number> {
+  //   console.log('data', data);
+  //   return (data || []).reduce((a, b) => a + b);
+  // }
+  // @MessagePattern({ cmd: 'getPosts' })
+  // async accumulate(data: number[]): Promise<number> {
+  //   console.log('data', data);
+  //   return (data || []).reduce((a, b) => a + b);
+  // }
 }
