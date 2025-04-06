@@ -1,5 +1,5 @@
 # Check out https://hub.docker.com/_/node to select a new base image
-FROM node:20.12
+FROM node:20.11-alpine
 ARG port
 ARG service
 ENV SERVICE=$service
@@ -19,17 +19,17 @@ WORKDIR /home/node/dist/${SERVICE}
 
 
 
-COPY --chown=node package.json yarn.lock ./
+COPY --chown=node package*.json ./
 
-RUN yarn install --frozen-lockfile
+RUN npm install
 
 # Bundle app source code
 COPY --chown=node . .
 
-RUN yarn run build:${SERVICE}
+RUN npm run build:${SERVICE}
 
 # Bind to all network interfaces so that it can be mapped to the host OS
 
 EXPOSE ${PORT}
 
-CMD yarn start:prod:storage
+CMD npm run 'start:storage'
