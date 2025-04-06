@@ -21,3 +21,14 @@ spec:
            ports:
              - containerPort: PORT_CONTAINER
 
+           env:
+             - name: SECRET_KEY_YANDEX
+               valueFrom:
+                 secretKeyRef:
+                   name: file-storage-production-config-secret
+                   key: SECRET_KEY_YANDEX
+             - name: PORT_TCP
+               valueFrom:
+                 secretKeyRef:
+                   name: file-storage-production-config-secret
+                   key: PORT_TCP
