@@ -15,4 +15,8 @@ export class YandexConfig {
     message: 'Set Env variable SECRET_KEY_YANDEX, example: SECRET_KEY_YANDEX',
   })
   yandexSecret: string = this.configService.get<string>('SECRET_KEY_YANDEX');
+  @IsString({
+    message: 'Set Env variable ACCESS_KEY_YANDEX, example: ACCESS_KEY_YANDEX',
+  })
+  yandexAccess: string = this.configService.get<string>('ACCESS_KEY_YANDEX');
 }

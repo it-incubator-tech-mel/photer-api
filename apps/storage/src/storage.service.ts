@@ -11,7 +11,7 @@ export class StorageService {
       endpoint: 'https://storage.yandexcloud.net',
       credentials: {
         secretAccessKey: yandexConfig.yandexSecret,
-        accessKeyId: 'YCAJERHyJNJ4DYvc9V9B3x63Q',
+        accessKeyId: yandexConfig.yandexAccess,
       },
     });
   }
