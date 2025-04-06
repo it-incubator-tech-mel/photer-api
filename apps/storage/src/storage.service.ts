@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import sharp from 'sharp';
 @Injectable()
 export class StorageService {
   s3client: S3Client;
@@ -22,9 +21,6 @@ export class StorageService {
       Key: `${fileName}.png`,
       Body: file.photo.buffer,
     };
-    //https:storage.yandexcloud.net/inctagram-photer/posts/1/2025-04-05T17%3A45%3A05.711Z-7344.png
-    // https://storage.yandexcloud.net/inctagram-photer/posts/1/2025-04-05T17:45:05.711Z-7344.png"
-    //https://storage.yandexcloud.net/inctagram-photer/posts/1/2025-04-05T17%3A45%3A05.711Z-7344.png
     const command = new PutObjectCommand(bucketParam);
     const photos = await this.s3client.send(command);
     return {
