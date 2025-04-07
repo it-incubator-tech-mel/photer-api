@@ -5,11 +5,15 @@ import { PostsController } from './api/posts.controller';
 import { GetAllPostsUseCase } from '@posts/aplication/use-case/get-all-posts.use-case';
 import { PostRepository } from '@posts/infrastructure/post.repository';
 import { GetMyProfileUseCase } from '@posts/aplication/use-case/get-my-profile';
-import { CreatePostUseCase } from '@storage/post/aplication/create-post.use-case';
 import { MulterModule } from '@nestjs/platform-express';
 import { StorageModule } from '../../../../storage/src/storage.module';
+import { CreatePostUseCase } from '@posts/aplication/use-case/create-post.use-case';
 
-const useCases: Provider[] = [GetAllPostsUseCase, GetMyProfileUseCase];
+const useCases: Provider[] = [
+  GetAllPostsUseCase,
+  GetMyProfileUseCase,
+  CreatePostUseCase,
+];
 const repos: Provider[] = [PostRepository];
 // const configService = new ConfigService<any, true>();
 // const portForTPC = configService.get<number>('TCP');

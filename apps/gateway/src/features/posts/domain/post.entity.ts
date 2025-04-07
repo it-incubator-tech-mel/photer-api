@@ -6,26 +6,19 @@ export class Post {
     private readonly id: number,
     private description: string,
     private photo: string[],
-    private userId: string,
-    private user: User,
+    private userId: number,
     private createdAt: Date,
     private updatedAt: Date,
     private status: boolean,
     private isDeleted: boolean,
   ) {}
 
-  static create(
-    description: string,
-    photo: string[],
-    userId: string,
-    user: User,
-  ): Post {
+  static create(description: string, photo: string[], userId: number): Post {
     return new Post(
       0, // In DB auto-increment
       description,
       photo,
       userId,
-      user,
       new Date(),
       new Date(),
       false,
@@ -38,8 +31,7 @@ export class Post {
     id: null,
     description: string,
     photo: string[],
-    userId: string,
-    user: User,
+    userId: number,
     createdAt: Date,
     updatedAt: Date,
     isDeleted: boolean,
@@ -50,7 +42,6 @@ export class Post {
       description,
       photo,
       userId,
-      user,
       createdAt,
       updatedAt,
       isDeleted,
@@ -79,6 +70,13 @@ export class Post {
   getUpdatedAt(): Date {
     return this.updatedAt;
   }
+  getUserId(): number {
+    return this.userId;
+  }
+
+  // getUpdatedAt(): Date {
+  //   return this.updatedAt;
+  // }
 
   getIsDeleted(): boolean {
     return this.isDeleted;
@@ -90,7 +88,6 @@ export class Post {
       description: post.description,
       photo: post.photo,
       userId: post.userId,
-      userName: post.user.getUsername(),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     };

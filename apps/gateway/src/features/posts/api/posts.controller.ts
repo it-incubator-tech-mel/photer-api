@@ -27,6 +27,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
 import process from 'process';
+import { CreatePostCommand } from '@posts/aplication/use-case/create-post.use-case';
 
 @Controller('posts')
 export class PostsController {
@@ -119,7 +120,6 @@ export class PostsController {
   @HttpCode(HttpStatus.CREATED)
   createPosts(
     @UploadedFiles() photo: Express.Multer.File[],
-    // @UploadedFile() photo: Express.Multer.File,
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
@@ -127,8 +127,19 @@ export class PostsController {
       throw new Error('No files uploaded.');
     }
     const pattern = { cmd: 'createPost' };
-    const savePhoto = this.storageProxyClient.send(pattern, { photo, userId });
+    const savePhoto = this.storageProxyClient.send(pattern, {
+      photo,
+      userId,
+      body,
+    });
+    console.log(savePhoto);
+    savePhoto.subscribe({
+      next: (data) => {
+        return this.commandBus.execute(new CreatePostCommand(data));
+      },
+    });
     return savePhoto;
+    // return
   }
   // @UseGuards(BearerAuthGuard)
   // @Post('/create')

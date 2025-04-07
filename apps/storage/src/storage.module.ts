@@ -2,13 +2,18 @@ import { Module } from '@nestjs/common';
 import { StorageController } from './storage.controller';
 import { StorageService } from './storage.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PhotoSchema, PostSchemaModel } from '../mongo.schemas/postSchemaModel';
+import {
+  PhotoSchema,
+  PhotoSchemaModel,
+} from '../mongo.schemas/photoSchemaModel';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ConfigTPCModule } from './config/config.module';
 import { CreatePostUseCase } from '@storage/post/aplication/create-post.use-case';
-const schemas = [{ name: PhotoSchema.name, schema: PostSchemaModel }];
+import { PostTcpRepository } from '@storage/post/infastructure/post.tcp.repository';
+const schemas = [{ name: PhotoSchema.name, schema: PhotoSchemaModel }];
 const useCases = [CreatePostUseCase];
 const services = [StorageService];
+const repository = [PostTcpRepository];
 
 @Module({
   imports: [
@@ -20,6 +25,6 @@ const services = [StorageService];
     MongooseModule.forFeature([...schemas]),
   ],
   controllers: [StorageController],
-  providers: [...useCases, ...services],
+  providers: [...useCases, ...services, ...repository],
 })
 export class StorageModule {}

@@ -1,6 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { StorageService } from '../../../storage.service';
+import { PostTcpRepository } from '@storage/post/infastructure/post.tcp.repository';
 
 export class CreatePostCommand {
   constructor(public readonly file: { photo: any[]; userId: number }) {}
@@ -8,7 +9,10 @@ export class CreatePostCommand {
 
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
-  constructor(private readonly storageService: StorageService) {}
+  constructor(
+    private readonly storageService: StorageService,
+    private readonly postTcpRepository: PostTcpRepository,
+  ) {}
   async execute(command: CreatePostCommand) {
     const { photo, userId } = command.file;
     const bodyFile = {
@@ -38,9 +42,6 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
     });
 
     const locations = await Promise.all(uploadPromises);
-
-    return {
-      locations,
-    };
+    return this.postTcpRepository.addPhotoArrayInMongoDB(locations, userId);
   }
 }

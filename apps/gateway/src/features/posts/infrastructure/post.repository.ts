@@ -14,13 +14,24 @@ export class PostRepository {
     return foundPosts.length > 0 ? mapAllPost : null;
   }
 
+  async createOnePost(post: Post) {
+    return this.prisma.post.create({
+      data: {
+        description: post.getDescription(),
+        photo: post.getPhoto(),
+        userId: post.getUserId(),
+        createdAt: post.getCreatedAt(),
+        updatedAt: post.getUpdatedAt(),
+      },
+    });
+  }
+
   private mapToDomain(post: any): Post {
     return Post.restore(
       post.id,
       post.description,
       post.photo,
       post.userId,
-      post.user,
       post.createdAt,
       post.updatedAt,
       post.isDeleted,
