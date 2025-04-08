@@ -21,6 +21,7 @@ model User {
   passwordRecovery  PasswordRecovery?
   devices           Device[]
   providers         OAuthAccount[]
+  posts             Post[]
 }
 
 enum ProviderType {
@@ -64,4 +65,23 @@ model Device {
   iat        DateTime @default(now())
   exp        DateTime @default(now())
   isDeleted  Boolean  @default(false)
+}
+
+
+model Post {
+  id                Int                @id @default(autoincrement())
+  description       String?            @db.VarChar(500)
+  photo             String[]
+  userId            Int
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  isDeleted         Boolean            @default(false)
+  status            PostStatusType     @default(public)
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum PostStatusType {
+  private
+  public
 }
