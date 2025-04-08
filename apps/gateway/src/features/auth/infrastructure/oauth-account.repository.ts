@@ -23,7 +23,7 @@ export class OAuthAccountRepository {
     providerId: string,
     email: string,
   ): Promise<OAuthAccount> {
-    const account = await this.prisma.oAuthAccount.create({
+    return this.prisma.oAuthAccount.create({
       data: {
         userId: userId,
         provider: provider,
@@ -31,8 +31,6 @@ export class OAuthAccountRepository {
         email: email,
       },
     });
-
-    return account;
   }
 
   async updateOrCreate(
