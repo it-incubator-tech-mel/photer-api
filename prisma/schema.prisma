@@ -1,27 +1,26 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @db.VarChar(30)
-  password  String?   @db.VarChar(255)
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-  emailConfirmation EmailConfirmation?
-  passwordRecovery  PasswordRecovery?
+model User {
+  id                Int                @id @default(autoincrement())
+  username          String             @db.VarChar(30)
+  password          String?            @db.VarChar(255)
+  email             String             @unique
+  createdAt         DateTime           @default(now())
+  isDeleted         Boolean            @default(false)
+  updatedAt         DateTime           @updatedAt
   devices           Device[]
-  providers         OAuthAccount[]
+  passwordRecovery  PasswordRecovery?
   posts             Post[]
+  emailConfirmation EmailConfirmation?
+  providers         OAuthAccount[]
 }
 
 enum ProviderType {
@@ -30,43 +29,49 @@ enum ProviderType {
 }
 
 model OAuthAccount {
-  id           Int     @id @default(autoincrement())
-  userId       Int
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider     ProviderType
-  providerId   String
-  email        String
-  createdAt    DateTime @default(now())
+  id         Int          @id @default(autoincrement())
+  userId     Int
+  provider   ProviderType
+  providerId String
+  email      String
+  createdAt  DateTime     @default(now())
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerId]) // unique pair
+  @@unique([provider, providerId])
 }
 
 model EmailConfirmation {
   userId           Int      @id
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   confirmationCode String   @unique
   expirationDate   DateTime
   isConfirmed      Boolean  @default(false)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PasswordRecovery {
   userId         Int      @id
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   recoveryCode   String   @unique
   expirationDate DateTime
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Device {
   id         String   @id @default(uuid())
   userId     Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   deviceName String
   ip         String
   iat        DateTime @default(now())
   exp        DateTime @default(now())
   isDeleted  Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+
+
+enum ProviderType {
+  GITHUB
+  GOOGLE
+}
 
 model Post {
   id                Int                @id @default(autoincrement())
