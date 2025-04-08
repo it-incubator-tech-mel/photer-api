@@ -249,7 +249,6 @@ export class AuthController {
     if (result.status === ResultStatus.Unauthorized || !result.data) {
       throw new UnauthorizedException(result.errorMessage);
     }
-
     res.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true, // cookie can only be accessed via http or https
       secure: true, // send cookie only over https
