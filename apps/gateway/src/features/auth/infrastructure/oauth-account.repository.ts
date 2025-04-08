@@ -39,7 +39,7 @@ export class OAuthAccountRepository {
     providerId: string,
     email: string,
   ): Promise<OAuthAccount> {
-    const account = await this.prisma.oAuthAccount.upsert({
+    return this.prisma.oAuthAccount.upsert({
       where: { provider_providerId: { provider, providerId } },
       update: { email },
       create: {
@@ -49,8 +49,6 @@ export class OAuthAccountRepository {
         email: email,
       },
     });
-
-    return account;
   }
 
   async updateEmail(
