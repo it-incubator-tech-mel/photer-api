@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Post } from '@posts/domain/post.entity';
-import { PostRepository } from '@posts/infrastructure/post.repository';
+import { PostRepository } from '../../infrastructure/post.repository';
+import { Post } from '../../domain/post.entity';
 
 export class CreatePostCommand {
   constructor(

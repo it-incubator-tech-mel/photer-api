@@ -2,13 +2,13 @@ import { Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PostsController } from './api/posts.controller';
-import { GetAllPostsUseCase } from '@posts/aplication/use-case/get-all-posts.use-case';
-import { PostRepository } from '@posts/infrastructure/post.repository';
-import { GetMyProfileUseCase } from '@posts/aplication/use-case/get-my-profile';
 import { MulterModule } from '@nestjs/platform-express';
 import { StorageModule } from '../../../../storage/src/storage.module';
-import { CreatePostUseCase } from '@posts/aplication/use-case/create-post.use-case';
 import { ConfigService } from '@nestjs/config';
+import { CreatePostUseCase } from './aplication/use-case/create-post.use-case';
+import { GetMyProfileUseCase } from './aplication/use-case/get-my-profile';
+import { GetAllPostsUseCase } from './aplication/use-case/get-all-posts.use-case';
+import { PostRepository } from './infrastructure/post.repository';
 
 const useCases: Provider[] = [
   GetAllPostsUseCase,

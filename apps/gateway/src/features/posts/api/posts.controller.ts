@@ -8,7 +8,6 @@ import {
   Inject,
   Post,
   Put,
-  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -19,15 +18,14 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.dto';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
-import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
 import { CommandBus } from '@nestjs/cqrs';
-import { GetAllPostsCommand } from '@posts/aplication/use-case/get-all-posts.use-case';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
-import process from 'process';
-import { CreatePostCommand } from '@posts/aplication/use-case/create-post.use-case';
+import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
+import { OutputPostType } from './dto/output/Output.post.type';
+import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 export class PostsController {

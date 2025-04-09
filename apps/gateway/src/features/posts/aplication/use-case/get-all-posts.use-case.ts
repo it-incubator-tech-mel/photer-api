@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
-import { Post } from '@posts/domain/post.entity';
-import { PostRepository } from '@posts/infrastructure/post.repository';
+import { PostRepository } from '../../infrastructure/post.repository';
+import { OutputPostType } from '../../api/dto/output/Output.post.type';
+import { Post } from '../../domain/post.entity';
 
 export class GetAllPostsCommand {
   constructor() {}
