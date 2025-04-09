@@ -3,7 +3,6 @@ import { StorageService } from './storage.service';
 import { MessagePattern } from '@nestjs/microservices';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '@storage/post/aplication/create-post.use-case';
-import { CreatePostDto } from '@posts/api/dto/input/create-post.dto';
 
 @Controller()
 export class StorageController {

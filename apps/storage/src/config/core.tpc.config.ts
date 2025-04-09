@@ -17,7 +17,7 @@ export class CoreTpcConfig {
       message: 'Set Env variable PORT, example: 3830',
     },
   )
-  portForTPC: number = Number(this.configService.get('PORT_TCP'));
+  portForTCP: number = Number(this.configService.get('PORT_TCP'));
 
   @IsEnum(Environments, {
     message:
