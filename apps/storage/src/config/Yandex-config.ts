@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { IsString } from 'class-validator';
-import { configValidation } from '../../../gateway/src/core/config/config-validation';
+import { configValidationOnTCP } from './config-validation-TCP';
 
 @Injectable()
 export class YandexConfig {
   constructor(private configService: ConfigService<any, true>) {
     // console.log('in CaptchaConfig', configService);
-    configValidation.validateConfig(this);
+    configValidationOnTCP.validateConfig(this);
   }
 
   @IsString({

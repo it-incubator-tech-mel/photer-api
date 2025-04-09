@@ -8,6 +8,7 @@ import { GetMyProfileUseCase } from '@posts/aplication/use-case/get-my-profile';
 import { MulterModule } from '@nestjs/platform-express';
 import { StorageModule } from '../../../../storage/src/storage.module';
 import { CreatePostUseCase } from '@posts/aplication/use-case/create-post.use-case';
+import { ConfigService } from '@nestjs/config';
 
 const useCases: Provider[] = [
   GetAllPostsUseCase,
@@ -17,6 +18,8 @@ const useCases: Provider[] = [
 const repos: Provider[] = [PostRepository];
 // const configService = new ConfigService<any, true>();
 // const portForTPC = configService.get<number>('TCP');
+const configService = new ConfigService<any, true>();
+const portForTCP = configService.get<number>('PORT_TCP');
 @Module({
   imports: [
     MulterModule.register({ dest: './uploads' }),
@@ -39,7 +42,7 @@ const repos: Provider[] = [PostRepository];
       {
         name: 'STORAGE_POST_SERVICE',
         transport: Transport.TCP,
-        options: { host: '0.0.0.0', port: 3830 },
+        options: { host: '0.0.0.0', port: portForTCP },
       },
     ]),
   ],

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { YandexConfig } from './config/Yandex-config';
-import { PhotoType } from '@storage/post/type/photo.type';
 @Injectable()
 export class StorageService {
   s3client: S3Client;
