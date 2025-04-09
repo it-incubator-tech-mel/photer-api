@@ -18,6 +18,13 @@ export class CoreTpcConfig {
     },
   )
   portForTCP: number = Number(this.configService.get('PORT_TCP'));
+  @IsNumber(
+    {},
+    {
+      message: 'Set Env variable PORT, example: 3830',
+    },
+  )
+  mongoDBUrl: number = Number(this.configService.get('PORT_TCP'));
 
   @IsEnum(Environments, {
     message:

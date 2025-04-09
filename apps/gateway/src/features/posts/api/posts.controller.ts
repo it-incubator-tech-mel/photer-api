@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
   Post,
   Put,
   UploadedFiles,
@@ -26,6 +27,7 @@ import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
 import { OutputPostType } from './dto/output/Output.post.type';
 import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
 
 @Controller('posts')
 export class PostsController {
@@ -81,7 +83,7 @@ export class PostsController {
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @UseGuards(BearerAuthGuard)
-  @Post('')
+  @Post()
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
     status: 201,
@@ -130,13 +132,12 @@ export class PostsController {
       userId,
       body,
     });
-    console.log(savePhoto);
     savePhoto.subscribe({
       next: (data) => {
         return this.commandBus.execute(new CreatePostCommand(data));
       },
     });
-    return savePhoto;
+    return HttpCode(201);
     // return
   }
   // @UseGuards(BearerAuthGuard)
@@ -260,10 +261,7 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.OK)
-  async getMyPosts(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
-
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+  async getMyPosts(@Param('id') id: number) {
+    return this.commandBus.execute(new GetMyProfileCommand(id));
   }
 }

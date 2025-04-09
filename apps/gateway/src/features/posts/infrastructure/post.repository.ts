@@ -7,7 +7,15 @@ export class PostRepository {
   constructor(private prisma: PrismaService) {}
   async findAllPosts(): Promise<Post[] | null> {
     const foundPosts = await this.prisma.post.findMany({
-      where: { status: 'public' },
+      where: { status: 'public', isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+    });
+    const mapAllPost = foundPosts.map((post) => this.mapToDomain(post));
+    return foundPosts.length > 0 ? mapAllPost : null;
+  }
+  async findProfileUser(id: number): Promise<Post[] | null> {
+    const foundPosts = await this.prisma.post.findMany({
+      where: { status: 'public', isDeleted: false, userId: id },
       orderBy: { createdAt: 'desc' },
     });
     const mapAllPost = foundPosts.map((post) => this.mapToDomain(post));
@@ -34,8 +42,8 @@ export class PostRepository {
       post.userId,
       post.createdAt,
       post.updatedAt,
-      post.isDeleted,
       post.status,
+      post.isDeleted,
     );
   }
 }

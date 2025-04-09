@@ -25,11 +25,6 @@ async function bootstrap() {
     StorageModule,
     transportTCP,
   );
-  process.on('SIGINT', async () => {
-    await app.close(); // Закрыть microservice
-    console.log('Microservice has shut down gracefully');
-    process.exit(0);
-  });
   await app.listen();
 }
 bootstrap();

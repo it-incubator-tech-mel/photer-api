@@ -26,7 +26,7 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
       userId: userId,
     };
     const uploadPromises = bodyFile.photo.map(async (photo) => {
-      const fileName = `posts/${userId}/${new Date().toLocaleDateString('en-CA')}-${Math.floor(Math.random() * 10000)}.png`;
+      const fileName = `posts/${userId}/${new Date().toLocaleDateString('en-CA')}/${new Date().toLocaleDateString('en-CA')}-${Math.floor(Math.random() * 10000)}.png`;
       const bucketParam = {
         Bucket: 'inctagram-photer',
         Key: fileName,

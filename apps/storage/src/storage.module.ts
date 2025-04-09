@@ -10,19 +10,19 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { ConfigTPCModule } from './config/config.module';
 import { CreatePostUseCase } from './features/post/aplication/create-post.use-case';
 import { PostTcpRepository } from './features/post/infastructure/post.tcp.repository';
+import { ConfigService } from '@nestjs/config';
 
 const schemas = [{ name: PhotoSchema.name, schema: PhotoSchemaModel }];
 const useCases = [CreatePostUseCase];
 const services = [StorageService];
 const repository = [PostTcpRepository];
-
+const configService = new ConfigService<any, true>();
+const mongodbUrl = configService.get<string>('MONGODB_URL');
 @Module({
   imports: [
     ConfigTPCModule,
     CqrsModule,
-    MongooseModule.forRoot(
-      'mongodb://photerappit:OK7nHIfpS2M39ySS@ac-9v46s2k-shard-00-00.cq5urvl.mongodb.net:27017,ac-9v46s2k-shard-00-01.cq5urvl.mongodb.net:27017,ac-9v46s2k-shard-00-02.cq5urvl.mongodb.net:27017/?ssl=true&replicaSet=atlas-h5soo7-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0',
-    ),
+    MongooseModule.forRoot(mongodbUrl),
     MongooseModule.forFeature([...schemas]),
   ],
   controllers: [StorageController],
