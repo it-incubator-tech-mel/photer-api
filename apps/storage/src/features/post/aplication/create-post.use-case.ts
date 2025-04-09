@@ -1,8 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { StorageService } from '../../../storage.service';
-import {PostTcpRepository} from "../infastructure/post.tcp.repository";
-
+import { PostTcpRepository } from '../infastructure/post.tcp.repository';
 
 export class CreatePostCommand {
   constructor(public readonly file: { photo: any[]; userId: number }) {}
