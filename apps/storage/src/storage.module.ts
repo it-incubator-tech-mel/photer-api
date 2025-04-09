@@ -8,8 +8,9 @@ import {
 } from '../mongo.schemas/photoSchemaModel';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ConfigTPCModule } from './config/config.module';
-import { CreatePostUseCase } from '@storage/post/aplication/create-post.use-case';
-import { PostTcpRepository } from '@storage/post/infastructure/post.tcp.repository';
+import { CreatePostUseCase } from './features/post/aplication/create-post.use-case';
+import { PostTcpRepository } from './features/post/infastructure/post.tcp.repository';
+
 const schemas = [{ name: PhotoSchema.name, schema: PhotoSchemaModel }];
 const useCases = [CreatePostUseCase];
 const services = [StorageService];
