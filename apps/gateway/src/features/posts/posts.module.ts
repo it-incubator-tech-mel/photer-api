@@ -22,23 +22,10 @@ const configService = new ConfigService<any, true>();
 const portForTCP = configService.get<number>('PORT_TCP');
 @Module({
   imports: [
-    MulterModule.register({ dest: './uploads' }),
+    // MulterModule.register({ dest: './uploads' }),
     CqrsModule,
     StorageModule,
     ClientsModule.register([
-      // {
-      //   name: 'STORAGE_SERVICE',
-      //   transport: Transport.RMQ,
-      //   options: {
-      //     urls: [
-      //       'amqps://gxiiwfbk:t4hYrGI_EYvl3sf_bSdk5U5VS7uTa63P@rat.rmq2.cloudamqp.com/gxiiwfbk',
-      //     ],
-      //     queue: 'new_queue',
-      //     queueOptions: {
-      //       durable: true,
-      //     },
-      //   },
-      // },
       {
         name: 'STORAGE_POST_SERVICE',
         transport: Transport.TCP,

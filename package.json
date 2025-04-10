@@ -16,6 +16,7 @@
     "start:dev:storage": "cross-env ENV_TYPE=development nest start storage --watch",
     "start:debug:gateway": "cross-env ENV_TYPE=development nest start gateway --debug --watch",
     "start:prod:gateway": "node dist/apps/gateway/main",
+    "start:prod:storage": "node dist/apps/storage/main",
     "migrate:dev": "npx prisma migrate deploy",
     "migrate:prod": "npx prisma migrate deploy",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
