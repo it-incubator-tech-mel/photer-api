@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -262,6 +263,8 @@ export class PostsController {
   })
   @HttpCode(HttpStatus.OK)
   async getMyPosts(@Param('id') id: number) {
-    return this.commandBus.execute(new GetMyProfileCommand(id));
+    const profile = await this.commandBus.execute(new GetMyProfileCommand(id));
+    if (!profile) throw new NotFoundException();
+    return profile;
   }
 }

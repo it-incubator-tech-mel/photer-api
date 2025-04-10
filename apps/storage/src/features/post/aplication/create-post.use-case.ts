@@ -15,28 +15,19 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   ) {}
   async execute(command: CreatePostCommand) {
     const { photo, userId } = command.file;
-    const bodyFile = {
-      photo: photo.map((photo) => {
-        return {
-          buffer: Buffer.from(photo.buffer.data),
-          filename: photo.originalname,
-          mimetype: photo.mimetype,
-        };
-      }),
-      userId: userId,
-    };
-    const uploadPromises = bodyFile.photo.map(async (photo) => {
-      const fileName = `posts/${userId}/${new Date().toLocaleDateString('en-CA')}/${new Date().toLocaleDateString('en-CA')}-${Math.floor(Math.random() * 10000)}.png`;
+
+    const uploadPromises = photo.map(async (photoItem) => {
+      const fileName = `posts/${userId}/${new Date().toISOString().split('T')[0]}/${new Date().toISOString().split('T')[0]}-${Math.floor(Math.random() * 10000)}.png`;
       const bucketParam = {
         Bucket: 'inctagram-photer',
         Key: fileName,
-        Body: photo.buffer,
-        ContentType: photo.mimetype,
+        Body: Buffer.from(photoItem.buffer),
+        ContentType: photoItem.mimetype,
       };
+
       const command = new PutObjectCommand(bucketParam);
 
-      await this.storageService.uploadStream(command, bucketParam);
-      // this.s3client.send(command);
+      await this.storageService.uploadStream(command, bucketParam); // Убедитесь, что uploadStream реализован оптимально
 
       return `https://storage.yandexcloud.net/${bucketParam.Bucket}/${fileName}`;
     });
@@ -45,3 +36,5 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
     return this.postTcpRepository.addPhotoArrayInMongoDB(locations, userId);
   }
 }
+
+// ${new Date().toLocaleDateString('en-CA')}

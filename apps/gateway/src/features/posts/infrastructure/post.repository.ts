@@ -14,12 +14,18 @@ export class PostRepository {
     return foundPosts.length > 0 ? mapAllPost : null;
   }
   async findProfileUser(id: number): Promise<Post[] | null> {
+    const findUser = await this.prisma.user.findUnique({
+      where: { id: id },
+    });
+    console.log(findUser);
+    console.log('findUser');
+    if (!findUser) return null;
     const foundPosts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false, userId: id },
       orderBy: { createdAt: 'desc' },
     });
     const mapAllPost = foundPosts.map((post) => this.mapToDomain(post));
-    return foundPosts.length > 0 ? mapAllPost : null;
+    return foundPosts.length > 0 ? mapAllPost : [];
   }
 
   async createOnePost(post: Post) {
