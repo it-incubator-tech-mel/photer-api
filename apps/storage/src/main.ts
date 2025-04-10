@@ -9,11 +9,8 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const configService = new ConfigService<any, true>();
-  const portForTCP =
-    configService.get<number>('PORT_TCP') || configService.get<number>('PORT');
+  const portForTCP = configService.get<number>('PORT');
 
-  // const RABBITMQ_URL =
-  //   'amqps://gxiiwfbk:t4hYrGI_EYvl3sf_bSdk5U5VS7uTa63P@rat.rmq2.cloudamqp.com/gxiiwfbk';
   const transportTCP: TcpOptions = {
     transport: Transport.TCP,
     options: {
