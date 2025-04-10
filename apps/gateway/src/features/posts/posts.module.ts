@@ -2,8 +2,6 @@ import { Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PostsController } from './api/posts.controller';
-import { MulterModule } from '@nestjs/platform-express';
-import { StorageModule } from '../../../../storage/src/storage.module';
 import { ConfigService } from '@nestjs/config';
 import { CreatePostUseCase } from './aplication/use-case/create-post.use-case';
 import { GetMyProfileUseCase } from './aplication/use-case/get-my-profile';
@@ -24,7 +22,6 @@ const portForTCP = configService.get<number>('PORT_TCP');
   imports: [
     // MulterModule.register({ dest: './uploads' }),
     CqrsModule,
-    StorageModule,
     ClientsModule.register([
       {
         name: 'STORAGE_POST_SERVICE',

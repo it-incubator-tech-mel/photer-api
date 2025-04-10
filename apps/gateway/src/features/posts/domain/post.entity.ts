@@ -1,5 +1,4 @@
 import { OutputPostType } from '../api/dto/output/Output.post.type';
-import { User } from '../../auth/domain/user.entity';
 
 export class Post {
   private constructor(
