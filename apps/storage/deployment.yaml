@@ -37,8 +37,8 @@ spec:
                 secretKeyRef:
                   name: file-storage-production-config-secret
                   key: MONGODB_URL
-            - name: PORT
+            - name: PORT_TCP
               valueFrom:
                 secretKeyRef:
                   name: file-storage-production-config-secret
-                  key: PORT
+                  key: PORT_TCP

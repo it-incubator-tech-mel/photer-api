@@ -97,6 +97,21 @@ spec:
                 secretKeyRef:
                   name: photer-gateway-api-production-config-secret
                   key: PORT_TCP
+            - name: MONGODB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: MONGODB_URL
+            - name: SECRET_KEY_YANDEX
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: SECRET_KEY_YANDEX
+            - name: ACCESS_KEY_YANDEX
+              valueFrom:
+                secretKeyRef:
+                  name: photer-gateway-api-production-config-secret
+                  key: ACCESS_KEY_YANDEX
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
