@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const configService = new ConfigService<any, true>();
-  const portForTCP = configService.get<number>('PORT');
+  const portForTCP = configService.get<number>('PORT_TCP');
 
   const transportTCP: TcpOptions = {
     transport: Transport.TCP,
