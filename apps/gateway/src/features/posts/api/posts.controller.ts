@@ -124,6 +124,7 @@ export class PostsController {
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
+    const description = body.description;
     if (!photo) {
       throw new Error('No files uploaded.');
     }
@@ -131,7 +132,7 @@ export class PostsController {
     const savePhotos = this.storageProxyClient.send(pattern, {
       photo,
       userId,
-      body,
+      description,
     });
     const data = await firstValueFrom(savePhotos);
     const result = await this.commandBus.execute(new CreatePostCommand(data));

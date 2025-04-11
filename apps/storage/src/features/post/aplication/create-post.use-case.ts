@@ -4,7 +4,13 @@ import { StorageService } from '../../../storage.service';
 import { PostTcpRepository } from '../infastructure/post.tcp.repository';
 
 export class CreatePostCommand {
-  constructor(public readonly file: { photo: any[]; userId: number }) {}
+  constructor(
+    public readonly file: {
+      photo: any[];
+      userId: number;
+      description: string | null;
+    },
+  ) {}
 }
 
 @CommandHandler(CreatePostCommand)
@@ -14,7 +20,7 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
     private readonly postTcpRepository: PostTcpRepository,
   ) {}
   async execute(command: CreatePostCommand) {
-    const { photo, userId } = command.file;
+    const { photo, userId, description } = command.file;
 
     const uploadPromises = photo.map(async (photoItem) => {
       const fileName = `posts/${userId}/${new Date().toISOString().split('T')[0]}/${new Date().toISOString().split('T')[0]}-${Math.floor(Math.random() * 10000)}.png`;
@@ -33,7 +39,15 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
     });
 
     const locations = await Promise.all(uploadPromises);
-    return this.postTcpRepository.addPhotoArrayInMongoDB(locations, userId);
+    const addPhotoInDb = await this.postTcpRepository.addPhotoArrayInMongoDB(
+      locations,
+      userId,
+    );
+    return {
+      photo: addPhotoInDb.photoLink,
+      userId: addPhotoInDb.userId,
+      body: description,
+    };
   }
 }
 

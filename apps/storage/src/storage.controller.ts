@@ -27,7 +27,11 @@ export class StorageController {
   //   return this.storageService.uploadStream(file);
   // }
   @MessagePattern({ cmd: 'createPost' })
-  async createOnePost(file: { photo: any[]; userId: number }) {
+  async createOnePost(file: {
+    photo: any[];
+    userId: number;
+    description: string | null;
+  }) {
     return this.commandBus.execute(new CreatePostCommand(file));
   }
   // @MessagePattern({ cmd: 'getPosts' })

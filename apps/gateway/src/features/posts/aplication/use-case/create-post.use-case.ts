@@ -5,9 +5,9 @@ import { Post } from '../../domain/post.entity';
 export class CreatePostCommand {
   constructor(
     public readonly data: {
-      photoLink: string[];
+      photo: string[];
       userId: number;
-      description: string | null;
+      body: string | null;
     },
   ) {}
 }
@@ -16,8 +16,8 @@ export class CreatePostCommand {
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(private postRepository: PostRepository) {}
   async execute(command: CreatePostCommand) {
-    const { photoLink, userId, description } = command.data;
-    const post: Post = Post.create(description, photoLink, userId);
+    const { photo, userId, body } = command.data;
+    const post: Post = Post.create(body, photo, userId);
     return this.postRepository.createOnePost(post);
   }
 }
