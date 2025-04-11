@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   const configService = new ConfigService<any, true>();
   const portForTCP = configService.get<number>('PORT_TCP');
-  const host = configService.get('PROJECT') || 'localhost';
+  const host = configService.get('HOST_NAME_TCP');
 
   const transportTCP: TcpOptions = {
     transport: Transport.TCP,

@@ -42,11 +42,11 @@ spec:
                 secretKeyRef:
                   name: file-storage-production-config-secret
                   key: ENV_TYPE
-            - name: STORAGE_POST_SERVICE
+            - name: HOST_NAME_TCP
               valueFrom:
                 secretKeyRef:
                   name: file-storage-production-config-secret
-                  key: STORAGE_POST_SERVICE
+                  key: HOST_NAME_TCP
             - name: PORT_TCP
               valueFrom:
                 secretKeyRef:
