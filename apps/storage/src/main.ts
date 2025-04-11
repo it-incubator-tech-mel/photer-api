@@ -16,7 +16,7 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: {
       host: host,
-      port: portForTCP | 3830,
+      port: portForTCP,
     },
   };
 
