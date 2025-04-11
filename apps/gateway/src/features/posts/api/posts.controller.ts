@@ -15,7 +15,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.dto';
@@ -119,7 +119,7 @@ export class PostsController {
     }),
   )
   @HttpCode(HttpStatus.CREATED)
-  createPosts(
+  async createPosts(
     @UploadedFiles() photo: Express.Multer.File[],
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
@@ -128,60 +128,15 @@ export class PostsController {
       throw new Error('No files uploaded.');
     }
     const pattern = { cmd: 'createPost' };
-    const savePhoto = this.storageProxyClient.send(pattern, {
+    const savePhotos = this.storageProxyClient.send(pattern, {
       photo,
       userId,
       body,
     });
-    savePhoto.subscribe({
-      next: (data) => {
-        return this.commandBus.execute(new CreatePostCommand(data));
-      },
-    });
-    return HttpCode(201);
-    // return
+    const data = await firstValueFrom(savePhotos);
+    const result = await this.commandBus.execute(new CreatePostCommand(data));
+    return { message: 'Post created successfully', post: result };
   }
-  // @UseGuards(BearerAuthGuard)
-  // @Post('/create')
-  // @ApiOperation({ summary: 'Create new Post' })
-  // @ApiResponse({
-  //   status: 201,
-  // })
-  // @ApiResponse({
-  //   status: 400,
-  //   description: 'If the inputModel has incorrect values',
-  //   type: APIErrorResult,
-  //   content: {
-  //     'application/json': {
-  //       example: {
-  //         statusCode: 400,
-  //         message: 'Validation failed',
-  //         errorsMessages: [],
-  //       },
-  //     },
-  //   },
-  // })
-  // @UseInterceptors(
-  //   FileInterceptor('photo', {
-  //     storage: memoryStorage(),
-  //     limits: { fileSize: 5 * 600 * 600 },
-  //   }),
-  // )
-  // @HttpCode(HttpStatus.CREATED)
-  // createPosts(
-  //   // @UploadedFiles() photo: Express.Multer.File[],
-  //   @UploadedFile() photo: Express.Multer.File,
-  //   @Body() body: CreatePostDto,
-  //   @CurrentUserId() userId: number,
-  // ) {
-  //   if (!photo) {
-  //     throw new Error('No files uploaded.');
-  //   }
-  //   const pattern = { cmd: 'createPost' };
-  //   const payload = { photo: photo, userId: userId };
-  //   const savePhoto = this.storageProxyClient.send(pattern, payload);
-  //   return savePhoto;
-  // }
 
   @Put('/:id')
   @ApiOperation({ summary: 'update existing posts by id with input model' })
