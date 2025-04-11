@@ -115,17 +115,17 @@ export class PostsController {
   @UseInterceptors(
     FilesInterceptor('photo', 10, {
       storage: memoryStorage(),
-      limits: { fileSize: 5 * 600 * 600 },
+      limits: { fileSize: 20 * 1024 * 1024 },
     }),
   )
   @HttpCode(HttpStatus.CREATED)
   async createPosts(
-    @UploadedFiles() photo: Express.Multer.File,
+    @UploadedFiles() photo: Express.Multer.File[],
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
     const description = body.description;
-    if (!photo) {
+    if (!photo || photo.length === 0) {
       throw new Error('No files uploaded.');
     }
     const pattern = { cmd: 'createPost' };
@@ -139,7 +139,7 @@ export class PostsController {
       const result = await this.commandBus.execute(new CreatePostCommand(data));
       return { message: 'Post created successfully', post: result };
     } catch (e) {
-      return { message: e };
+      return { message: e, problem: ` not connect for storage` };
     }
   }
 

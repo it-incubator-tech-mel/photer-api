@@ -14,8 +14,8 @@ async function bootstrap() {
   const transportTCP: TcpOptions = {
     transport: Transport.TCP,
     options: {
-      host: '0.0.0.0',
-      port: portForTCP,
+      host: 'STORAGE_POST_SERVICE',
+      port: portForTCP | 3830,
     },
   };
 
