@@ -120,7 +120,7 @@ export class PostsController {
   )
   @HttpCode(HttpStatus.CREATED)
   async createPosts(
-    @UploadedFiles() photo: Express.Multer.File[],
+    @UploadedFiles() photo: Express.Multer.File,
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
@@ -129,14 +129,18 @@ export class PostsController {
       throw new Error('No files uploaded.');
     }
     const pattern = { cmd: 'createPost' };
-    const savePhotos = this.storageProxyClient.send(pattern, {
-      photo,
-      userId,
-      description,
-    });
-    const data = await firstValueFrom(savePhotos);
-    const result = await this.commandBus.execute(new CreatePostCommand(data));
-    return { message: 'Post created successfully', post: result };
+    try {
+      const savePhotos = this.storageProxyClient.send(pattern, {
+        photo,
+        userId,
+        description,
+      });
+      const data = await firstValueFrom(savePhotos);
+      const result = await this.commandBus.execute(new CreatePostCommand(data));
+      return { message: 'Post created successfully', post: result };
+    } catch (e) {
+      return { message: e };
+    }
   }
 
   @Put('/:id')
