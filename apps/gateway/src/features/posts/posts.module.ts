@@ -18,7 +18,7 @@ const repos: Provider[] = [PostRepository];
 // const portForTPC = configService.get<number>('TCP');
 const configService = new ConfigService<any, true>();
 const portForTCP = configService.get<number>('PORT_TCP');
-const host = configService.get('STORAGE_POST_SERVICE');
+const host = configService.get('PROJECT') || 'localhost';
 @Module({
   imports: [
     // MulterModule.register({ dest: './uploads' }),
@@ -27,7 +27,7 @@ const host = configService.get('STORAGE_POST_SERVICE');
       {
         name: 'STORAGE_POST_SERVICE',
         transport: Transport.TCP,
-        options: { host: host || '0.0.0.0', port: portForTCP },
+        options: { host: host, port: portForTCP },
       },
     ]),
   ],
