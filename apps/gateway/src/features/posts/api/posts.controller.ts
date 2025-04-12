@@ -33,7 +33,8 @@ import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
 @Controller('posts')
 export class PostsController {
   constructor(
-    @Inject('STORAGE_POST_SERVICE') private storageProxyClient: ClientProxy,
+    @Inject('STORAGE_POST_SERVICE')
+    private storageProxyClient: ClientProxy,
     private commandBus: CommandBus,
     // private storageService: StorageService,
   ) {}

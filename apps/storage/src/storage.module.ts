@@ -27,6 +27,11 @@ const mongodbUrl = configService.get<string>('MONGODB_URL');
     MongooseModule.forFeature([...schemas]),
   ],
   controllers: [StorageController],
-  providers: [...useCases, ...services, ...repository],
+  providers: [
+    ...useCases,
+    ...services,
+    ...repository,
+    // { provide: 'STORAGE_API_URL', useValue: storageUrl },
+  ],
 })
 export class StorageModule {}
