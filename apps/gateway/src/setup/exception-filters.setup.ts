@@ -2,9 +2,11 @@ import { INestApplication } from '@nestjs/common';
 import { CustomExceptionFilter } from '../core/exception-filters/custom.exception-filter';
 import { HttpExceptionFilter } from '../core/exception-filters/http.exception-filter';
 import { GlobalExceptionFilter } from '../core/exception-filters/global.exception-filter';
+import { MulterExceptionFilter } from '../core/exception-filters/multer.exception-filter';
 
 export function exceptionFiltersSetup(app: INestApplication) {
   app.useGlobalFilters(
+    // new MulterExceptionFilter(),
     new CustomExceptionFilter(),
     new HttpExceptionFilter(),
     // new GlobalExceptionFilter(),

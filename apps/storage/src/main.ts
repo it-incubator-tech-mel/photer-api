@@ -1,27 +1,24 @@
 import { NestFactory } from '@nestjs/core';
 import { StorageModule } from './storage.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { INestMicroservice } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  // const app = await NestFactory.create(StorageModule);
-  // await app.listen(process.env.port ?? 3001);
+  const configService = new ConfigService<any, true>();
+  const host: string = configService.get<string>('HOST');
+  const port: number = configService.get<number>('PORT_TCP');
+  console.log(host);
+  console.log(port);
 
-  const RABBITMQ_URL =
-    'amqps://gxiiwfbk:t4hYrGI_EYvl3sf_bSdk5U5VS7uTa63P@rat.rmq2.cloudamqp.com/gxiiwfbk';
-
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    StorageModule,
-    {
-      transport: Transport.RMQ,
+  const app: INestMicroservice =
+    await NestFactory.createMicroservice<MicroserviceOptions>(StorageModule, {
+      transport: Transport.TCP,
       options: {
-        urls: [RABBITMQ_URL],
-        queue: 'new_queue',
-        queueOptions: {
-          durable: true,
-        },
+        host: 'localhost',
+        port: 3004,
       },
-    },
-  );
+    });
   await app.listen();
 }
 bootstrap();

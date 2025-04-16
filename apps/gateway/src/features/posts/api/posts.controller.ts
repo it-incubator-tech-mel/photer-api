@@ -9,17 +9,35 @@ import {
   Param,
   Post,
   Put,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { PostOutputDto } from './dto/output/post.output.dto';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.input.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { CommandBus } from '@nestjs/cqrs';
+import { ClientProxy } from '@nestjs/microservices';
+import { CurrentUserId } from '../../../../../common/decorators/param-decorators/current-user-id.decorator';
+import { BadRequestException } from '../../../core/exception-filters/exceptions/exception-types';
+import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
+import { FilesRequiredPipe } from '../../../core/pipes/files-required.pipe';
+import { Observable } from 'rxjs';
+import { CreatePostCommand } from '../application/use-cases/create-post.use-case';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     @Inject('STORAGE_SERVICE') private storageProxyClient: ClientProxy,
+    private commandBus: CommandBus,
   ) {}
 
   @Get()
@@ -111,14 +129,85 @@ export class PostsController {
     },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Multipart form data for post creation',
+    required: true,
+    type: CreatePostDto,
+  })
+  @UseInterceptors(
+    FilesInterceptor('photos', 10, {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 20 * 1024 * 1024, // 20Mb
+        files: 10, // max 10 photos
+      },
+      fileFilter: (req, file, callback) => {
+        const allowedMimeTypes = ['image/jpeg', 'image/png'];
+        if (allowedMimeTypes.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(
+            new BadRequestException([
+              {
+                message: 'Invalid file format. Only JPEG/PNG are allowed.',
+                field: 'photos',
+              },
+            ]),
+            false,
+          );
+        }
+      },
+    }),
+  )
+  @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() body: CreatePostDto) {
-    console.log(body);
+  async create(
+    @UploadedFiles(FilesRequiredPipe) photos: Express.Multer.File[],
+    @Body() body: CreatePostDto,
+    @CurrentUserId() userId: number,
+  ) {
+    console.log('photos', photos);
+    console.log('body', body);
+    const pattern = { cmd: 'uploadFiles' };
 
-    // const pattern = { cmd: 'createPost' };
-    // const payload: number[] = [1, 2, 3];
+    const data = {
+      files: photos.map((file) => ({
+        ...file,
+        buffer: file.buffer.toString('base64'), // convert Buffer to base64
+      })),
+      userId,
+    };
 
-    return { message: 'createPost' };
+    const savedPhoto: Observable<any> = this.storageProxyClient.send(
+      pattern,
+      data,
+    );
+
+    // savedPhoto.subscribe({
+    //   next: (response) => {
+    //     console.log('✅ Storage response:', response);
+    //   },
+    //   error: (err) => {
+    //     console.error('❌ Storage error:', err);
+    //   },
+    //   complete: () => {
+    //     console.log('🔥 Storage request completed');
+    //   },
+    // });
+
+    savedPhoto.subscribe({
+      next: (data) => {
+        console.log('✅ Storage response:', data);
+        return this.commandBus.execute(
+          new CreatePostCommand({
+            urls: data.urls,
+            userId,
+            description: body.description || null,
+          }),
+        );
+      },
+    });
   }
 
   @Put(':id')
@@ -150,10 +239,7 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async update(@Body() body: UpdatePostDto) {
-    // const pattern = { cmd: 'updatePost' };
-    // const payload: number[] = [1, 2, 3];
-
+  async update() {
     return { message: 'updatePost' };
   }
 

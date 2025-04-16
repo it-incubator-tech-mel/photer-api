@@ -2,30 +2,34 @@ import { Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PostsController } from './api/posts.controller';
+import { ConfigService } from '@nestjs/config';
+import { CreatePostUseCase } from './application/use-cases/create-post.use-case';
+import { PostRepository } from './infrastructure/post.repository';
 
-const useCases: Provider[] = [];
+const useCases: Provider[] = [CreatePostUseCase];
+const repos: Provider[] = [PostRepository];
 
 @Module({
   imports: [
     CqrsModule,
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'STORAGE_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: [
-            'amqps://gxiiwfbk:t4hYrGI_EYvl3sf_bSdk5U5VS7uTa63P@rat.rmq2.cloudamqp.com/gxiiwfbk',
-          ],
-          queue: 'new_queue',
-          queueOptions: {
-            durable: true,
+        inject: [ConfigService],
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.TCP,
+          options: {
+            host: 'localhost',
+            port: 3004,
+            timeout: 5000,
+            retryAttempts: 3,
           },
-        },
+        }),
       },
     ]),
   ],
   controllers: [PostsController],
-  providers: [...useCases],
+  providers: [...useCases, ...repos],
   exports: [],
 })
 export class PostsModule {}

@@ -33,7 +33,6 @@ import {
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { ConfirmRegistrationCommand } from '../application/use-cases/confirm-registration.use-case';
 import { RegistrationEmailResendingCommand } from '../application/use-cases/registration-email-resending.use-case';
-import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { Cookie } from '../../../core/decorators/param-decorators/cookie.decorator';
 import { Ip } from '@nestjs/common/decorators/http/route-params.decorator';
 import { UserAgent } from '../../../core/decorators/param-decorators/user-agent.decorator';
@@ -58,6 +57,7 @@ import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { CurrentUser } from '../../../core/decorators/param-decorators/current-user.decorator';
 import { OAuthLoginGuard } from '../../../core/guards/oauth/oauth.guard';
 import { User } from '../domain/user.entity';
+import { CurrentUserId } from '../../../../../common/decorators/param-decorators/current-user-id.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')

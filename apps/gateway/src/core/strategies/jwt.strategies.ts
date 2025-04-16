@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: jwtConfig.jwtSecret,
-    }); // Убедитесь, что секрет правильный
+    });
   }
 
   async validate(payload: any) {
@@ -23,6 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!user) {
       throw new UnauthorizedException();
     }
-    return user; // Если пользователь валиден, возвращается дальше
+    return user;
   }
 }
