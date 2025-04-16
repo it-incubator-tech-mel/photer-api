@@ -9,6 +9,9 @@ export class PostRepository {
     const foundPosts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false },
       orderBy: { createdAt: 'desc' },
+      include: {
+        photo: { where: { isDeleted: false } },
+      },
     });
     const mapAllPost = foundPosts.map((post) => this.mapToDomain(post));
     return foundPosts.length > 0 ? mapAllPost : null;
@@ -17,12 +20,13 @@ export class PostRepository {
     const findUser = await this.prisma.user.findUnique({
       where: { id: id },
     });
-    console.log(findUser);
-    console.log('findUser');
     if (!findUser) return null;
     const foundPosts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false, userId: id },
       orderBy: { createdAt: 'desc' },
+      include: {
+        photo: { where: { isDeleted: false } },
+      },
     });
     const mapAllPost = foundPosts.map((post) => this.mapToDomain(post));
     return foundPosts.length > 0 ? mapAllPost : [];
@@ -32,7 +36,7 @@ export class PostRepository {
     return this.prisma.post.create({
       data: {
         description: post.getDescription(),
-        photo: post.getPhoto(),
+        // photo: post.getPhoto(),
         userId: post.getUserId(),
         createdAt: post.getCreatedAt(),
         updatedAt: post.getUpdatedAt(),
@@ -41,11 +45,17 @@ export class PostRepository {
   }
 
   private mapToDomain(post: any): Post {
+    const photo = post.photo.map((photo: any) => ({
+      id: photo.id,
+      photoUrl: photo.photoUrl,
+      createdAt: photo.createdAt,
+      updatedAt: photo.updatedAt,
+    }));
     return Post.restore(
       post.id,
       post.description,
-      post.photo,
       post.userId,
+      photo,
       post.createdAt,
       post.updatedAt,
       post.status,

@@ -1,7 +1,7 @@
 export class OutputPostType {
   id: number;
   description: string;
-  photo: string[];
+  photo: any[];
   userId: number;
   // userName: string;
   createdAt: Date;

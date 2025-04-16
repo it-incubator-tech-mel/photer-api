@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,7 +24,7 @@ import { PostGetPost } from './dto/swagger.dto/post.get-post';
 import { CommandBus } from '@nestjs/cqrs';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
-import { memoryStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
 import { OutputPostType } from './dto/output/Output.post.type';
 import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
@@ -114,34 +115,55 @@ export class PostsController {
     },
   })
   @UseInterceptors(
-    FilesInterceptor('photo', 10, {
+    FilesInterceptor('photos', 10, {
       storage: memoryStorage(),
-      limits: { fileSize: 20 * 1024 * 1024 },
+      limits: {
+        fileSize: 20 * 1024 * 1024,
+        files: 10,
+      },
+      fileFilter: (req, file, callback) => {
+        const allowedMimeTypes = ['image/jpeg', 'image/png'];
+        if (allowedMimeTypes.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(
+            new BadRequestException([
+              {
+                message: 'Invalid file format. Only JPEG/PNG are allowed.',
+                field: 'photos',
+              },
+            ]),
+            false,
+          );
+        }
+      },
     }),
   )
   @HttpCode(HttpStatus.CREATED)
   async createPosts(
-    @UploadedFiles() photo: Express.Multer.File[],
+    @UploadedFiles() photos: Express.Multer.File[],
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
-    const description = body.description;
-    if (!photo || photo.length === 0) {
+    if (!photos || photos.length === 0) {
       throw new Error('No files uploaded.');
     }
+    const description = body.description;
     const pattern = { cmd: 'createPost' };
-    try {
-      const savePhotos = this.storageProxyClient.send(pattern, {
-        photo,
-        userId,
-        description,
-      });
-      const data = await firstValueFrom(savePhotos);
-      const result = await this.commandBus.execute(new CreatePostCommand(data));
-      return { message: 'Post created successfully', post: result };
-    } catch (e) {
-      return { message: e, problem: ` not connect for storage` };
-    }
+    const savePhotos = this.storageProxyClient.send(pattern, {
+      files: photos.map((f) => ({
+        buffer: f.buffer,
+        originalName: f.originalname,
+        mimetype: f.mimetype,
+      })),
+      userId,
+    });
+
+    const data = await firstValueFrom(savePhotos);
+    const result = await this.commandBus.execute(
+      new CreatePostCommand({ ...data, description }),
+    );
+    return { message: 'Post created successfully', post: result };
   }
 
   @Put('/:id')

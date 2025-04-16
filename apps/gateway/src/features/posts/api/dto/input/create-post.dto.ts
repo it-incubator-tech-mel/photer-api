@@ -1,15 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Trim } from '../../../../../core/decorators/trim';
-import { IsString, Length } from 'class-validator';
+import { IsOptional, IsString, Length } from 'class-validator';
 
 export class CreatePostDto {
   @ApiProperty({
-    description: 'description for the post, no mandatory',
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary',
+    },
+    description: 'Array of photos (JPEG/PNG only)',
+    minItems: 1,
+    maxItems: 10,
   })
+  photos: Express.Multer.File[];
+
+  @ApiProperty({
+    description: 'Post description (optional)',
+    required: false,
+    maxLength: 500,
+    example: 'My awesome post content',
+  })
+  @IsOptional()
   @IsString()
   @Trim()
-  @Length(null, 500, {
-    message: 'The description must contain up to 500 characters.',
+  @Length(0, 500, {
+    message: 'Description must contain up to 500 characters.',
   })
-  description: string | null;
+  description?: string;
 }

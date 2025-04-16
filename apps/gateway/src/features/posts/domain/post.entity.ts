@@ -4,23 +4,23 @@ export class Post {
   private constructor(
     private readonly id: number,
     private description: string,
-    private photo: string[],
     private userId: number,
+    private photo: any[],
     private createdAt: Date,
     private updatedAt: Date,
-    private status: boolean,
+    private status: string,
     private isDeleted: boolean,
   ) {}
 
-  static create(description: string, photo: string[], userId: number): Post {
+  static create(description: string, userId: number): Post {
     return new Post(
       0, // In DB auto-increment
       description,
-      photo,
       userId,
+      [],
       new Date(),
       new Date(),
-      false,
+      'public',
       false,
     );
   }
@@ -29,22 +29,22 @@ export class Post {
   static restore(
     id: null,
     description: string,
-    photo: string[],
     userId: number,
+    photo: any[],
     createdAt: Date,
     updatedAt: Date,
+    status: string,
     isDeleted: boolean,
-    status: boolean,
   ): Post {
     return new Post(
       id,
       description,
-      photo,
       userId,
+      photo,
       createdAt,
       updatedAt,
-      isDeleted,
       status,
+      isDeleted,
     );
   }
 
@@ -58,9 +58,9 @@ export class Post {
     return this.description;
   }
 
-  getPhoto(): string[] {
-    return this.photo;
-  }
+  // getPhoto(): string[] {
+  //   return this.photo;
+  // }
 
   getCreatedAt(): Date {
     return this.createdAt;

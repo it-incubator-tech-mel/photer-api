@@ -15,15 +15,7 @@ export class StorageService {
       },
     });
   }
-  async uploadStream(command: PutObjectCommand, bucketParam: any) {
-    // const fileName = `posts/${file.userId}/${new Date().toISOString()}-${Math.floor(Math.random() * 10000)}`;
-    // const bucketParam = {
-    //   Bucket: 'inctagram-photer',
-    //   Key: `${fileName}.png`,
-    //   Body: file.photo.buffer,
-    //   mimetype: file.photo.mimetype,
-    // };
-    // const command = new PutObjectCommand(bucketParam);
+  async uploadPhoto(command: PutObjectCommand, bucketParam: any) {
     const photos = await this.s3client.send(command);
     return {
       key: bucketParam.key,
@@ -32,9 +24,5 @@ export class StorageService {
       ],
       photos,
     };
-  }
-
-  getHello(): string {
-    return 'Hello World!';
   }
 }
