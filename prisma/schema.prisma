@@ -23,6 +23,12 @@ model User {
   posts             Post[]
 }
 
+enum ProviderType {
+  GITHUB
+  GOOGLE
+}
+
+
 model OAuthAccount {
   id         Int          @id @default(autoincrement())
   userId     Int
@@ -61,10 +67,11 @@ model Device {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum ProviderType {
-  GITHUB
-  GOOGLE
+enum PostStatusType {
+  private
+  public
 }
+
 model Post {
   id                Int                @id @default(autoincrement())
   description       String?            @db.VarChar(500)
@@ -74,13 +81,7 @@ model Post {
   updatedAt         DateTime           @updatedAt
   isDeleted         Boolean            @default(false)
   status            PostStatusType     @default(public)
-
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-enum PostStatusType {
-  private
-  public
 }
 
 model Photo {
@@ -89,7 +90,6 @@ model Photo {
   postId            Int
   createdAt         DateTime           @default(now())
   isDeleted         Boolean            @default(false)
-
   post              Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
 
 }
