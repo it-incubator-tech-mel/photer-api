@@ -49,7 +49,6 @@ export class PostRepository {
       id: photo.id,
       photoUrl: photo.photoUrl,
       createdAt: photo.createdAt,
-      updatedAt: photo.updatedAt,
     }));
     return Post.restore(
       post.id,
