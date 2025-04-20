@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Express } from 'express';
+import { isNumber } from 'class-validator';
 
 export class PostGetPost {
   @ApiProperty({ description: 'ID of the post' })
@@ -8,19 +9,18 @@ export class PostGetPost {
   description: string;
   @ApiProperty({
     description: 'Array of photo URLs',
-    type: [String],
     example: [
-      'https://bucket.s3.amazonaws.com/photo1.jpg',
-      'https://bucket.s3.amazonaws.com/photo2.jpg',
+      {
+        id: isNumber,
+        photoUrl:
+          'https://storage.yandexcloud.net/inctagram-photer/posts/1/2025-04-15/1744732239108-317.png',
+        createdAt: Date,
+      },
     ],
   })
   photo: Express.Multer.File[];
   @ApiProperty({ description: 'User ID of the post creator' })
   userId: string;
-  @ApiProperty({ description: 'User name of the post creator' })
-  userName: string;
-  @ApiProperty({ description: 'User name of the post creator' })
-  status: boolean;
   @ApiProperty({
     description: 'Creation date of the post',
     type: String,
