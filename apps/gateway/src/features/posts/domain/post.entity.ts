@@ -1,4 +1,4 @@
-import { OutputPostType } from '../api/dto/output/Output.post.type';
+import { PostOutputDto } from '../api/dto/output/post.output.dto';
 
 export class Post {
   private constructor(
@@ -81,7 +81,7 @@ export class Post {
     return this.isDeleted;
   }
 
-  static getViewModel(post: Post): OutputPostType {
+  static getViewModel(post: Post): PostOutputDto {
     return {
       id: post.id,
       description: post.description,

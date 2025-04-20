@@ -19,35 +19,32 @@ import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom, Observable } from 'rxjs';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
-import { CreatePostDto } from './dto/input/create-post.dto';
-import { PostGetPost } from './dto/swagger.dto/post.get-post';
+import { CreatePostInputDto } from './dto/input/create-post.input.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
-import { diskStorage, memoryStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
-import { OutputPostType } from './dto/output/Output.post.type';
-import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
+import { PostOutputDto } from './dto/output/post.output.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
+import { PostQueryRepository } from '../infrastructure/posts.query.repository';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     @Inject('STORAGE_POST_SERVICE')
     private storageProxyClient: ClientProxy,
+    private readonly postQueryRepository: PostQueryRepository,
     private commandBus: CommandBus,
-    // private storageService: StorageService,
   ) {}
 
   @Get()
-  @ApiOperation({
-    summary: 'Get all posts',
-  })
+  @ApiOperation({ summary: 'Get all posts' })
   @ApiResponse({
     status: 200,
     description: 'Success',
-    type: [PostGetPost],
+    type: [PostOutputDto],
     content: {
       'application/json': {
         example: {
@@ -56,16 +53,18 @@ export class PostsController {
       },
     },
   })
-  async getAllPosts(): Promise<Observable<OutputPostType[]>> {
-    return this.commandBus.execute(new GetAllPostsCommand());
-    // return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
+  // @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @HttpCode(HttpStatus.OK)
+  async getAllPosts(): Promise<Observable<PostOutputDto[]>> {
+    return await this.postQueryRepository.getAll();
   }
+
   @Get('/:id')
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
     status: 200,
     description: 'Success',
-    type: PostGetPost,
+    type: PostOutputDto,
     content: {
       'application/json': {
         example: {
@@ -91,7 +90,7 @@ export class PostsController {
   @ApiResponse({
     status: 201,
     description: 'Returns the newly created post',
-    type: PostGetPost,
+    type: PostOutputDto,
     content: {
       'application/json': {
         example: {
@@ -142,7 +141,7 @@ export class PostsController {
   @HttpCode(HttpStatus.CREATED)
   async createPosts(
     @UploadedFiles() photos: Express.Multer.File[],
-    @Body() body: CreatePostDto,
+    @Body() body: CreatePostInputDto,
     @CurrentUserId() userId: number,
   ) {
     if (!photos || photos.length === 0) {
@@ -231,7 +230,7 @@ export class PostsController {
   @ApiResponse({
     status: 200,
     description: 'Success',
-    type: [PostGetPost],
+    type: [PostOutputDto],
     content: {
       'application/json': {
         example: {

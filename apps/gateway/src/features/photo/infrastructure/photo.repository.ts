@@ -13,7 +13,6 @@ export class PhotoRepository {
           photoUrl: photo.getPhotoUrl(),
           postId: photo.getPostId(),
           createdAt: photo.getCreatedAt(),
-          updatedAt: photo.getUpdatedAt(),
         },
       });
 

@@ -1,8 +1,8 @@
 import { Controller } from '@nestjs/common';
-import { StorageService } from './storage.service';
+import { StorageService } from '../../../storage.service';
 import { MessagePattern } from '@nestjs/microservices';
 import { CommandBus } from '@nestjs/cqrs';
-import { CreatePostCommand } from './features/post/aplication/create-post.use-case';
+import { CreatePostCommand } from '../aplication/create-post.use-case';
 
 @Controller()
 export class StorageController {

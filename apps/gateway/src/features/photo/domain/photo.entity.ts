@@ -4,12 +4,11 @@ export class Photo {
     private photoUrl: string,
     private postId: number,
     private createdAt: Date,
-    private updatedAt: Date,
     private isDeleted: boolean,
   ) {}
 
   static create(photoUrl: string, postId: number, createdAt: Date): Photo {
-    return new Photo(0, photoUrl, postId, createdAt, new Date(), false);
+    return new Photo(0, photoUrl, postId, createdAt, false);
   }
 
   static restore(
@@ -20,7 +19,7 @@ export class Photo {
     updatedAt: Date,
     isDeleted: boolean,
   ): Photo {
-    return new Photo(id, photoUrl, postId, createdAt, updatedAt, isDeleted);
+    return new Photo(id, photoUrl, postId, createdAt, isDeleted);
   }
   getId(): number {
     return this.id;
@@ -36,10 +35,6 @@ export class Photo {
 
   getCreatedAt(): Date {
     return this.createdAt;
-  }
-
-  getUpdatedAt(): Date {
-    return this.updatedAt;
   }
 
   getIsDeleted(): boolean {
