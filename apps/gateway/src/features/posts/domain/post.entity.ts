@@ -1,11 +1,14 @@
-import { PostOutputDto } from '../api/dto/output/post.output.dto';
+export enum PostStatus {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+}
 
 export class Post {
   private constructor(
     private readonly id: number,
     private description: string,
     private userId: number,
-    private photo: any[],
+    private photos: any[],
     private createdAt: Date,
     private updatedAt: Date,
     private status: string,
@@ -30,7 +33,7 @@ export class Post {
     id: null,
     description: string,
     userId: number,
-    photo: any[],
+    photos: any[],
     createdAt: Date,
     updatedAt: Date,
     status: string,
@@ -40,7 +43,7 @@ export class Post {
       id,
       description,
       userId,
-      photo,
+      photos,
       createdAt,
       updatedAt,
       status,
@@ -58,8 +61,8 @@ export class Post {
     return this.description;
   }
 
-  // getPhoto(): string[] {
-  //   return this.photo;
+  // getPhotos(): string[] {
+  //   return this.photos;
   // }
 
   getCreatedAt(): Date {
@@ -79,16 +82,5 @@ export class Post {
 
   getIsDeleted(): boolean {
     return this.isDeleted;
-  }
-
-  static getViewModel(post: Post): PostOutputDto {
-    return {
-      id: post.id,
-      description: post.description,
-      photo: post.photo,
-      userId: post.userId,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    };
   }
 }

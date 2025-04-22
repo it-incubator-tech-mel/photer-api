@@ -1,8 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule as NestConfigModule } from '@nestjs/config/dist/config.module';
 import { ConfigService } from '@nestjs/config';
-import { YandexConfig } from './Yandex-config';
-import { CoreTpcConfig } from './core.tpc.config';
+import { CoreConfig } from './core.config';
+import { S3ClientConfig } from './s3-client.config';
 
 @Global()
 @Module({
@@ -19,18 +19,18 @@ import { CoreTpcConfig } from './core.tpc.config';
   ],
   providers: [
     {
-      provide: YandexConfig,
+      provide: CoreConfig,
       useFactory: (configService: ConfigService<any, true>) =>
-        new YandexConfig(configService),
+        new CoreConfig(configService),
       inject: [ConfigService],
     },
     {
-      provide: CoreTpcConfig,
+      provide: S3ClientConfig,
       useFactory: (configService: ConfigService<any, true>) =>
-        new CoreTpcConfig(configService),
+        new S3ClientConfig(configService),
       inject: [ConfigService],
     },
   ],
-  exports: [YandexConfig, CoreTpcConfig],
+  exports: [CoreConfig, S3ClientConfig],
 })
-export class ConfigTPCModule {}
+export class ConfigModule {}

@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Trim } from '../../../../../core/decorators/trim';
 import { IsOptional, IsString, Length } from 'class-validator';
 
-export class CreatePostInputDto {
+export class CreatePostDto {
   @ApiProperty({
     type: 'array',
     items: {

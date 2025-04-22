@@ -6,7 +6,7 @@ import { Post } from '../domain/post.entity';
 export class PostRepository {
   constructor(private prisma: PrismaService) {}
 
-  async createOnePost(post: Post) {
+  async create(post: Post) {
     return this.prisma.post.create({
       data: {
         description: post.getDescription(),

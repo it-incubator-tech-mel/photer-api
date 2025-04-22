@@ -5,28 +5,44 @@ import { PostOutputDto } from '../api/dto/output/post.output.dto';
 @Injectable()
 export class PostQueryRepository {
   constructor(private prisma: PrismaService) {}
+
   async getAll(): Promise<PostOutputDto[] | null> {
     const posts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false },
       orderBy: { createdAt: 'desc' },
       include: {
-        Photo: { where: { isDeleted: false } },
+        photos: { where: { isDeleted: false } },
       },
     });
 
     return posts.map((post) => this.mapToOutput(post));
   }
 
-  async findProfileUser(id: number): Promise<PostOutputDto[] | null> {
+  async getOne(id: number): Promise<PostOutputDto | null> {
+    const foundPost = await this.prisma.post.findUnique({
+      where: { id: id, status: 'public', isDeleted: false },
+      include: {
+        photos: { where: { isDeleted: false } },
+      },
+    });
+
+    if (!foundPost) return null;
+
+    return this.mapToOutput(foundPost);
+  }
+
+  async findUserProfile(id: number): Promise<PostOutputDto[] | null> {
     const findUser = await this.prisma.user.findUnique({
       where: { id: id },
     });
+
     if (!findUser) return null;
+
     const posts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false, userId: id },
       orderBy: { createdAt: 'desc' },
       include: {
-        Photo: { where: { isDeleted: false } },
+        photos: { where: { isDeleted: false } },
       },
     });
 

@@ -1,18 +1,17 @@
-import { Controller } from '@nestjs/common';
-import { StorageService } from '../../../storage.service';
+import { BadRequestException, Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { CommandBus } from '@nestjs/cqrs';
-import { CreatePostCommand } from '../aplication/create-post.use-case';
+import { plainToInstance } from 'class-transformer';
+import { UploadFilesInputDto } from './dto/input/upload-file.input.dto';
+import { validate } from 'class-validator';
+import { UploadFilesCommand } from '../aplication/use-cases/upload-files.use-case';
 
 @Controller()
 export class StorageController {
-  constructor(
-    private readonly storageService: StorageService,
-    private readonly commandBus: CommandBus,
-  ) {}
+  constructor(private readonly commandBus: CommandBus) {}
 
-  @MessagePattern({ cmd: 'createPost' })
-  async createOnePost(payload: {
+  @MessagePattern({ cmd: 'uploadFiles' })
+  async upload(payload: {
     files: {
       buffer: Buffer;
       originalName: string;
@@ -20,6 +19,15 @@ export class StorageController {
     }[];
     userId: number;
   }) {
-    return this.commandBus.execute(new CreatePostCommand(payload));
+    const dto: UploadFilesInputDto = plainToInstance(
+      UploadFilesInputDto,
+      payload,
+    );
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    return this.commandBus.execute(new UploadFilesCommand(dto));
   }
 }

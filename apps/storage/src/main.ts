@@ -6,24 +6,31 @@ import {
   Transport,
 } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { INestMicroservice } from '@nestjs/common';
 
 async function bootstrap() {
-  const configService = new ConfigService<any, true>();
-  const portForTCP = configService.get<number>('PORT_TCP');
-  const host = configService.get('HOST_NAME_TCP');
+  // const configService = new ConfigService<any, true>();
+  // const host: string = configService.get<string>('STORAGE_TCP_HOST');
+  // const port: number = configService.get<number>('STORAGE_TCP_PORT');
+  // console.log(host);
+  // console.log(port);
 
   const transportTCP: TcpOptions = {
     transport: Transport.TCP,
     options: {
-      host: host,
-      port: portForTCP,
+      // host: host,
+      // port: port,
+      host: 'localhost',
+      port: 3004,
     },
   };
 
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    StorageModule,
-    transportTCP,
-  );
+  const app: INestMicroservice =
+    await NestFactory.createMicroservice<MicroserviceOptions>(
+      StorageModule,
+      transportTCP,
+    );
+
   await app.listen();
 }
 bootstrap();

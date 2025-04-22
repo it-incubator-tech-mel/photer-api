@@ -4,11 +4,34 @@ export class PostOutputDto {
   @ApiProperty({ description: 'Id of the post', example: '1' })
   id: string;
 
-  @ApiProperty({ description: 'Description of the post', required: false })
+  @ApiProperty({
+    description: 'Description of the post',
+    example: 'This is my first post!',
+    required: false,
+  })
   description?: string;
 
-  @ApiProperty({ description: 'Array of photo URLs', type: [String] })
+  @ApiProperty({
+    description: 'Array of photo URLs',
+    type: [String],
+    example: [
+      'https://example.com/photo1.jpg',
+      'https://example.com/photo2.jpg',
+    ],
+  })
   photos: string[];
+
+  // @ApiProperty({
+  //   description: 'ID of the user who created the post',
+  //   example: 42,
+  // })
+  // userId: number;
+
+  // @ApiProperty({
+  //   description: 'Name of the user who created the post',
+  //   example: 'john_doe',
+  // })
+  // userName: string;
 
   @ApiProperty({
     description: 'Post status: true = public, false = private',
