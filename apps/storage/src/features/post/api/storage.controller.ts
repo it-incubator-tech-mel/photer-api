@@ -5,6 +5,7 @@ import { plainToInstance } from 'class-transformer';
 import { UploadFilesInputDto } from './dto/input/upload-file.input.dto';
 import { validate } from 'class-validator';
 import { UploadFilesCommand } from '../aplication/use-cases/upload-files.use-case';
+import { DeleteFilesCommand } from '../aplication/use-cases/delete-files.use-case';
 
 @Controller()
 export class StorageController {
@@ -29,5 +30,10 @@ export class StorageController {
     }
 
     return this.commandBus.execute(new UploadFilesCommand(dto));
+  }
+
+  @MessagePattern({ cmd: 'deleteFiles' })
+  async deleteFiles(payload: { fileUrls: string[]; userId: number }) {
+    return this.commandBus.execute(new DeleteFilesCommand(payload));
   }
 }

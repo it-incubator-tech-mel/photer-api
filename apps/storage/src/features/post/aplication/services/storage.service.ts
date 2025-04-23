@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  DeleteObjectCommand,
   PutObjectCommand,
   PutObjectCommandOutput,
   S3Client,
@@ -26,6 +27,19 @@ export class StorageService {
     });
   }
 
+  async deleteFile(key: string): Promise<void> {
+    const deleteParams = {
+      Bucket: this.bucket,
+      Key: key,
+    };
+
+    try {
+      await this.s3client.send(new DeleteObjectCommand(deleteParams));
+    } catch (e) {
+      throw new Error('File deletion failed');
+    }
+  }
+
   async uploadFile(
     buffer: Buffer,
     mimetype: string,
@@ -44,7 +58,12 @@ export class StorageService {
 
     const command: PutObjectCommand = new PutObjectCommand(uploadParams);
 
-    const photos: PutObjectCommandOutput = await this.s3client.send(command);
+    let photos: PutObjectCommandOutput;
+    try {
+      photos = await this.s3client.send(command);
+    } catch (e) {
+      throw new Error('File uploading failed');
+    }
 
     const location: string = `https://${this.endpoint}/${this.bucket}/${fileName}`;
 

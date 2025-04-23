@@ -35,6 +35,7 @@ import { PostOutputDto } from './dto/output/post.output.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { PostQueryRepository } from '../infrastructure/posts.query.repository';
 import { FilesRequiredPipe } from '../../../core/pipes/files-required.pipe';
+import { DeletePostCommand } from '../aplication/use-case/delete-post.use-case';
 
 @Controller('posts')
 export class PostsController {
@@ -154,15 +155,13 @@ export class PostsController {
       }),
     );
 
-    const result = await this.commandBus.execute(
+    return this.commandBus.execute(
       new CreatePostCommand({
         fileUrls: uploaded.fileUrls,
         userId,
         description: body.description,
       }),
     );
-
-    return result;
   }
 
   @Put('/:id')
@@ -201,7 +200,7 @@ export class PostsController {
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
 
-  @Delete('/delete/:id')
+  @Delete('/:id')
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
     status: 204,
@@ -216,16 +215,25 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id', new ParseIntPipe()) id: number) {
-    // const pattern = { cmd: 'uploadFiles' };
-    //
-    // const storageResult = this.storageProxyClient.send(pattern, id);
-    //
-    // const data = await firstValueFrom(storageResult);
-    //
-    // const result = await this.commandBus.execute(new DeletePostCommand(id));
-    //
-    // return result;
+  @UseGuards(BearerAuthGuard)
+  async delete(
+    @Param('id', new ParseIntPipe()) id: number,
+    @CurrentUserId() userId: number,
+  ): Promise<void> {
+    const post = await this.postQueryRepository.findByIdWithPhotos(id, userId);
+    console.log('post', post);
+
+    const deleteFilesPattern = { cmd: 'deleteFiles' };
+    await firstValueFrom(
+      this.storageProxyClient.send(deleteFilesPattern, {
+        fileUrls: post.photos.map((p) => p.photoUrl),
+        userId,
+      }),
+    );
+
+    await this.commandBus.execute(
+      new DeletePostCommand({ postId: id, userId }),
+    );
   }
 
   @Get('/profile/:id')

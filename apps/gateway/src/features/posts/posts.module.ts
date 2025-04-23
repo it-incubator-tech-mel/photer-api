@@ -26,10 +26,10 @@ const repos: Provider[] = [
         useFactory: (config: StorageMicroserviceConfig) => ({
           transport: Transport.TCP,
           options: {
-            // host: config.tcpHost,
-            // port: config.tcpPort,
-            host: 'localhost',
-            port: 3004,
+            host: config.tcpHost,
+            port: config.tcpPort,
+            // host: 'localhost',
+            // port: 3004,
           },
         }),
       },

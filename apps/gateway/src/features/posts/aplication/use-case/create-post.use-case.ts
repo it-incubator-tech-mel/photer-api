@@ -24,20 +24,24 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   async execute({ data }: CreatePostCommand) {
     const { fileUrls, userId, description } = data;
 
-    const post: Post = Post.create(description, userId);
-    const savedPost = await this.postRepository.create(post);
+    try {
+      const post: Post = Post.create(description, userId);
+      const savedPost: Post = await this.postRepository.create(post);
 
-    await Promise.all(
-      fileUrls.map((url) => {
-        const photo: Photo = Photo.create(
-          url,
-          savedPost.id,
-          savedPost.createdAt,
-        );
-        return this.photoRepository.create(photo);
-      }),
-    );
+      await Promise.all(
+        fileUrls.map((url) => {
+          const photo: Photo = Photo.create(
+            url,
+            savedPost.getId(),
+            savedPost.getCreatedAt(),
+          );
+          return this.photoRepository.create(photo);
+        }),
+      );
 
-    return savedPost;
+      return savedPost;
+    } catch (err) {
+      throw new Error('Error creating post');
+    }
   }
 }

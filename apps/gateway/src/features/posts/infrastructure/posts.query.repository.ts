@@ -49,6 +49,21 @@ export class PostQueryRepository {
     return posts.map((post) => this.mapToOutput(post));
   }
 
+  async findByIdWithPhotos(id: number, userId: number) {
+    return this.prisma.post.findUnique({
+      where: {
+        id,
+        userId,
+        isDeleted: false,
+      },
+      include: {
+        photos: {
+          where: { isDeleted: false },
+        },
+      },
+    });
+  }
+
   private mapToOutput(post: any): PostOutputDto {
     return {
       id: post.id.toString(),

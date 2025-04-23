@@ -21,4 +21,10 @@ export class FileMetadataRepository {
 
     return fileMetadata.save();
   }
+
+  async removeUrlsFromMetadata(userId: number, urls: string[]) {
+    return this.fileMetadataModel
+      .updateOne({ userId }, { $pullAll: { fileLocations: urls } })
+      .exec();
+  }
 }

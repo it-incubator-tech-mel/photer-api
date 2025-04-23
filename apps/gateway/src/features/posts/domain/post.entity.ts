@@ -1,3 +1,5 @@
+import { Photo } from './photo.entity';
+
 export enum PostStatus {
   PUBLIC = 'public',
   PRIVATE = 'private',
@@ -8,7 +10,7 @@ export class Post {
     private readonly id: number,
     private description: string,
     private userId: number,
-    private photos: any[],
+    private photos: Photo[],
     private createdAt: Date,
     private updatedAt: Date,
     private status: string,
@@ -61,9 +63,9 @@ export class Post {
     return this.description;
   }
 
-  // getPhotos(): string[] {
-  //   return this.photos;
-  // }
+  getPhotos(): Photo[] {
+    return this.photos;
+  }
 
   getCreatedAt(): Date {
     return this.createdAt;

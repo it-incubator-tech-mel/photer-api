@@ -15,4 +15,11 @@ export class PhotoRepository {
       },
     });
   }
+
+  async softDeleteByPostId(postId: number) {
+    await this.prisma.photo.updateMany({
+      where: { postId },
+      data: { isDeleted: true },
+    });
+  }
 }
