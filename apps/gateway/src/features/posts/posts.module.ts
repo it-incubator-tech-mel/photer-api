@@ -7,8 +7,9 @@ import { PostRepository } from './infrastructure/post.repository';
 import { PhotoRepository } from './infrastructure/photo.repository';
 import { StorageMicroserviceConfig } from '../../core/config/storage-microservice.config';
 import { PostQueryRepository } from './infrastructure/posts.query.repository';
+import { DeletePostUseCase } from './aplication/use-case/delete-post.use-case';
 
-const useCases: Provider[] = [CreatePostUseCase];
+const useCases: Provider[] = [CreatePostUseCase, DeletePostUseCase];
 
 const repos: Provider[] = [
   PostRepository,

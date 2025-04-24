@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -36,6 +34,13 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { PostQueryRepository } from '../infrastructure/posts.query.repository';
 import { FilesRequiredPipe } from '../../../core/pipes/files-required.pipe';
 import { DeletePostCommand } from '../aplication/use-case/delete-post.use-case';
+import {
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '../../../core/exception-filters/exceptions/exception-types';
+import { ResultStatus } from '../../../../base/notification/notification';
 
 @Controller('posts')
 export class PostsController {
@@ -221,19 +226,30 @@ export class PostsController {
     @CurrentUserId() userId: number,
   ): Promise<void> {
     const post = await this.postQueryRepository.findByIdWithPhotos(id, userId);
-    console.log('post', post);
 
     const deleteFilesPattern = { cmd: 'deleteFiles' };
-    await firstValueFrom(
+    const deletedLength = await firstValueFrom(
       this.storageProxyClient.send(deleteFilesPattern, {
         fileUrls: post.photos.map((p) => p.photoUrl),
         userId,
       }),
     );
 
-    await this.commandBus.execute(
-      new DeletePostCommand({ postId: id, userId }),
-    );
+    // [Nest] 11852  - 04/24/2025, 5:47:01 PM   ERROR [ExceptionsHandler] Object(2) {
+    //   status: 'error',
+    //     message: 'Internal server error'
+    // }
+
+    if (post.photos.length === deletedLength) {
+      const result = await this.commandBus.execute(
+        new DeletePostCommand({ postId: id, userId }),
+      );
+      if (result.status === ResultStatus.Forbidden) {
+        throw new ForbiddenException(result.errorMessage);
+      }
+    } else {
+      throw new InternalServerErrorException();
+    }
   }
 
   @Get('/profile/:id')

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
+  CopyObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectCommandOutput,
   PutObjectCommand,
   PutObjectCommandOutput,
   S3Client,
@@ -27,19 +29,6 @@ export class StorageService {
     });
   }
 
-  async deleteFile(key: string): Promise<void> {
-    const deleteParams = {
-      Bucket: this.bucket,
-      Key: key,
-    };
-
-    try {
-      await this.s3client.send(new DeleteObjectCommand(deleteParams));
-    } catch (e) {
-      throw new Error('File deletion failed');
-    }
-  }
-
   async uploadFile(
     buffer: Buffer,
     mimetype: string,
@@ -58,24 +47,59 @@ export class StorageService {
 
     const command: PutObjectCommand = new PutObjectCommand(uploadParams);
 
-    let photos: PutObjectCommandOutput;
     try {
-      photos = await this.s3client.send(command);
+      const result: PutObjectCommandOutput = await this.s3client.send(command);
+
+      if (result.$metadata.httpStatusCode !== 200) {
+        throw new Error('S3 returned a non-200 status');
+      }
+
+      const location: string = `${this.s3ClientConfig.s3PublicUrl}/${fileName}`;
+
+      return {
+        key: fileName,
+        location: location,
+        etag: result.ETag,
+      };
     } catch (e) {
       throw new Error('File uploading failed');
     }
-
-    const location: string = `https://${this.endpoint}/${this.bucket}/${fileName}`;
-
-    return {
-      key: fileName,
-      location: [location],
-      photos,
-    };
   }
 
   private generateFileName(userId: number, originalName: string): string {
     const extension: string = originalName.split('.').pop();
     return `files/${userId}/${new Date().toISOString().split('T')[0]}/${Date.now()}-${Math.floor(Math.random() * 1000)}.${extension}`;
+  }
+
+  async deleteFile(key: string): Promise<void> {
+    try {
+      // key files/2/2025-04-24/1745502769705-392.jpg
+      const trashKey: string = `trash/${key}`;
+
+      const copyResult = await this.s3client.send(
+        new CopyObjectCommand({
+          Bucket: this.bucket,
+          CopySource: `${this.bucket}/${key}`,
+          Key: trashKey,
+        }),
+      );
+
+      if (copyResult.$metadata.httpStatusCode !== 200) {
+        throw new Error('S3 copy failed');
+      }
+
+      const deleteResult = await this.s3client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+        }),
+      );
+
+      if (deleteResult.$metadata.httpStatusCode !== 204) {
+        throw new Error('S3 delete failed');
+      }
+    } catch (e) {
+      throw new Error('File deletion failed');
+    }
   }
 }

@@ -10,21 +10,15 @@ export class FileMetadataRepository {
     private fileMetadataModel: Model<FileMetadata>,
   ) {}
 
-  async saveFileMetadata(
-    fileLocations: string[],
-    userId: number,
-  ): Promise<FileMetadata> {
-    const fileMetadata = new this.fileMetadataModel({
-      fileLocations,
-      userId,
-    });
-
-    return fileMetadata.save();
+  async create(fileMetadata: FileMetadata): Promise<FileMetadata> {
+    return this.fileMetadataModel.create(fileMetadata);
   }
 
-  async removeUrlsFromMetadata(userId: number, urls: string[]) {
-    return this.fileMetadataModel
-      .updateOne({ userId }, { $pullAll: { fileLocations: urls } })
-      .exec();
+  async removeFilesByKeys(userId: number, keys: string[]) {
+    console.log('keys daasdd', keys);
+    return this.fileMetadataModel.updateMany(
+      { userId, fileLocation: { $in: keys } },
+      { $set: { isDeleted: true } },
+    );
   }
 }

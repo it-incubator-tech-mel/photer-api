@@ -11,9 +11,10 @@ import {
 } from './features/post/mongo.schemas/file-metadata.schema';
 import { CoreConfig } from './config/core.config';
 import { StorageController } from './features/post/api/storage.controller';
+import { DeleteFilesUseCase } from './features/post/aplication/use-cases/delete-files.use-case';
 
 const services = [StorageService];
-const useCases = [UploadFilesUseCase];
+const useCases = [UploadFilesUseCase, DeleteFilesUseCase];
 const repos = [FileMetadataRepository];
 
 @Module({
@@ -29,10 +30,7 @@ const repos = [FileMetadataRepository];
       inject: [CoreConfig],
     }),
     MongooseModule.forFeature([
-      {
-        name: FileMetadata.name,
-        schema: FileMetadataSchema,
-      },
+      { name: FileMetadata.name, schema: FileMetadataSchema },
     ]),
   ],
   controllers: [StorageController],
