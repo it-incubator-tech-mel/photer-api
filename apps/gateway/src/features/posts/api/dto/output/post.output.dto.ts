@@ -6,10 +6,9 @@ export class PostOutputDto {
 
   @ApiProperty({
     description: 'Description of the post',
-    example: 'This is my first post!',
-    required: false,
+    example: 'This is my first post',
   })
-  description?: string;
+  description: string;
 
   @ApiProperty({
     description: 'Array of photo URLs',
