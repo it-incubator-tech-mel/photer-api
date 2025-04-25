@@ -7,6 +7,30 @@ import { Photo } from '../domain/photo.entity';
 export class PostRepository {
   constructor(private prisma: PrismaService) {}
 
+  async save(post: Post): Promise<void> {
+    await this.prisma.post.update({
+      where: { id: post.getId() },
+      data: {
+        description: post.getDescription(),
+        updatedAt: post.getUpdatedAt(),
+      },
+    });
+  }
+
+  async findById(id: number): Promise<Post | null> {
+    const post = await this.prisma.post.findFirst({
+      where: {
+        id,
+        isDeleted: false,
+      },
+      include: {
+        photos: true,
+      },
+    });
+
+    return post ? this.mapToDomain(post) : null;
+  }
+
   async findByIdAndUserId(id: number, userId: number): Promise<Post | null> {
     const post = await this.prisma.post.findFirst({
       where: {

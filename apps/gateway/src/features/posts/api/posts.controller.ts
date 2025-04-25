@@ -8,6 +8,7 @@ import {
   Inject,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   UploadedFiles,
@@ -41,6 +42,8 @@ import {
   NotFoundException,
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { ResultStatus } from '../../../../base/notification/notification';
+import { UpdatePostDto } from './dto/input/update-post.input.dto';
+import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
 
 @Controller('posts')
 export class PostsController {
@@ -169,8 +172,8 @@ export class PostsController {
     );
   }
 
-  @Put('/:id')
-  @ApiOperation({ summary: 'Update existing posts by id with input model' })
+  @Patch('/:id')
+  @ApiOperation({ summary: 'Update existing post' })
   @ApiResponse({
     status: 204,
     description: 'No Content',
@@ -194,15 +197,36 @@ export class PostsController {
     description: 'Unauthorized',
   })
   @ApiResponse({
+    status: 403,
+    description: 'If try to update post of other user',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Not Found',
   })
+  @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async update(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
+  async update(
+    @CurrentUserId() userId: number,
+    @Param('id', ParseIntPipe) postId: number,
+    @Body() body: UpdatePostDto,
+  ): Promise<void> {
+    const result = await this.commandBus.execute(
+      new UpdatePostCommand(userId, postId, body),
+    );
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    switch (result.status) {
+      case ResultStatus.NotFound:
+        throw new NotFoundException(result.errorMessage);
+      case ResultStatus.Forbidden:
+        throw new ForbiddenException(result.errorMessage);
+      case ResultStatus.BadRequest:
+        throw new BadRequestException(result.extensions);
+      case ResultStatus.Success:
+        return;
+      default:
+        throw new InternalServerErrorException('Unexpected error');
+    }
   }
 
   @Delete('/:id')
@@ -214,6 +238,10 @@ export class PostsController {
   @ApiResponse({
     status: 401,
     description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'If try to delete post of other user',
   })
   @ApiResponse({
     status: 404,

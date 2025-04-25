@@ -8,8 +8,13 @@ import { PhotoRepository } from './infrastructure/photo.repository';
 import { StorageMicroserviceConfig } from '../../core/config/storage-microservice.config';
 import { PostQueryRepository } from './infrastructure/posts.query.repository';
 import { DeletePostUseCase } from './aplication/use-case/delete-post.use-case';
+import { UpdatePostUseCase } from './aplication/use-case/update-post.use-case';
 
-const useCases: Provider[] = [CreatePostUseCase, DeletePostUseCase];
+const useCases: Provider[] = [
+  CreatePostUseCase,
+  DeletePostUseCase,
+  UpdatePostUseCase,
+];
 
 const repos: Provider[] = [
   PostRepository,
@@ -29,8 +34,6 @@ const repos: Provider[] = [
           options: {
             host: config.tcpHost,
             port: config.tcpPort,
-            // host: 'localhost',
-            // port: 3004,
           },
         }),
       },

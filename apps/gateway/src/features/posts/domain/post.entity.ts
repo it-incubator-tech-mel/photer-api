@@ -1,4 +1,5 @@
 import { Photo } from './photo.entity';
+import { DomainValidationError } from '../../../../../common/errors/domain-validation-error';
 
 export enum PostStatus {
   PUBLIC = 'public',
@@ -84,5 +85,23 @@ export class Post {
 
   getIsDeleted(): boolean {
     return this.isDeleted;
+  }
+
+  // methods
+
+  updateDescription(newDescription: string): void {
+    if (newDescription.length > 500) {
+      throw new DomainValidationError(
+        'Description exceeds 500 characters limit',
+        'description',
+      );
+    }
+    this.description = newDescription;
+    this.updatedAt = new Date();
+  }
+
+  softDelete(): void {
+    this.isDeleted = true;
+    this.updatedAt = new Date();
   }
 }
