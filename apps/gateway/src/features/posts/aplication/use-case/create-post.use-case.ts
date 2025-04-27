@@ -1,15 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/post.repository';
+import { PhotoRepository } from '../../infrastructure/photo.repository';
 import { Post } from '../../domain/post.entity';
-import { Photo } from '../../../photo/domain/photo.entity';
-import { PhotoRepository } from '../../../photo/infrastructure/photo.repository';
+import { Photo } from '../../domain/photo.entity';
 
 export class CreatePostCommand {
   constructor(
     public readonly data: {
-      photo: string[];
+      fileUrls: string[];
       userId: number;
-      body: string | null;
+      description: string | null;
     },
   ) {}
 }
@@ -17,20 +17,31 @@ export class CreatePostCommand {
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(
-    private postRepository: PostRepository,
-    private photoRepository: PhotoRepository,
+    private readonly postRepository: PostRepository,
+    private readonly photoRepository: PhotoRepository,
   ) {}
-  async execute(command: CreatePostCommand) {
-    const { photo, userId, body } = command.data;
-    const post: Post = Post.create(body, userId);
-    const newPost = await this.postRepository.createOnePost(post);
-    for (const photoI of photo) {
-      const createPhoto: Photo = Photo.create(
-        photoI,
-        newPost.id,
-        newPost.createdAt,
+
+  async execute({ data }: CreatePostCommand) {
+    const { fileUrls, userId, description } = data;
+
+    try {
+      const post: Post = Post.create(description, userId);
+      const savedPost: Post = await this.postRepository.create(post);
+
+      await Promise.all(
+        fileUrls.map((url) => {
+          const photo: Photo = Photo.create(
+            url,
+            savedPost.getId(),
+            savedPost.getCreatedAt(),
+          );
+          return this.photoRepository.create(photo);
+        }),
       );
-      await this.photoRepository.create(createPhoto);
+
+      return savedPost;
+    } catch (err) {
+      throw new Error('Error creating post');
     }
   }
 }

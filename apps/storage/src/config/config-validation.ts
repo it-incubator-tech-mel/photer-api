@@ -1,6 +1,6 @@
 import { validateSync, ValidationError } from 'class-validator';
 
-export const configValidationOnTCP = {
+export const configValidation = {
   validateConfig: (config: any) => {
     const errors: ValidationError[] = validateSync(config);
     if (errors.length > 0) {

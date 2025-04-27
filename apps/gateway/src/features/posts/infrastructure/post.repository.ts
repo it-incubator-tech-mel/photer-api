@@ -1,80 +1,101 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Post } from '../domain/post.entity';
-import { BaseQueryParams } from '../../../../base/dto/base.query-param';
-import { OutputPostType } from '../api/dto/output/Output.post.type';
-import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
+import { Photo } from '../domain/photo.entity';
 
 @Injectable()
 export class PostRepository {
   constructor(private prisma: PrismaService) {}
-  async findAllPosts(
-    query: BaseQueryParams,
-  ): Promise<PaginatedViewDto<OutputPostType[] | null>> {
-    const totalCount = await this.prisma.post.count();
-    const foundPosts = await this.prisma.post.findMany({
-      where: { status: 'public', isDeleted: false },
-      orderBy: { [query.sortBy]: query.sortDirection },
-      skip: query.calculateSkip(),
-      take: query.pageSize,
-      include: {
-        photo: { where: { isDeleted: false } },
-      },
-    });
-    const mappedToPosts = foundPosts.map((post) => this.mapToDomain(post));
-    const mappedToOutputPostType = mappedToPosts.map((post) =>
-      Post.getViewModel(post),
-    );
-    return PaginatedViewDto.mapToView({
-      items: mappedToOutputPostType,
-      page: query.pageNumber,
-      size: query.pageSize,
-      totalCount: totalCount,
-    });
-  }
-  async findProfileUser(id: number): Promise<Post[] | null> {
-    const findUser = await this.prisma.user.findUnique({
-      where: { id: id },
-    });
-    if (!findUser) return null;
-    const foundPosts = await this.prisma.post.findMany({
-      where: { status: 'public', isDeleted: false, userId: id },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        photo: { where: { isDeleted: false } },
-      },
-    });
-    const mapAllPost = foundPosts.map((post) => this.mapToDomain(post));
-    return foundPosts.length > 0 ? mapAllPost : [];
-  }
 
-  async createOnePost(post: Post) {
-    return this.prisma.post.create({
+  async save(post: Post): Promise<void> {
+    await this.prisma.post.update({
+      where: { id: post.getId() },
       data: {
         description: post.getDescription(),
-        // photo: post.getPhoto(),
-        userId: post.getUserId(),
-        createdAt: post.getCreatedAt(),
         updatedAt: post.getUpdatedAt(),
       },
     });
   }
 
-  private mapToDomain(post: any): Post {
-    const photo = post.photo.map((photo: any) => ({
-      id: photo.id,
-      photoUrl: photo.photoUrl,
-      createdAt: photo.createdAt,
-    }));
+  async findById(id: number): Promise<Post | null> {
+    const post = await this.prisma.post.findFirst({
+      where: {
+        id,
+        isDeleted: false,
+      },
+      include: {
+        photos: true,
+      },
+    });
+
+    return post ? this.mapToDomain(post) : null;
+  }
+
+  async findByIdAndUserId(id: number, userId: number): Promise<Post | null> {
+    const post = await this.prisma.post.findFirst({
+      where: {
+        id,
+        userId,
+        isDeleted: false,
+      },
+      include: {
+        photos: true,
+      },
+    });
+
+    return post ? this.mapToDomain(post) : null;
+  }
+
+  async create(post: Post): Promise<Post> {
+    const createdPost = await this.prisma.post.create({
+      data: {
+        description: post.getDescription(),
+        userId: post.getUserId(),
+        createdAt: post.getCreatedAt(),
+        updatedAt: post.getUpdatedAt(),
+        photos: {
+          create: post.getPhotos().map((photo: Photo) => ({
+            photoUrl: photo.getPhotoUrl(),
+            createdAt: photo.getCreatedAt(),
+          })),
+        },
+      },
+      include: {
+        photos: true,
+      },
+    });
+
+    return this.mapToDomain(createdPost);
+  }
+
+  async softDelete(id: number, userId: number): Promise<Post> {
+    const updatedPost = await this.prisma.post.update({
+      where: { id, userId },
+      data: { isDeleted: true },
+      include: {
+        photos: true,
+      },
+    });
+
+    return this.mapToDomain(updatedPost);
+  }
+
+  private mapToDomain(raw: any): Post {
     return Post.restore(
-      post.id,
-      post.description,
-      post.userId,
-      photo,
-      post.createdAt,
-      post.updatedAt,
-      post.status,
-      post.isDeleted,
+      raw.id,
+      raw.description,
+      raw.userId,
+      raw.photos.map((photo) => ({
+        id: photo.id,
+        photoUrl: photo.photoUrl,
+        createdAt: photo.createdAt,
+        updatedAt: photo.updatedAt,
+        isDeleted: photo.isDeleted,
+      })),
+      raw.createdAt,
+      raw.updatedAt,
+      raw.status,
+      raw.isDeleted,
     );
   }
 }

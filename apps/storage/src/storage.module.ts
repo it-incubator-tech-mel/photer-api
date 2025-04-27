@@ -1,37 +1,39 @@
 import { Module } from '@nestjs/common';
-import { StorageService } from './features/post/aplication/storage.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import {
-  PhotoSchema,
-  PhotoSchemaModel,
-} from '../mongo.schemas/photoSchemaModel';
 import { CqrsModule } from '@nestjs/cqrs';
-import { ConfigTPCModule } from './config/config.module';
-import { CreatePostUseCase } from './features/post/aplication/create-post.use-case';
-import { PostTcpRepository } from './features/post/infastructure/post.tcp.repository';
-import { ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from './config/config.module';
+import { StorageService } from './features/post/aplication/services/storage.service';
+import { UploadFilesUseCase } from './features/post/aplication/use-cases/upload-files.use-case';
+import { FileMetadataRepository } from './features/post/infastructure/file-metadata.repository';
+import {
+  FileMetadata,
+  FileMetadataSchema,
+} from './features/post/mongo.schemas/file-metadata.schema';
+import { CoreConfig } from './config/core.config';
 import { StorageController } from './features/post/api/storage.controller';
+import { DeleteFilesUseCase } from './features/post/aplication/use-cases/delete-files.use-case';
 
-const schemas = [{ name: PhotoSchema.name, schema: PhotoSchemaModel }];
-const useCases = [CreatePostUseCase];
 const services = [StorageService];
-const repository = [PostTcpRepository];
-const configService = new ConfigService<any, true>();
-const mongodbUrl = configService.get<string>('MONGODB_URL');
+const useCases = [UploadFilesUseCase, DeleteFilesUseCase];
+const repos = [FileMetadataRepository];
 
 @Module({
   imports: [
-    ConfigTPCModule,
+    ConfigModule,
     CqrsModule,
-    MongooseModule.forRoot(mongodbUrl),
-    MongooseModule.forFeature([...schemas]),
+    MongooseModule.forRootAsync({
+      useFactory: async (config: CoreConfig) => ({
+        uri: config.mongoUrl,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }),
+      inject: [CoreConfig],
+    }),
+    MongooseModule.forFeature([
+      { name: FileMetadata.name, schema: FileMetadataSchema },
+    ]),
   ],
   controllers: [StorageController],
-  providers: [
-    ...useCases,
-    ...services,
-    ...repository,
-    // { provide: 'STORAGE_API_URL', useValue: storageUrl },
-  ],
+  providers: [...services, ...useCases, ...repos],
 })
 export class StorageModule {}

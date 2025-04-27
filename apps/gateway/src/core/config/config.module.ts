@@ -8,6 +8,7 @@ import { MailerConfig } from './mailer.config';
 import { JwtConfig } from './jwt.config';
 import { CaptchaConfig } from './captcha.config';
 import { Oauth2Config } from './oauth2.config';
+import { StorageMicroserviceConfig } from './storage-microservice.config';
 
 @Global()
 @Module({
@@ -53,7 +54,20 @@ import { Oauth2Config } from './oauth2.config';
         new Oauth2Config(configService),
       inject: [ConfigService],
     },
+    {
+      provide: StorageMicroserviceConfig,
+      useFactory: (configService: ConfigService<any, true>) =>
+        new StorageMicroserviceConfig(configService),
+      inject: [ConfigService],
+    },
   ],
-  exports: [CoreConfig, MailerConfig, JwtConfig, CaptchaConfig, Oauth2Config],
+  exports: [
+    CoreConfig,
+    MailerConfig,
+    JwtConfig,
+    CaptchaConfig,
+    Oauth2Config,
+    StorageMicroserviceConfig,
+  ],
 })
 export class ConfigModule {}
