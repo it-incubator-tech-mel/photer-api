@@ -1,28 +1,41 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PostOutputDto } from '../api/dto/output/post.output.dto';
+import { BaseQueryParams } from '../../../../base/dto/base.query-param';
+import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
+import { Post } from '../domain/post.entity';
 
 @Injectable()
 export class PostQueryRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getAll(): Promise<PostOutputDto[] | null> {
-    const posts = await this.prisma.post.findMany({
+  async findAllPosts(
+    query: BaseQueryParams,
+  ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
+    const totalCount = await this.prisma.post.count();
+    const foundPosts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { [query.sortBy]: query.sortDirection },
+      skip: query.calculateSkip(),
+      take: query.pageSize,
       include: {
-        photos: { where: { isDeleted: false } },
+        photo: { where: { isDeleted: false } },
       },
     });
-
-    return posts.map((post) => this.mapToOutput(post));
+    const mappedToPosts = foundPosts.map((post) => this.mapToOutput(post));
+    return PaginatedViewDto.mapToView({
+      items: mappedToPosts,
+      page: query.pageNumber,
+      size: query.pageSize,
+      totalCount: totalCount,
+    });
   }
 
   async getOne(id: number): Promise<PostOutputDto | null> {
     const foundPost = await this.prisma.post.findUnique({
       where: { id: id, status: 'public', isDeleted: false },
       include: {
-        photos: { where: { isDeleted: false } },
+        photo: { where: { isDeleted: false } },
       },
     });
 
@@ -42,7 +55,7 @@ export class PostQueryRepository {
       where: { status: 'public', isDeleted: false, userId: id },
       orderBy: { createdAt: 'desc' },
       include: {
-        photos: { where: { isDeleted: false } },
+        photo: { where: { isDeleted: false } },
       },
     });
 
@@ -57,7 +70,7 @@ export class PostQueryRepository {
         isDeleted: false,
       },
       include: {
-        photos: {
+        photo: {
           where: { isDeleted: false },
         },
       },
@@ -74,4 +87,21 @@ export class PostQueryRepository {
       updatedAt: post.updatedAt.toISOString(),
     };
   }
+  // private mapToDomain(post: any): Post {
+  //   const photo = post.photo.map((photo: any) => ({
+  //     id: photo.id,
+  //     photoUrl: photo.photoUrl,
+  //     createdAt: photo.createdAt,
+  //   }));
+  //   return Post.restore(
+  //     post.id,
+  //     post.description,
+  //     post.userId,
+  //     photo,
+  //     post.createdAt,
+  //     post.updatedAt,
+  //     post.status,
+  //     post.isDeleted,
+  //   );
+  // }
 }

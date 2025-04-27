@@ -9,11 +9,15 @@ import { StorageMicroserviceConfig } from '../../core/config/storage-microservic
 import { PostQueryRepository } from './infrastructure/posts.query.repository';
 import { DeletePostUseCase } from './aplication/use-case/delete-post.use-case';
 import { UpdatePostUseCase } from './aplication/use-case/update-post.use-case';
+import { GetMyProfileUseCase } from './aplication/use-case/get-my-profile';
+import { GetAllPostsUseCase } from './aplication/use-case/get-all-posts.use-case';
 
 const useCases: Provider[] = [
   CreatePostUseCase,
   DeletePostUseCase,
   UpdatePostUseCase,
+  GetAllPostsUseCase,
+  GetMyProfileUseCase,
 ];
 
 const repos: Provider[] = [

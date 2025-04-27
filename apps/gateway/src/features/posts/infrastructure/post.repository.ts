@@ -24,7 +24,7 @@ export class PostRepository {
         isDeleted: false,
       },
       include: {
-        photos: true,
+        photo: true,
       },
     });
 
@@ -39,7 +39,7 @@ export class PostRepository {
         isDeleted: false,
       },
       include: {
-        photos: true,
+        photo: true,
       },
     });
 
@@ -53,7 +53,7 @@ export class PostRepository {
         userId: post.getUserId(),
         createdAt: post.getCreatedAt(),
         updatedAt: post.getUpdatedAt(),
-        photos: {
+        photo: {
           create: post.getPhotos().map((photo: Photo) => ({
             photoUrl: photo.getPhotoUrl(),
             createdAt: photo.getCreatedAt(),
@@ -61,7 +61,7 @@ export class PostRepository {
         },
       },
       include: {
-        photos: true,
+        photo: true,
       },
     });
 
@@ -73,7 +73,7 @@ export class PostRepository {
       where: { id, userId },
       data: { isDeleted: true },
       include: {
-        photos: true,
+        photo: true,
       },
     });
 

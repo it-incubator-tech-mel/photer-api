@@ -10,7 +10,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Put,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -33,7 +33,6 @@ import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
 import { PostOutputDto } from './dto/output/post.output.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { PostQueryRepository } from '../infrastructure/posts.query.repository';
-import { FilesRequiredPipe } from '../../../core/pipes/files-required.pipe';
 import { DeletePostCommand } from '../aplication/use-case/delete-post.use-case';
 import {
   BadRequestException,
@@ -44,6 +43,10 @@ import {
 import { ResultStatus } from '../../../../base/notification/notification';
 import { UpdatePostDto } from './dto/input/update-post.input.dto';
 import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
+import { BaseQueryParams } from '../../../../base/dto/base.query-param';
+import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
+import { PostGetPost } from './dto/swagger.dto/post.get-post';
+import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
 
 @Controller('posts')
 export class PostsController {
@@ -55,15 +58,25 @@ export class PostsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all posts' })
+  @ApiOperation({
+    summary: 'Get all posts',
+  })
   @ApiResponse({
     status: 200,
     description: 'Success',
-    type: [PostOutputDto],
+    type: [PostGetPost],
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 200,
+        },
+      },
+    },
   })
-  @HttpCode(HttpStatus.OK)
-  async getAll(): Promise<PostOutputDto[]> {
-    return this.postQueryRepository.getAll();
+  async getAllPosts(
+    @Query() query: BaseQueryParams,
+  ): Promise<Observable<PostOutputDto[]>> {
+    return this.commandBus.execute(new GetAllPostsCommand(query));
   }
 
   @Get('/:id')
@@ -145,31 +158,30 @@ export class PostsController {
   )
   @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @UploadedFiles(FilesRequiredPipe) files: Express.Multer.File[],
+  async createPosts(
+    @UploadedFiles() photos: Express.Multer.File[],
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
+    if (!photos || photos.length === 0) {
+      throw new Error('No files uploaded.');
+    }
+    const description = body.description;
     const pattern = { cmd: 'uploadFiles' };
+    const savePhotos = this.storageProxyClient.send(pattern, {
+      files: photos.map((f) => ({
+        buffer: f.buffer,
+        originalName: f.originalname,
+        mimetype: f.mimetype,
+      })),
+      userId,
+    });
 
-    const uploaded = await firstValueFrom(
-      this.storageProxyClient.send(pattern, {
-        files: files.map((f) => ({
-          buffer: f.buffer,
-          originalName: f.originalname,
-          mimetype: f.mimetype,
-        })),
-        userId,
-      }),
+    const data = await firstValueFrom(savePhotos);
+    const result = await this.commandBus.execute(
+      new CreatePostCommand({ ...data, description }),
     );
-
-    return this.commandBus.execute(
-      new CreatePostCommand({
-        fileUrls: uploaded.fileUrls,
-        userId,
-        description: body.description,
-      }),
-    );
+    return { message: 'Post created successfully', post: result };
   }
 
   @Patch('/:id')
@@ -258,7 +270,7 @@ export class PostsController {
     const deleteFilesPattern = { cmd: 'deleteFiles' };
     const deletedLength = await firstValueFrom(
       this.storageProxyClient.send(deleteFilesPattern, {
-        fileUrls: post.photos.map((p) => p.photoUrl),
+        fileUrls: post.photo.map((p) => p.photoUrl),
         userId,
       }),
     );
@@ -268,7 +280,7 @@ export class PostsController {
     //     message: 'Internal server error'
     // }
 
-    if (post.photos.length === deletedLength) {
+    if (post.photo.length === deletedLength) {
       const result = await this.commandBus.execute(
         new DeletePostCommand({ postId: id, userId }),
       );
@@ -280,14 +292,21 @@ export class PostsController {
     }
   }
 
-  @Get('/profile/:id')
+  @Get('/Profile/:id')
   @ApiOperation({
-    summary: 'Returns profile - (unauthorized user has access to only 8 posts)',
+    summary: 'returns profile - (unauthorized user has access to only 8 posts)',
   })
   @ApiResponse({
     status: 200,
     description: 'Success',
-    type: [PostOutputDto],
+    type: [PostGetPost],
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 201,
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 404,
@@ -295,13 +314,8 @@ export class PostsController {
   })
   @HttpCode(HttpStatus.OK)
   async getMyPosts(@Param('id') id: number) {
-    const result: PostOutputDto[] =
-      await this.postQueryRepository.findUserProfile(id);
-
-    if (!result) {
-      throw new NotFoundException();
-    }
-
-    return result;
+    const profile = await this.commandBus.execute(new GetMyProfileCommand(id));
+    if (!profile) throw new NotFoundException();
+    return profile;
   }
 }

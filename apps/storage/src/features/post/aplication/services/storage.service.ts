@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
-  DeleteObjectCommandOutput,
   PutObjectCommand,
   PutObjectCommandOutput,
   S3Client,
