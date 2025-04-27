@@ -1,31 +1,37 @@
 import { Module } from '@nestjs/common';
-import { StorageController } from './storage.controller';
-import { StorageService } from './storage.service';
+import { StorageService } from './features/post/aplication/storage.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PhotoSchema, PostSchemaModel } from '../mongo.schemas/postSchemaModel';
+import {
+  PhotoSchema,
+  PhotoSchemaModel,
+} from '../mongo.schemas/photoSchemaModel';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ConfigTPCModule } from './config/config.module';
-const schemas = [{ name: PhotoSchema.name, schema: PostSchemaModel }];
+import { CreatePostUseCase } from './features/post/aplication/create-post.use-case';
+import { PostTcpRepository } from './features/post/infastructure/post.tcp.repository';
+import { ConfigService } from '@nestjs/config';
+import { StorageController } from './features/post/api/storage.controller';
+
+const schemas = [{ name: PhotoSchema.name, schema: PhotoSchemaModel }];
+const useCases = [CreatePostUseCase];
+const services = [StorageService];
+const repository = [PostTcpRepository];
+const configService = new ConfigService<any, true>();
+const mongodbUrl = configService.get<string>('MONGODB_URL');
 
 @Module({
   imports: [
     ConfigTPCModule,
-    // NestConfigModule.forRoot({
-    //   envFilePath: [
-    //     process.env.ENV_FILE_PATH?.trim() || '',
-    //     `.env.${process.env.ENV_TYPE}.local`,
-    //     `.env.${process.env.ENV_TYPE}`,
-    //     '.env.production',
-    //   ],
-    //   isGlobal: true,
-    // }),
     CqrsModule,
-    MongooseModule.forRoot(
-      'mongodb://photerappit:OK7nHIfpS2M39ySS@ac-9v46s2k-shard-00-00.cq5urvl.mongodb.net:27017,ac-9v46s2k-shard-00-01.cq5urvl.mongodb.net:27017,ac-9v46s2k-shard-00-02.cq5urvl.mongodb.net:27017/?ssl=true&replicaSet=atlas-h5soo7-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0',
-    ),
+    MongooseModule.forRoot(mongodbUrl),
     MongooseModule.forFeature([...schemas]),
   ],
   controllers: [StorageController],
-  providers: [StorageService],
+  providers: [
+    ...useCases,
+    ...services,
+    ...repository,
+    // { provide: 'STORAGE_API_URL', useValue: storageUrl },
+  ],
 })
 export class StorageModule {}

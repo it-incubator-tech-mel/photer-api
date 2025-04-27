@@ -24,13 +24,13 @@ export class CoreConfig {
     },
   )
   port: number = Number(this.configService.get('PORT'));
-  @IsNumber(
-    {},
-    {
-      message: 'Set Env variable PORT, example: 3830',
-    },
-  )
-  portForTPC: number = Number(this.configService.get('PORT_TPC'));
+  // @IsNumber(
+  //   {},
+  //   {
+  //     message: 'Set Env variable PORT, example: 3830',
+  //   },
+  // )
+  // portForTPC: number = Number(this.configService.get('PORT_TPC'));
 
   @IsEnum(Environments, {
     message:

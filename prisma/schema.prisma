@@ -68,7 +68,7 @@ enum ProviderType {
 model Post {
   id                Int                @id @default(autoincrement())
   description       String?            @db.VarChar(500)
-  photo             String[]
+  photo             Photo[]
   userId            Int
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -81,4 +81,15 @@ model Post {
 enum PostStatusType {
   private
   public
+}
+
+model Photo {
+  id                Int                @id @default(autoincrement())
+  photoUrl          String
+  postId            Int
+  createdAt         DateTime           @default(now())
+  isDeleted         Boolean            @default(false)
+
+  post              Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
+
 }

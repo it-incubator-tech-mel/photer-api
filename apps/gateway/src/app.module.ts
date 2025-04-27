@@ -4,12 +4,14 @@ import { PrismaModule } from './prisma/prisma.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from './core/config/config.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { PostsModule } from '@posts/posts.module';
+import { PostsModule } from './features/posts/posts.module';
+import { PhotoModule } from './features/photo/photo.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    PhotoModule,
     AuthModule,
     DeviceModule,
     PostsModule,

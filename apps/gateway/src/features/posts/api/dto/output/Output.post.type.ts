@@ -1,9 +1,9 @@
 export class OutputPostType {
   id: number;
   description: string;
-  photo: string[];
-  userId: string;
-  userName: string;
+  photo: any[];
+  userId: number;
+  // userName: string;
   createdAt: Date;
   updatedAt: Date;
 }

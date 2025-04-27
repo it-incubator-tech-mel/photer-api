@@ -1,17 +1,20 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
-import { Post } from '@posts/domain/post.entity';
-import { PostRepository } from '@posts/infrastructure/post.repository';
+import { PostRepository } from '../../infrastructure/post.repository';
+import { OutputPostType } from '../../api/dto/output/Output.post.type';
+import { Post } from '../../domain/post.entity';
+import { BaseQueryParams } from '../../../../../base/dto/base.query-param';
+import { PaginatedViewDto } from '../../../../../base/dto/base.paginated.view-dto';
 
 export class GetAllPostsCommand {
-  constructor() {}
+  constructor(public readonly query: BaseQueryParams) {}
 }
 
 @CommandHandler(GetAllPostsCommand)
 export class GetAllPostsUseCase implements ICommandHandler<GetAllPostsCommand> {
   constructor(private postRepository: PostRepository) {}
-  async execute(): Promise<OutputPostType[]> {
-    const allPosts: Post[] = await this.postRepository.findAllPosts();
-    return allPosts.map((post) => Post.getViewModel(post));
+  async execute(
+    command: GetAllPostsCommand,
+  ): Promise<PaginatedViewDto<OutputPostType[] | null>> {
+    return this.postRepository.findAllPosts(command.query);
   }
 }

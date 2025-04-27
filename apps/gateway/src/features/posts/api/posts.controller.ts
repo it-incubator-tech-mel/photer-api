@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -6,32 +7,37 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  NotFoundException,
+  Param,
   Post,
   Put,
-  UploadedFile,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
-import { CreatePostDto } from './dto/input/create-post.dto';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
-import { OutputPostType } from '@posts/api/dto/output/Output.post.type';
 import { CommandBus } from '@nestjs/cqrs';
-import { GetAllPostsCommand } from '@posts/aplication/use-case/get-all-posts.use-case';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
-import process from 'process';
+import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
+import { OutputPostType } from './dto/output/Output.post.type';
+import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
+import { BaseQueryParams } from '../../../../base/dto/base.query-param';
+import { CreatePostDto } from './dto/input/createPost.dto';
 
 @Controller('posts')
 export class PostsController {
   constructor(
-    @Inject('STORAGE_POST_SERVICE') private storageProxyClient: ClientProxy,
+    @Inject('STORAGE_POST_SERVICE')
+    private storageProxyClient: ClientProxy,
     private commandBus: CommandBus,
     // private storageService: StorageService,
   ) {}
@@ -52,8 +58,10 @@ export class PostsController {
       },
     },
   })
-  async getAllPosts(): Promise<Observable<OutputPostType[]>> {
-    return this.commandBus.execute(new GetAllPostsCommand());
+  async getAllPosts(
+    @Query() query: BaseQueryParams,
+  ): Promise<Observable<OutputPostType[]>> {
+    return this.commandBus.execute(new GetAllPostsCommand(query));
     // return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @Get('/:id')
@@ -82,7 +90,7 @@ export class PostsController {
     return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @UseGuards(BearerAuthGuard)
-  @Post('/create')
+  @Post()
   @ApiOperation({ summary: 'Create new Post' })
   @ApiResponse({
     status: 201,
@@ -111,25 +119,55 @@ export class PostsController {
     },
   })
   @UseInterceptors(
-    FileInterceptor('photo', {
+    FilesInterceptor('photos', 10, {
       storage: memoryStorage(),
-      limits: { fileSize: 5 * 800 * 800 },
+      limits: {
+        fileSize: 20 * 1024 * 1024,
+        files: 10,
+      },
+      fileFilter: (req, file, callback) => {
+        const allowedMimeTypes = ['image/jpeg', 'image/png'];
+        if (allowedMimeTypes.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(
+            new BadRequestException([
+              {
+                message: 'Invalid file format. Only JPEG/PNG are allowed.',
+                field: 'photos',
+              },
+            ]),
+            false,
+          );
+        }
+      },
     }),
   )
   @HttpCode(HttpStatus.CREATED)
-  createPosts(
-    // @UploadedFiles() photo: Express.Multer.File[],
-    @UploadedFile() photo: Express.Multer.File,
+  async createPosts(
+    @UploadedFiles() photos: Express.Multer.File[],
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
-    if (!photo) {
+    if (!photos || photos.length === 0) {
       throw new Error('No files uploaded.');
     }
+    const description = body.description;
     const pattern = { cmd: 'createPost' };
-    const payload = { photo: photo, userId: userId };
-    const savePhoto = this.storageProxyClient.send(pattern, payload);
-    return savePhoto;
+    const savePhotos = this.storageProxyClient.send(pattern, {
+      files: photos.map((f) => ({
+        buffer: f.buffer,
+        originalName: f.originalname,
+        mimetype: f.mimetype,
+      })),
+      userId,
+    });
+
+    const data = await firstValueFrom(savePhotos);
+    const result = await this.commandBus.execute(
+      new CreatePostCommand({ ...data, description }),
+    );
+    return { message: 'Post created successfully', post: result };
   }
 
   @Put('/:id')
@@ -211,10 +249,9 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.OK)
-  async getMyPosts(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
-
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+  async getMyPosts(@Param('id') id: number) {
+    const profile = await this.commandBus.execute(new GetMyProfileCommand(id));
+    if (!profile) throw new NotFoundException();
+    return profile;
   }
 }

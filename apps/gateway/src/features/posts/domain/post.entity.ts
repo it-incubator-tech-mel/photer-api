@@ -1,34 +1,26 @@
 import { OutputPostType } from '../api/dto/output/Output.post.type';
-import { User } from '../../auth/domain/user.entity';
 
 export class Post {
   private constructor(
     private readonly id: number,
     private description: string,
-    private photo: string[],
-    private userId: string,
-    private user: User,
+    private userId: number,
+    private photo: any[],
     private createdAt: Date,
     private updatedAt: Date,
-    private status: boolean,
+    private status: string,
     private isDeleted: boolean,
   ) {}
 
-  static create(
-    description: string,
-    photo: string[],
-    userId: string,
-    user: User,
-  ): Post {
+  static create(description: string, userId: number): Post {
     return new Post(
       0, // In DB auto-increment
       description,
-      photo,
       userId,
-      user,
+      [],
       new Date(),
       new Date(),
-      false,
+      'public',
       false,
     );
   }
@@ -37,24 +29,22 @@ export class Post {
   static restore(
     id: null,
     description: string,
-    photo: string[],
-    userId: string,
-    user: User,
+    userId: number,
+    photo: any[],
     createdAt: Date,
     updatedAt: Date,
+    status: string,
     isDeleted: boolean,
-    status: boolean,
   ): Post {
     return new Post(
       id,
       description,
-      photo,
       userId,
-      user,
+      photo,
       createdAt,
       updatedAt,
-      isDeleted,
       status,
+      isDeleted,
     );
   }
 
@@ -68,9 +58,9 @@ export class Post {
     return this.description;
   }
 
-  getPhoto(): string[] {
-    return this.photo;
-  }
+  // getPhoto(): string[] {
+  //   return this.photo;
+  // }
 
   getCreatedAt(): Date {
     return this.createdAt;
@@ -79,6 +69,13 @@ export class Post {
   getUpdatedAt(): Date {
     return this.updatedAt;
   }
+  getUserId(): number {
+    return this.userId;
+  }
+
+  // getUpdatedAt(): Date {
+  //   return this.updatedAt;
+  // }
 
   getIsDeleted(): boolean {
     return this.isDeleted;
@@ -90,7 +87,6 @@ export class Post {
       description: post.description,
       photo: post.photo,
       userId: post.userId,
-      userName: post.user.getUsername(),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     };
