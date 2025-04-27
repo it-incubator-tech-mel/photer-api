@@ -1,20 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Post } from '../domain/post.entity';
+import { BaseQueryParams } from '../../../../base/dto/base.query-param';
+import { OutputPostType } from '../api/dto/output/Output.post.type';
+import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
 
 @Injectable()
 export class PostRepository {
   constructor(private prisma: PrismaService) {}
-  async findAllPosts(): Promise<Post[] | null> {
+  async findAllPosts(
+    query: BaseQueryParams,
+  ): Promise<PaginatedViewDto<OutputPostType[] | null>> {
+    const totalCount = await this.prisma.post.count();
     const foundPosts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { [query.sortBy]: query.sortDirection },
+      skip: query.calculateSkip(),
+      take: query.pageSize,
       include: {
         photo: { where: { isDeleted: false } },
       },
     });
-    const mapAllPost = foundPosts.map((post) => this.mapToDomain(post));
-    return foundPosts.length > 0 ? mapAllPost : null;
+    const mappedToPosts = foundPosts.map((post) => this.mapToDomain(post));
+    const mappedToOutputPostType = mappedToPosts.map((post) =>
+      Post.getViewModel(post),
+    );
+    return PaginatedViewDto.mapToView({
+      items: mappedToOutputPostType,
+      page: query.pageNumber,
+      size: query.pageSize,
+      totalCount: totalCount,
+    });
   }
   async findProfileUser(id: number): Promise<Post[] | null> {
     const findUser = await this.prisma.user.findUnique({

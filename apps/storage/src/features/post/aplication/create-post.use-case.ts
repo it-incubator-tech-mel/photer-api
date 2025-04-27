@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { StorageService } from '../../../storage.service';
+import { StorageService } from './storage.service';
 import { PostTcpRepository } from '../infastructure/post.tcp.repository';
 import { Readable } from 'stream';
 

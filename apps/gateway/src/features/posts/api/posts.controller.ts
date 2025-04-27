@@ -11,6 +11,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -19,17 +20,18 @@ import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom, Observable } from 'rxjs';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
-import { CreatePostDto } from './dto/input/create-post.dto';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
 import { CommandBus } from '@nestjs/cqrs';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
-import { diskStorage, memoryStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
 import { OutputPostType } from './dto/output/Output.post.type';
 import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
+import { BaseQueryParams } from '../../../../base/dto/base.query-param';
+import { CreatePostDto } from './dto/input/createPost.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -56,8 +58,10 @@ export class PostsController {
       },
     },
   })
-  async getAllPosts(): Promise<Observable<OutputPostType[]>> {
-    return this.commandBus.execute(new GetAllPostsCommand());
+  async getAllPosts(
+    @Query() query: BaseQueryParams,
+  ): Promise<Observable<OutputPostType[]>> {
+    return this.commandBus.execute(new GetAllPostsCommand(query));
     // return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
   @Get('/:id')

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { StorageController } from './storage.controller';
-import { StorageService } from './storage.service';
+import { StorageService } from './features/post/aplication/storage.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   PhotoSchema,
@@ -11,6 +10,7 @@ import { ConfigTPCModule } from './config/config.module';
 import { CreatePostUseCase } from './features/post/aplication/create-post.use-case';
 import { PostTcpRepository } from './features/post/infastructure/post.tcp.repository';
 import { ConfigService } from '@nestjs/config';
+import { StorageController } from './features/post/api/storage.controller';
 
 const schemas = [{ name: PhotoSchema.name, schema: PhotoSchemaModel }];
 const useCases = [CreatePostUseCase];
