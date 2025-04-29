@@ -77,8 +77,8 @@ spec:
                 secretKeyRef:
                   name: file-storage-production-config-secret
                   key: S3_PUBLIC_URL_BASE
-            - name: PORT_TCP
+            - name: STORAGE_TCP_PORT
               valueFrom:
                 secretKeyRef:
                   name: file-storage-production-config-secret
-                  key: PORT_TCP
+                  key: STORAGE_TCP_PORT
