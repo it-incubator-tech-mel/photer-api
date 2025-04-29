@@ -15,7 +15,6 @@ export class FileMetadataRepository {
   }
 
   async removeFilesByKeys(userId: number, keys: string[]) {
-    console.log('keys daasdd', keys);
     return this.fileMetadataModel.updateMany(
       { userId, fileLocation: { $in: keys } },
       { $set: { isDeleted: true } },

@@ -3,7 +3,6 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { PostOutputDto } from '../api/dto/output/post.output.dto';
 import { BaseQueryParams } from '../../../../base/dto/base.query-param';
 import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
-import { Post } from '../domain/post.entity';
 
 @Injectable()
 export class PostQueryRepository {
@@ -19,7 +18,7 @@ export class PostQueryRepository {
       skip: query.calculateSkip(),
       take: query.pageSize,
       include: {
-        photo: { where: { isDeleted: false } },
+        photos: { where: { isDeleted: false } },
       },
     });
     const mappedToPosts = foundPosts.map((post) => this.mapToOutput(post));
@@ -35,7 +34,7 @@ export class PostQueryRepository {
     const foundPost = await this.prisma.post.findUnique({
       where: { id: id, status: 'public', isDeleted: false },
       include: {
-        photo: { where: { isDeleted: false } },
+        photos: { where: { isDeleted: false } },
       },
     });
 
@@ -44,22 +43,34 @@ export class PostQueryRepository {
     return this.mapToOutput(foundPost);
   }
 
-  async findUserProfile(id: number): Promise<PostOutputDto[] | null> {
+  async findUserProfile(
+    id: number,
+    query: BaseQueryParams,
+  ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
     const findUser = await this.prisma.user.findUnique({
       where: { id: id },
     });
 
     if (!findUser) return null;
-
+    const totalCount = await this.prisma.post.count({
+      where: { status: 'public', isDeleted: false, userId: id },
+    });
     const posts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false, userId: id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { [query.sortBy]: query.sortDirection },
+      skip: query.calculateSkip(),
+      take: query.pageSize,
       include: {
-        photo: { where: { isDeleted: false } },
+        photos: { where: { isDeleted: false } },
       },
     });
-
-    return posts.map((post) => this.mapToOutput(post));
+    return PaginatedViewDto.mapToView({
+      items: posts.map((post) => this.mapToOutput(post)),
+      page: query.pageNumber,
+      size: query.pageSize,
+      totalCount: totalCount,
+    });
+    // return posts.map((post) => this.mapToOutput(post));
   }
 
   async findByIdWithPhotos(id: number, userId: number) {
@@ -70,7 +81,7 @@ export class PostQueryRepository {
         isDeleted: false,
       },
       include: {
-        photo: {
+        photos: {
           where: { isDeleted: false },
         },
       },
@@ -81,7 +92,7 @@ export class PostQueryRepository {
     return {
       id: post.id.toString(),
       description: post.description ?? '',
-      photos: post.photo.map((p) => p.photoUrl),
+      photos: post.photos.map((p) => p.photoUrl),
       status: post.status === 'public',
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),

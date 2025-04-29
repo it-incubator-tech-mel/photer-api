@@ -73,20 +73,19 @@ export class StorageService {
   async deleteFile(key: string): Promise<void> {
     try {
       // key files/2/2025-04-24/1745502769705-392.jpg
-      const trashKey: string = `trash/${key}`;
-
       const copyResult = await this.s3client.send(
         new CopyObjectCommand({
           Bucket: this.bucket,
           CopySource: `${this.bucket}/${key}`,
-          Key: trashKey,
+          Key: `trash/${key}`,
         }),
       );
 
       if (copyResult.$metadata.httpStatusCode !== 200) {
-        throw new Error('S3 copy failed');
+        throw new Error(
+          `S3 copy failed with status ${copyResult.$metadata.httpStatusCode}`,
+        );
       }
-
       const deleteResult = await this.s3client.send(
         new DeleteObjectCommand({
           Bucket: this.bucket,
@@ -95,10 +94,12 @@ export class StorageService {
       );
 
       if (deleteResult.$metadata.httpStatusCode !== 204) {
-        throw new Error('S3 delete failed');
+        throw new Error(
+          `S3 delete failed with status ${deleteResult.$metadata.httpStatusCode}`,
+        );
       }
     } catch (e) {
-      throw new Error('File deletion failed');
+      throw new Error(`Failed to delete file ${key}`);
     }
   }
 }

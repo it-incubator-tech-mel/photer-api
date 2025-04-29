@@ -39,7 +39,7 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
         }),
       );
 
-      return savedPost;
+      return this.postRepository.findById(savedPost.getId());
     } catch (err) {
       throw new Error('Error creating post');
     }

@@ -20,6 +20,7 @@ export class StorageController {
     }[];
     userId: number;
   }) {
+    console.log(1);
     const dto: UploadFilesInputDto = plainToInstance(
       UploadFilesInputDto,
       payload,

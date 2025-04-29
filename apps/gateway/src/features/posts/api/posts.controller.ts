@@ -221,8 +221,13 @@ export class PostsController {
   async update(
     @CurrentUserId() userId: number,
     @Param('id', ParseIntPipe) postId: number,
+    @Param('id') Id: number,
     @Body() body: UpdatePostDto,
   ): Promise<void> {
+    console.log(postId);
+    console.log(userId);
+    console.log(body);
+    console.log(Id);
     const result = await this.commandBus.execute(
       new UpdatePostCommand(userId, postId, body),
     );
@@ -266,11 +271,10 @@ export class PostsController {
     @CurrentUserId() userId: number,
   ): Promise<void> {
     const post = await this.postQueryRepository.findByIdWithPhotos(id, userId);
-
     const deleteFilesPattern = { cmd: 'deleteFiles' };
     const deletedLength = await firstValueFrom(
       this.storageProxyClient.send(deleteFilesPattern, {
-        fileUrls: post.photo.map((p) => p.photoUrl),
+        fileUrls: post.photos.map((p) => p.photoUrl),
         userId,
       }),
     );
@@ -279,8 +283,7 @@ export class PostsController {
     //   status: 'error',
     //     message: 'Internal server error'
     // }
-
-    if (post.photo.length === deletedLength) {
+    if (post.photos.length === deletedLength) {
       const result = await this.commandBus.execute(
         new DeletePostCommand({ postId: id, userId }),
       );
@@ -313,8 +316,10 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.OK)
-  async getMyPosts(@Param('id') id: number) {
-    const profile = await this.commandBus.execute(new GetMyProfileCommand(id));
+  async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
+    const profile = await this.commandBus.execute(
+      new GetMyProfileCommand(id, query),
+    );
     if (!profile) throw new NotFoundException();
     return profile;
   }
