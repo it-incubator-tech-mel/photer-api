@@ -22,16 +22,6 @@ spec:
             - containerPort: PORT_CONTAINER
 
           env:
-            - name: SECRET_KEY_YANDEX
-              valueFrom:
-                secretKeyRef:
-                  name: file-storage-production-config-secret
-                  key: SECRET_KEY_YANDEX
-            - name: ACCESS_KEY_YANDEX
-              valueFrom:
-                secretKeyRef:
-                  name: file-storage-production-config-secret
-                  key: ACCESS_KEY_YANDEX
             - name: MONGODB_URL
               valueFrom:
                 secretKeyRef:
@@ -42,11 +32,11 @@ spec:
                 secretKeyRef:
                   name: file-storage-production-config-secret
                   key: ENV_TYPE
-            - name: HOST_NAME_TCP
+            - name: STORAGE_TCP_HOST
               valueFrom:
                 secretKeyRef:
                   name: file-storage-production-config-secret
-                  key: HOST_NAME_TCP
+                  key: STORAGE_TCP_HOST
             - name: S3_REGION
               valueFrom:
                 secretKeyRef:
