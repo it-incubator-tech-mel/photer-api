@@ -66,7 +66,7 @@ export class PostsController {
     return this.postQueryRepository.getAll();
   }
 
-  @Get('/:id')
+  @Get(':id')
   @ApiOperation({ summary: 'Returns post by id' })
   @ApiResponse({
     status: 200,
@@ -81,13 +81,13 @@ export class PostsController {
   async getOne(
     @Param('id', new ParseIntPipe()) id: number,
   ): Promise<PostOutputDto> {
-    const result: PostOutputDto = await this.postQueryRepository.getOne(id);
+    const post: PostOutputDto = await this.postQueryRepository.getOne(id);
 
-    if (!result) {
+    if (!post) {
       throw new NotFoundException(`Post with id ${id} not found`);
     }
 
-    return result;
+    return post;
   }
 
   @Post()
