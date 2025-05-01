@@ -271,6 +271,10 @@ export class PostsController {
     @CurrentUserId() userId: number,
   ): Promise<void> {
     const post = await this.postQueryRepository.findByIdWithPhotos(id, userId);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
     const deleteFilesPattern = { cmd: 'deleteFiles' };
     const deletedLength = await firstValueFrom(
       this.storageProxyClient.send(deleteFilesPattern, {
