@@ -181,7 +181,7 @@ export class PostsController {
     const result = await this.commandBus.execute(
       new CreatePostCommand({ ...data, description }),
     );
-    return { message: 'Post created successfully', post: result };
+    return result;
   }
 
   @Patch('/:id')
