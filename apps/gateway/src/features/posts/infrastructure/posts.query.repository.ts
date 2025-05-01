@@ -73,11 +73,11 @@ export class PostQueryRepository {
     // return posts.map((post) => this.mapToOutput(post));
   }
 
-  async findByIdWithPhotos(id: number, userId: number) {
+  async findByIdWithPhotos(id: number) {
     return this.prisma.post.findUnique({
       where: {
         id,
-        userId,
+        // userId,
         isDeleted: false,
       },
       include: {

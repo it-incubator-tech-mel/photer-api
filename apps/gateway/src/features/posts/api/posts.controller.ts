@@ -270,9 +270,13 @@ export class PostsController {
     @Param('id', new ParseIntPipe()) id: number,
     @CurrentUserId() userId: number,
   ): Promise<void> {
-    const post = await this.postQueryRepository.findByIdWithPhotos(id, userId);
+    const post = await this.postQueryRepository.findByIdWithPhotos(id);
     if (!post) {
       throw new NotFoundException('Post not found');
+    }
+
+    if (post.userId !== userId) {
+      throw new ForbiddenException('Not post owner');
     }
 
     const deleteFilesPattern = { cmd: 'deleteFiles' };
