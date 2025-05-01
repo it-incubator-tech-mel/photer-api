@@ -17,8 +17,8 @@ export function corsSetup(app: INestApplication) {
 
   app.enableCors({
     origin: ['http://localhost:3000', 'https://photer.ltd'],
-    methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
     credentials: true,
   });
 
