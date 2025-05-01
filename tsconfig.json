@@ -16,10 +16,10 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-//    "paths": {
-//      "@posts/*": ["apps/gateway/src/features/posts/*"],
-//      "@storage/*": ["apps/storage/src/features/*"]
-//    }
+    "noFallthroughCasesInSwitch": false
+    //    "paths": {
+    //      "@posts/*": ["apps/gateway/src/features/posts/*"],
+    //      "@storage/*": ["apps/storage/src/features/*"]
+    //    }
   }
 }

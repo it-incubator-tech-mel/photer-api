@@ -61,35 +61,33 @@ model Device {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Post {
+  id          Int            @id @default(autoincrement())
+  description String?        @db.VarChar(500)
+  userId      Int
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  isDeleted   Boolean        @default(false)
+  status      PostStatusType @default(public)
+  photos      Photo[]
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  photoUrl  String
+  postId    Int
+  createdAt DateTime @default(now())
+  isDeleted Boolean  @default(false)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
 enum ProviderType {
   GITHUB
   GOOGLE
-}
-model Post {
-  id                Int                @id @default(autoincrement())
-  description       String?            @db.VarChar(500)
-  photo             Photo[]
-  userId            Int
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  isDeleted         Boolean            @default(false)
-  status            PostStatusType     @default(public)
-
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum PostStatusType {
   private
   public
-}
-
-model Photo {
-  id                Int                @id @default(autoincrement())
-  photoUrl          String
-  postId            Int
-  createdAt         DateTime           @default(now())
-  isDeleted         Boolean            @default(false)
-
-  post              Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
-
 }

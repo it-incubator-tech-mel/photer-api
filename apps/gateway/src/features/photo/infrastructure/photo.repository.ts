@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Photo } from '../domain/photo.entity';
+import { Photo } from '../../posts/domain/photo.entity';
 
 @Injectable()
 export class PhotoRepository {

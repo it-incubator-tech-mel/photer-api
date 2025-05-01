@@ -92,16 +92,16 @@ spec:
                 secretKeyRef:
                   name: photer-gateway-api-production-config-secret
                   key: JWT_REFRESH_EXPIRATION_TIME
-            - name: HOST_NAME_TCP
+            - name: STORAGE_TCP_HOST
               valueFrom:
                 secretKeyRef:
                   name: photer-gateway-api-production-config-secret
-                  key: HOST_NAME_TCP
-            - name: PORT_TCP
+                  key: STORAGE_TCP_HOST
+            - name: STORAGE_TCP_PORT
               valueFrom:
                 secretKeyRef:
                   name: photer-gateway-api-production-config-secret
-                  key: PORT_TCP
+                  key: STORAGE_TCP_PORT
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

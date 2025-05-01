@@ -1,7 +1,7 @@
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { IsEnum, IsNumber, IsString } from 'class-validator';
 import { configValidation } from './config-validation';
-import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
 
 export enum Environments {
   DEVELOPMENT = 'development',
@@ -13,17 +13,26 @@ export enum Environments {
 @Injectable()
 export class CoreConfig {
   constructor(private configService: ConfigService<any, true>) {
-    // console.log('in CoreConfig', configService);
     configValidation.validateConfig(this);
   }
+
+  @IsString({
+    message: 'Set Env variable STORAGE_TCP_HOST, example: STORAGE_TCP_HOST',
+  })
+  host: string = this.configService.get<string>('STORAGE_TCP_HOST');
 
   @IsNumber(
     {},
     {
-      message: 'Set Env variable PORT, example: 3000',
+      message: 'Set Env variable STORAGE_TCP_PORT, example: STORAGE_TCP_PORT',
     },
   )
-  port: number = Number(this.configService.get('PORT'));
+  port: number = parseInt(this.configService.get<string>('STORAGE_TCP_PORT'));
+
+  @IsString({
+    message: 'Set Env variable MONGODB_URL, example: MONGODB_URL',
+  })
+  mongoUrl: string = this.configService.get<string>('MONGODB_URL');
 
   @IsEnum(Environments, {
     message:
@@ -31,9 +40,4 @@ export class CoreConfig {
       configValidation.getEnumValues(Environments).join(', '),
   })
   env: string = this.configService.get('ENV_TYPE');
-
-  @IsString({
-    message: 'Set Env variable BASE_URL, example: https://example.com',
-  })
-  baseUrl: string = this.configService.get<string>('BASE_URL');
 }

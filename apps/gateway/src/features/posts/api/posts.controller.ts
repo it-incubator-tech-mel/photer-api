@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,10 +6,10 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  NotFoundException,
   Param,
+  ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
   UploadedFiles,
   UseGuards,
@@ -18,28 +17,44 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom, Observable } from 'rxjs';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
-import { PostGetPost } from './dto/swagger.dto/post.get-post';
+import { CreatePostDto } from './dto/input/create-post.input.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
 import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
-import { OutputPostType } from './dto/output/Output.post.type';
-import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
+import { PostOutputDto } from './dto/output/post.output.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
+import { PostQueryRepository } from '../infrastructure/posts.query.repository';
+import { DeletePostCommand } from '../aplication/use-case/delete-post.use-case';
+import {
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '../../../core/exception-filters/exceptions/exception-types';
+import { ResultStatus } from '../../../../base/notification/notification';
+import { UpdatePostDto } from './dto/input/update-post.input.dto';
+import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
 import { BaseQueryParams } from '../../../../base/dto/base.query-param';
-import { CreatePostDto } from './dto/input/createPost.dto';
+import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
+import { PostGetPost } from './dto/swagger.dto/post.get-post';
+import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     @Inject('STORAGE_POST_SERVICE')
     private storageProxyClient: ClientProxy,
+    private readonly postQueryRepository: PostQueryRepository,
     private commandBus: CommandBus,
-    // private storageService: StorageService,
   ) {}
 
   @Get()
@@ -60,49 +75,40 @@ export class PostsController {
   })
   async getAllPosts(
     @Query() query: BaseQueryParams,
-  ): Promise<Observable<OutputPostType[]>> {
+  ): Promise<Observable<PostOutputDto[]>> {
     return this.commandBus.execute(new GetAllPostsCommand(query));
-    // return this.storageProxyClient.send<OutputPostType[]>(pattern, payload); // Nest subscribes on Observable and wait for result
   }
+
   @Get('/:id')
-  @ApiOperation({ summary: 'returns post by id' })
+  @ApiOperation({ summary: 'Returns post by id' })
   @ApiResponse({
     status: 200,
     description: 'Success',
-    type: PostGetPost,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 200,
-        },
-      },
-    },
+    type: PostOutputDto,
   })
   @ApiResponse({
     status: 404,
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.OK)
-  async getPosts(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
+  async getOne(
+    @Param('id', new ParseIntPipe()) id: number,
+  ): Promise<PostOutputDto> {
+    const result: PostOutputDto = await this.postQueryRepository.getOne(id);
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    if (!result) {
+      throw new NotFoundException(`Post with id ${id} not found`);
+    }
+
+    return result;
   }
-  @UseGuards(BearerAuthGuard)
+
   @Post()
-  @ApiOperation({ summary: 'Create new Post' })
+  @ApiOperation({ summary: 'Create new post' })
   @ApiResponse({
     status: 201,
     description: 'Returns the newly created post',
-    type: PostGetPost,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 201,
-        },
-      },
-    },
+    type: PostOutputDto,
   })
   @ApiResponse({
     status: 400,
@@ -118,12 +124,19 @@ export class PostsController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Multipart form data for post creation',
+    required: true,
+    type: CreatePostDto,
+  })
   @UseInterceptors(
     FilesInterceptor('photos', 10, {
       storage: memoryStorage(),
       limits: {
-        fileSize: 20 * 1024 * 1024,
-        files: 10,
+        fileSize: 20 * 1024 * 1024, // 20Mb
+        files: 10, // max 10 photos
       },
       fileFilter: (req, file, callback) => {
         const allowedMimeTypes = ['image/jpeg', 'image/png'];
@@ -143,6 +156,7 @@ export class PostsController {
       },
     }),
   )
+  @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createPosts(
     @UploadedFiles() photos: Express.Multer.File[],
@@ -153,7 +167,7 @@ export class PostsController {
       throw new Error('No files uploaded.');
     }
     const description = body.description;
-    const pattern = { cmd: 'createPost' };
+    const pattern = { cmd: 'uploadFiles' };
     const savePhotos = this.storageProxyClient.send(pattern, {
       files: photos.map((f) => ({
         buffer: f.buffer,
@@ -170,8 +184,8 @@ export class PostsController {
     return { message: 'Post created successfully', post: result };
   }
 
-  @Put('/:id')
-  @ApiOperation({ summary: 'update existing posts by id with input model' })
+  @Patch('/:id')
+  @ApiOperation({ summary: 'Update existing post' })
   @ApiResponse({
     status: 204,
     description: 'No Content',
@@ -195,18 +209,44 @@ export class PostsController {
     description: 'Unauthorized',
   })
   @ApiResponse({
+    status: 403,
+    description: 'If try to update post of other user',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Not Found',
   })
+  @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async updatePosts(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
+  async update(
+    @CurrentUserId() userId: number,
+    @Param('id', ParseIntPipe) postId: number,
+    @Param('id') Id: number,
+    @Body() body: UpdatePostDto,
+  ): Promise<void> {
+    console.log(postId);
+    console.log(userId);
+    console.log(body);
+    console.log(Id);
+    const result = await this.commandBus.execute(
+      new UpdatePostCommand(userId, postId, body),
+    );
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    switch (result.status) {
+      case ResultStatus.NotFound:
+        throw new NotFoundException(result.errorMessage);
+      case ResultStatus.Forbidden:
+        throw new ForbiddenException(result.errorMessage);
+      case ResultStatus.BadRequest:
+        throw new BadRequestException(result.extensions);
+      case ResultStatus.Success:
+        return;
+      default:
+        throw new InternalServerErrorException('Unexpected error');
+    }
   }
 
-  @Delete('/delete/:id')
+  @Delete('/:id')
   @ApiOperation({ summary: 'returns post by id' })
   @ApiResponse({
     status: 204,
@@ -217,15 +257,42 @@ export class PostsController {
     description: 'Unauthorized',
   })
   @ApiResponse({
+    status: 403,
+    description: 'If try to delete post of other user',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deletePosts(): Promise<Observable<number>> {
-    const pattern = { cmd: 'getPosts' };
-    const payload: number[] = [1, 2, 3];
+  @UseGuards(BearerAuthGuard)
+  async delete(
+    @Param('id', new ParseIntPipe()) id: number,
+    @CurrentUserId() userId: number,
+  ): Promise<void> {
+    const post = await this.postQueryRepository.findByIdWithPhotos(id, userId);
+    const deleteFilesPattern = { cmd: 'deleteFiles' };
+    const deletedLength = await firstValueFrom(
+      this.storageProxyClient.send(deleteFilesPattern, {
+        fileUrls: post.photos.map((p) => p.photoUrl),
+        userId,
+      }),
+    );
 
-    return this.storageProxyClient.send<number>(pattern, payload); // Nest subscribes on Observable and wait for result
+    // [Nest] 11852  - 04/24/2025, 5:47:01 PM   ERROR [ExceptionsHandler] Object(2) {
+    //   status: 'error',
+    //     message: 'Internal server error'
+    // }
+    if (post.photos.length === deletedLength) {
+      const result = await this.commandBus.execute(
+        new DeletePostCommand({ postId: id, userId }),
+      );
+      if (result.status === ResultStatus.Forbidden) {
+        throw new ForbiddenException(result.errorMessage);
+      }
+    } else {
+      throw new InternalServerErrorException();
+    }
   }
 
   @Get('/Profile/:id')
@@ -249,8 +316,10 @@ export class PostsController {
     description: 'Not Found',
   })
   @HttpCode(HttpStatus.OK)
-  async getMyPosts(@Param('id') id: number) {
-    const profile = await this.commandBus.execute(new GetMyProfileCommand(id));
+  async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
+    const profile = await this.commandBus.execute(
+      new GetMyProfileCommand(id, query),
+    );
     if (!profile) throw new NotFoundException();
     return profile;
   }

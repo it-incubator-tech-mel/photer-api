@@ -1,11 +1,17 @@
-import { OutputPostType } from '../api/dto/output/Output.post.type';
+import { Photo } from './photo.entity';
+import { DomainValidationError } from '../../../../../common/errors/domain-validation-error';
+
+export enum PostStatus {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+}
 
 export class Post {
   private constructor(
     private readonly id: number,
     private description: string,
     private userId: number,
-    private photo: any[],
+    private photos: Photo[],
     private createdAt: Date,
     private updatedAt: Date,
     private status: string,
@@ -30,7 +36,7 @@ export class Post {
     id: null,
     description: string,
     userId: number,
-    photo: any[],
+    photos: any[],
     createdAt: Date,
     updatedAt: Date,
     status: string,
@@ -40,7 +46,7 @@ export class Post {
       id,
       description,
       userId,
-      photo,
+      photos,
       createdAt,
       updatedAt,
       status,
@@ -58,9 +64,9 @@ export class Post {
     return this.description;
   }
 
-  // getPhoto(): string[] {
-  //   return this.photo;
-  // }
+  getPhotos(): Photo[] {
+    return this.photos;
+  }
 
   getCreatedAt(): Date {
     return this.createdAt;
@@ -81,14 +87,21 @@ export class Post {
     return this.isDeleted;
   }
 
-  static getViewModel(post: Post): OutputPostType {
-    return {
-      id: post.id,
-      description: post.description,
-      photo: post.photo,
-      userId: post.userId,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    };
+  // methods
+
+  updateDescription(newDescription: string): void {
+    if (newDescription.length > 500) {
+      throw new DomainValidationError(
+        'Description exceeds 500 characters limit',
+        'description',
+      );
+    }
+    this.description = newDescription;
+    this.updatedAt = new Date();
+  }
+
+  softDelete(): void {
+    this.isDeleted = true;
+    this.updatedAt = new Date();
   }
 }
