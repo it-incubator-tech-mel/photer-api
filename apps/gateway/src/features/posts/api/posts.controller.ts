@@ -181,7 +181,7 @@ export class PostsController {
     const result = await this.commandBus.execute(
       new CreatePostCommand({ ...data, description }),
     );
-    return { message: 'Post created successfully', post: result };
+    return result;
   }
 
   @Patch('/:id')
@@ -270,7 +270,15 @@ export class PostsController {
     @Param('id', new ParseIntPipe()) id: number,
     @CurrentUserId() userId: number,
   ): Promise<void> {
-    const post = await this.postQueryRepository.findByIdWithPhotos(id, userId);
+    const post = await this.postQueryRepository.findByIdWithPhotos(id);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    if (post.userId !== userId) {
+      throw new ForbiddenException('Not post owner');
+    }
+
     const deleteFilesPattern = { cmd: 'deleteFiles' };
     const deletedLength = await firstValueFrom(
       this.storageProxyClient.send(deleteFilesPattern, {
@@ -295,7 +303,7 @@ export class PostsController {
     }
   }
 
-  @Get('/Profile/:id')
+  @Get('profile/:id')
   @ApiOperation({
     summary: 'returns profile - (unauthorized user has access to only 8 posts)',
   })

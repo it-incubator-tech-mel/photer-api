@@ -10,12 +10,12 @@ export class PostGetPost {
   @ApiProperty({
     description: 'Array of photo URLs',
     //example: [
-      //{
-        //id: isNumber,
-        //photoUrl:
-          //'https://storage.yandexcloud.net/inctagram-photer/posts/1/2025-04-15/1744732239108-317.png',
-        //createdAt: Date,
-      //},
+    //{
+    //id: isNumber,
+    //photoUrl:
+    //'https://storage.yandexcloud.net/inctagram-photer/posts/1/2025-04-15/1744732239108-317.png',
+    //createdAt: Date,
+    //},
     //],
   })
   photo: Express.Multer.File[];
