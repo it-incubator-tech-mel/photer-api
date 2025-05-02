@@ -303,7 +303,7 @@ export class PostsController {
     }
   }
 
-  @Get('/Profile/:id')
+  @Get('profile/:id')
   @ApiOperation({
     summary: 'returns profile - (unauthorized user has access to only 8 posts)',
   })
