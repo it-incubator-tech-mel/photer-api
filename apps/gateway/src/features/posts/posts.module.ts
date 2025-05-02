@@ -45,6 +45,6 @@ const repos: Provider[] = [
   ],
   controllers: [PostsController],
   providers: [...useCases, ...repos],
-  exports: [],
+  exports: [PostQueryRepository],
 })
 export class PostsModule {}

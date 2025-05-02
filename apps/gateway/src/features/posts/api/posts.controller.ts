@@ -323,6 +323,7 @@ export class PostsController {
     status: 404,
     description: 'Not Found',
   })
+  // @UseGuards()
   @HttpCode(HttpStatus.OK)
   async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
     const profile = await this.commandBus.execute(

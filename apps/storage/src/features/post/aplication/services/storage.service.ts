@@ -40,7 +40,7 @@ export class StorageService {
       Bucket: this.bucket,
       Key: fileName,
       Body: buffer,
-      ContentType: mimetype || 'application/octet-stream',
+      ContentType: mimetype || 'aplication/octet-stream',
       ContentLength: buffer.length,
     };
 

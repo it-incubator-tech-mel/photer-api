@@ -46,12 +46,18 @@ export class PostQueryRepository {
   async findUserProfile(
     id: number,
     query: BaseQueryParams,
+    userId?: number | null,
   ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
     const findUser = await this.prisma.user.findUnique({
       where: { id: id },
     });
 
     if (!findUser) return null;
+    // if (userId === null || userId === undefined) {
+    if (userId === null) {
+      query.pageSize = Math.min(query.pageSize || 10, 8);
+      query.pageNumber = Math.min(query.pageSize, 1);
+    }
     const totalCount = await this.prisma.post.count({
       where: { status: 'public', isDeleted: false, userId: id },
     });

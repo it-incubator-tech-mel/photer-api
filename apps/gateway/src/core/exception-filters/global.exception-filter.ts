@@ -7,14 +7,14 @@ import {
 import { Response, Request } from 'express';
 
 /**
- * Catches all unhandled errors in the application.
+ * Catches all unhandled errors in the aplication.
  *
  * When it triggers:
  * - When an unexpected error occurs that isn’t handled by other filters.
  * - For example, runtime errors, bugs, or exceptions from third-party libraries.
  *
  * What it does:
- * - Prevents the application from crashing.
+ * - Prevents the aplication from crashing.
  * - Returns a generic "Internal Server Error" message to avoid exposing sensitive details.
  * - Logs the error to help with debugging.
  */
