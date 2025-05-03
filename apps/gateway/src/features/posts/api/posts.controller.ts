@@ -26,7 +26,7 @@ import {
 } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.input.dto';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
@@ -47,10 +47,9 @@ import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
 import { BaseQueryParams } from '../../../../base/dto/base.query-param';
 import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
-import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
 import { OptionalJwtAuthGuard } from '../../../core/guards/optional-jwt-auth.guard';
-import { GetUserPostCommand } from '../aplication/use-case/get-user-posts.use-case';
-import { OptionalUserId } from '../../../core/decorators/param-decorators/current-user-optional-user-id.param.decorator';
+import { GetUserPostsQuery } from '../aplication/use-case/get-user-posts.use-case';
+import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
 
 @Controller('posts')
 export class PostsController {
@@ -59,6 +58,7 @@ export class PostsController {
     private storageProxyClient: ClientProxy,
     private readonly postQueryRepository: PostQueryRepository,
     private commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
   @Get()
@@ -344,11 +344,15 @@ export class PostsController {
     @Param('id') id: number,
     @Request() req: { user: { userId: number | null } },
     @Query() query: BaseQueryParams,
-  ) {
-    const profile = await this.commandBus.execute(
-      new GetUserPostCommand(id, query, req.user.userId),
-    );
-    if (!profile) throw new NotFoundException();
-    return profile;
+  ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
+    const posts: PaginatedViewDto<PostOutputDto[] | null> =
+      await this.queryBus.execute<
+        GetUserPostsQuery,
+        PaginatedViewDto<PostOutputDto[] | null>
+      >(new GetUserPostsQuery(id, query, req.user.userId));
+
+    if (!posts) throw new NotFoundException();
+
+    return posts;
   }
 }
