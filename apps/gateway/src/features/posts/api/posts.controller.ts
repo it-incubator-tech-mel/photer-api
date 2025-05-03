@@ -48,7 +48,6 @@ import { BaseQueryParams } from '../../../../base/dto/base.query-param';
 import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
 import { OptionalJwtAuthGuard } from '../../../core/guards/optional-jwt-auth.guard';
-import { GetUserPostsQuery } from '../aplication/use-case/get-user-posts.use-case';
 import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
 
 @Controller('posts')
@@ -58,7 +57,7 @@ export class PostsController {
     private storageProxyClient: ClientProxy,
     private readonly postQueryRepository: PostQueryRepository,
     private commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
+    private postRepository: PostQueryRepository,
   ) {}
 
   @Get()
@@ -346,10 +345,7 @@ export class PostsController {
     @Query() query: BaseQueryParams,
   ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
     const posts: PaginatedViewDto<PostOutputDto[] | null> =
-      await this.queryBus.execute<
-        GetUserPostsQuery,
-        PaginatedViewDto<PostOutputDto[] | null>
-      >(new GetUserPostsQuery(id, query, req.user.userId));
+      await this.postRepository.findUserProfile(id, query, req.user.userId);
 
     if (!posts) throw new NotFoundException();
 

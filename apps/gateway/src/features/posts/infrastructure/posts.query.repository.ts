@@ -104,21 +104,4 @@ export class PostQueryRepository {
       updatedAt: post.updatedAt.toISOString(),
     };
   }
-  // private mapToDomain(post: any): Post {
-  //   const photo = post.photo.map((photo: any) => ({
-  //     id: photo.id,
-  //     photoUrl: photo.photoUrl,
-  //     createdAt: photo.createdAt,
-  //   }));
-  //   return Post.restore(
-  //     post.id,
-  //     post.description,
-  //     post.userId,
-  //     photo,
-  //     post.createdAt,
-  //     post.updatedAt,
-  //     post.status,
-  //     post.isDeleted,
-  //   );
-  // }
 }
