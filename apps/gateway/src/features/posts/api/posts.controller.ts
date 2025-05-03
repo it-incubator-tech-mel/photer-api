@@ -11,6 +11,7 @@ import {
   Patch,
   Post,
   Query,
+  Request,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -47,6 +48,9 @@ import { BaseQueryParams } from '../../../../base/dto/base.query-param';
 import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
 import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
+import { OptionalJwtAuthGuard } from '../../../core/guards/optional-jwt-auth.guard';
+import { GetUserPostCommand } from '../aplication/use-case/get-user-posts.use-case';
+import { OptionalUserId } from '../../../core/decorators/param-decorators/current-user-optional-user-id.param.decorator';
 
 @Controller('posts')
 export class PostsController {
@@ -303,31 +307,46 @@ export class PostsController {
     }
   }
 
-  @Get('profile/:id')
-  @ApiOperation({
-    summary: 'returns profile - (unauthorized user has access to only 8 posts)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Success',
-    type: [PostGetPost],
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 201,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Not Found',
-  })
-  // @UseGuards()
+  // @Get('profile/:id')
+  // @ApiOperation({
+  //   summary: 'returns profile - (unauthorized user has access to only 8 posts)',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Success',
+  //   type: [PostGetPost],
+  //   content: {
+  //     'application/json': {
+  //       example: {
+  //         statusCode: 201,
+  //       },
+  //     },
+  //   },
+  // })
+  // @ApiResponse({
+  //   status: 404,
+  //   description: 'Not Found',
+  // })
+  // // @UseGuards()
+  // @HttpCode(HttpStatus.OK)
+  // async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
+  //   const profile = await this.commandBus.execute(
+  //     new GetMyProfileCommand(id, query),
+  //   );
+  //   if (!profile) throw new NotFoundException();
+  //   return profile;
+  // }
+
+  @Get('users/:id')
+  @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
+  async getUserPosts(
+    @Param('id') id: number,
+    @Request() req: { user: { userId: number | null } },
+    @Query() query: BaseQueryParams,
+  ) {
     const profile = await this.commandBus.execute(
-      new GetMyProfileCommand(id, query),
+      new GetUserPostCommand(id, query, req.user.userId),
     );
     if (!profile) throw new NotFoundException();
     return profile;

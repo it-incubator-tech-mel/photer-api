@@ -28,11 +28,7 @@ import { OAuthUseCase } from './application/use-cases/oauth.use-case';
 import { OAuthAccountRepository } from './infrastructure/oauth-account.repository';
 import { GitHubStrategy } from '../../core/strategies/github.strategy';
 import { PasswordRecoveryResendingUseCase } from './application/use-cases/password-recovery-resending.use-case';
-import { JwtStrategy } from '../../core/strategies/jwt.strategies';
-import { GetUserUseCase } from './application/use-cases/User/get-user.use-case';
-import { GetUserPostUseCase } from './application/use-cases/User/get-user-posts.use-case';
-import { PostsModule } from '../posts/posts.module';
-import { UserController } from './api/user.controller';
+import { JwtStrategy } from '../../core/strategies/optional-jwt.strategies';
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -45,8 +41,6 @@ const useCases: Provider[] = [
   LogoutUseCase,
   OAuthUseCase,
   PasswordRecoveryResendingUseCase,
-  GetUserUseCase,
-  GetUserPostUseCase,
 ];
 
 const repos: Provider[] = [
@@ -70,7 +64,6 @@ const services: Provider[] = [AuthService, JwtTokenService];
 @Module({
   imports: [
     CqrsModule,
-    PostsModule,
     // ConfigModule, // global
     MailerModule,
     CryptoModule,
@@ -93,7 +86,7 @@ const services: Provider[] = [AuthService, JwtTokenService];
     }),
     DeviceModule,
   ],
-  controllers: [AuthController, UserController],
+  controllers: [AuthController],
   providers: [...useCases, ...repos, ...strategies, ...services],
   exports: [],
 })
