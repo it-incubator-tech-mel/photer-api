@@ -18,7 +18,6 @@ import { JwtTokenService } from '../../core/services/jwt/jwt-token.service';
 import { LocalStrategy } from '../../core/strategies/local.strategy';
 import { AuthService } from './application/services/auth-service';
 import { PasswordRecoveryUseCase } from './application/use-cases/password-recovery.use-case';
-import { RefreshTokenUseCase } from './application/use-cases/refreshToken.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { UserQueryRepository } from './infrastructure/users.query-repository';
 import { BearerStrategy } from '../../core/strategies/bearer.strategies';
@@ -29,6 +28,7 @@ import { OAuthAccountRepository } from './infrastructure/oauth-account.repositor
 import { GitHubStrategy } from '../../core/strategies/github.strategy';
 import { PasswordRecoveryResendingUseCase } from './application/use-cases/password-recovery-resending.use-case';
 import { JwtStrategy } from '../../core/strategies/optional-jwt.strategies';
+import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
 
 const useCases: Provider[] = [
   RegistrationUseCase,

@@ -41,7 +41,6 @@ import { LoginCommand } from '../application/use-cases/login.use-case';
 import { NewPasswordCommand } from '../application/use-cases/new-password.use-case';
 import { PasswordRecoveryUseCommand } from '../application/use-cases/password-recovery.use-case';
 import { LogoutCommand } from '../application/use-cases/logout.use-case';
-import { RefreshTokenCommand } from '../application/use-cases/refreshToken.use-case';
 import { LocalAuthGuard } from '../../../core/guards/local-auth.guard';
 import { RefreshTokenAuthGuard } from '../../../core/guards/refresh-token-auth.guard';
 import { CurrentDeviceId } from '../../../core/decorators/param-decorators/current-device-id.decorator';
@@ -58,6 +57,7 @@ import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { CurrentUser } from '../../../core/decorators/param-decorators/current-user.decorator';
 import { OAuthLoginGuard } from '../../../core/guards/oauth/oauth.guard';
 import { User } from '../domain/user.entity';
+import { RefreshTokenCommand } from '../application/use-cases/refresh-token.use-case';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
