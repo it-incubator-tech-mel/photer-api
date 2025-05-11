@@ -158,4 +158,13 @@ export class User {
     this.recoveryCode = randomUUID();
     this.recoveryExpiration = new Date(0);
   }
+
+  static ViewModel(user: User) {
+    return {
+      id: user.getId(),
+      userName: user.getUsername(),
+      email: user.getEmail(),
+      createdAt: user.getCreatedAt(),
+    };
+  }
 }

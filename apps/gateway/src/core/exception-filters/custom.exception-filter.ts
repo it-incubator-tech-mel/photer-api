@@ -8,10 +8,10 @@ import { Response, Request } from 'express';
 import { CustomError } from './exceptions/custom-error';
 
 /**
- * Handles custom application errors (CustomError).
+ * Handles custom aplication errors (CustomError).
  *
  * When it triggers:
- * - When the application throws a CustomError (manually created errors).
+ * - When the aplication throws a CustomError (manually created errors).
  *
  * What it does:
  * - Returns detailed error messages if the error is known.
