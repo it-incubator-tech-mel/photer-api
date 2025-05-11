@@ -17,22 +17,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom, Observable } from 'rxjs';
-import {
-  ApiBody,
-  ApiConsumes,
-  ApiOperation,
-  ApiResponse,
-} from '@nestjs/swagger';
-import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
+import { firstValueFrom } from 'rxjs';
 import { CreatePostDto } from './dto/input/create-post.input.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
-import { memoryStorage } from 'multer';
 import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
 import { PostOutputDto } from './dto/output/post.output.dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { PostQueryRepository } from '../infrastructure/posts.query.repository';
 import { DeletePostCommand } from '../aplication/use-case/delete-post.use-case';
 import {
@@ -45,10 +36,15 @@ import { ResultStatus } from '../../../../base/notification/notification';
 import { UpdatePostDto } from './dto/input/update-post.input.dto';
 import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
 import { BaseQueryParams } from '../../../../base/dto/base.query-param';
-import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
-import { PostGetPost } from './dto/swagger.dto/post.get-post';
 import { OptionalJwtAuthGuard } from '../../../core/guards/optional-jwt-auth.guard';
 import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
+import { createFilesInterceptor } from '../../../core/decorators/param-decorators/useInterceptorsForCreatePhoto.decorator';
+import { SwaggerGetPosts } from '../../../core/swagger/post-swagger/GetAllPosts.swagger';
+import { SwaggerGetPostsById } from '../../../core/swagger/post-swagger/GetOnePostById.swagger';
+import { SwaggerDeletePost } from '../../../core/swagger/post-swagger/DeletePost.swagger';
+import { SwaggerUpdatePosts } from '../../../core/swagger/post-swagger/UpdatePost.swagger';
+import { SwaggerCreatePosts } from '../../../core/swagger/post-swagger/CreatePost.swagger';
+import { SwaggerGetUserProfile } from '../../../core/swagger/post-swagger/getUserProfile.swagger';
 
 @Controller('posts')
 export class PostsController {
@@ -61,39 +57,17 @@ export class PostsController {
   ) {}
 
   @Get()
-  @ApiOperation({
-    summary: 'Get all posts',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Success',
-    type: [PostGetPost],
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 200,
-        },
-      },
-    },
-  })
+  @SwaggerGetPosts()
   async getAllPosts(
     @Query() query: BaseQueryParams,
-  ): Promise<Observable<PostOutputDto[]>> {
-    return this.commandBus.execute(new GetAllPostsCommand(query));
+    // ): Promise<Observable<PaginatedViewDto<PostOutputDto[]>>> {
+  ): Promise<PaginatedViewDto<PostOutputDto[]>> {
+    return this.postRepository.findAllPosts(query);
   }
 
   @Get('/:id')
-  @ApiOperation({ summary: 'Returns post by id' })
-  @ApiResponse({
-    status: 200,
-    description: 'Success',
-    type: PostOutputDto,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Not Found',
-  })
   @HttpCode(HttpStatus.OK)
+  @SwaggerGetPostsById()
   async getOne(
     @Param('id', new ParseIntPipe()) id: number,
   ): Promise<PostOutputDto> {
@@ -107,58 +81,8 @@ export class PostsController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create new post' })
-  @ApiResponse({
-    status: 201,
-    description: 'Returns the newly created post',
-    type: PostOutputDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect values',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'Multipart form data for post creation',
-    required: true,
-    type: CreatePostDto,
-  })
-  @UseInterceptors(
-    FilesInterceptor('photos', 10, {
-      storage: memoryStorage(),
-      limits: {
-        fileSize: 20 * 1024 * 1024, // 20Mb
-        files: 10, // max 10 photos
-      },
-      fileFilter: (req, file, callback) => {
-        const allowedMimeTypes = ['image/jpeg', 'image/png'];
-        if (allowedMimeTypes.includes(file.mimetype)) {
-          callback(null, true);
-        } else {
-          callback(
-            new BadRequestException([
-              {
-                message: 'Invalid file format. Only JPEG/PNG are allowed.',
-                field: 'photos',
-              },
-            ]),
-            false,
-          );
-        }
-      },
-    }),
-  )
+  @UseInterceptors(createFilesInterceptor())
+  @SwaggerCreatePosts()
   @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createPosts(
@@ -181,44 +105,13 @@ export class PostsController {
     });
 
     const data = await firstValueFrom(savePhotos);
-    const result = await this.commandBus.execute(
+    return this.commandBus.execute(
       new CreatePostCommand({ ...data, description }),
     );
-    return result;
   }
 
   @Patch('/:id')
-  @ApiOperation({ summary: 'Update existing post' })
-  @ApiResponse({
-    status: 204,
-    description: 'No Content',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect values',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'If try to update post of other user',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Not Found',
-  })
+  @SwaggerUpdatePosts()
   @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async update(
@@ -227,10 +120,6 @@ export class PostsController {
     @Param('id') Id: number,
     @Body() body: UpdatePostDto,
   ): Promise<void> {
-    console.log(postId);
-    console.log(userId);
-    console.log(body);
-    console.log(Id);
     const result = await this.commandBus.execute(
       new UpdatePostCommand(userId, postId, body),
     );
@@ -250,23 +139,7 @@ export class PostsController {
   }
 
   @Delete('/:id')
-  @ApiOperation({ summary: 'returns post by id' })
-  @ApiResponse({
-    status: 204,
-    description: 'No Content',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'If try to delete post of other user',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Not Found',
-  })
+  @SwaggerDeletePost()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(BearerAuthGuard)
   async delete(
@@ -336,7 +209,8 @@ export class PostsController {
   //   return profile;
   // }
 
-  @Get('users/:id')
+  @Get('user/:id')
+  @SwaggerGetUserProfile()
   @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getUserPosts(

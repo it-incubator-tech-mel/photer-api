@@ -3,6 +3,7 @@ import { PostRepository } from '../../infrastructure/post.repository';
 import { PhotoRepository } from '../../infrastructure/photo.repository';
 import { Post } from '../../domain/post.entity';
 import { Photo } from '../../domain/photo.entity';
+import { PostQueryRepository } from '../../infrastructure/posts.query.repository';
 
 export class CreatePostCommand {
   constructor(
@@ -18,6 +19,7 @@ export class CreatePostCommand {
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(
     private readonly postRepository: PostRepository,
+    private readonly postQueryRepository: PostQueryRepository,
     private readonly photoRepository: PhotoRepository,
   ) {}
 
@@ -39,7 +41,7 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
         }),
       );
 
-      return this.postRepository.findById(savedPost.getId());
+      return this.postQueryRepository.getOne(savedPost.getId());
     } catch (err) {
       throw new Error('Error creating post');
     }

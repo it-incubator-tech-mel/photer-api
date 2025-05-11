@@ -10,14 +10,12 @@ import { PostQueryRepository } from './infrastructure/posts.query.repository';
 import { DeletePostUseCase } from './aplication/use-case/delete-post.use-case';
 import { UpdatePostUseCase } from './aplication/use-case/update-post.use-case';
 import { GetMyProfileUseCase } from './aplication/use-case/get-my-profile';
-import { GetAllPostsUseCase } from './aplication/use-case/get-all-posts.use-case';
 import { GetUserPostsUseCase } from './aplication/use-case/get-user-posts.use-case';
 
 const useCases: Provider[] = [
   CreatePostUseCase,
   DeletePostUseCase,
   UpdatePostUseCase,
-  GetAllPostsUseCase,
   GetMyProfileUseCase,
   GetUserPostsUseCase,
 ];

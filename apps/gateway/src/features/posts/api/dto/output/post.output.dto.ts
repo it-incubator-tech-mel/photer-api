@@ -20,17 +20,11 @@ export class PostOutputDto {
   })
   photos: string[];
 
-  // @ApiProperty({
-  //   description: 'ID of the user who created the post',
-  //   example: 42,
-  // })
-  // userId: number;
-
-  // @ApiProperty({
-  //   description: 'Name of the user who created the post',
-  //   example: 'john_doe',
-  // })
-  // userName: string;
+  @ApiProperty({
+    description: 'ID of the user who created the post',
+    example: 42,
+  })
+  userId: number;
 
   @ApiProperty({
     description: 'Post status: true = public, false = private',
