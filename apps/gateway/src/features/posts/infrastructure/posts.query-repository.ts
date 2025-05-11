@@ -10,8 +10,9 @@ export class PostQueryRepository {
 
   async findAllPosts(
     query: BaseQueryParams,
-  ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
+  ): Promise<PaginatedViewDto<PostOutputDto[]>> {
     const totalCount = await this.prisma.post.count();
+
     const foundPosts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false },
       orderBy: { [query.sortBy]: query.sortDirection },
@@ -19,9 +20,16 @@ export class PostQueryRepository {
       take: query.pageSize,
       include: {
         photos: { where: { isDeleted: false } },
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
+
     const mappedToPosts = foundPosts.map((post) => this.mapToOutput(post));
+
     return PaginatedViewDto.mapToView({
       items: mappedToPosts,
       page: query.pageNumber,
@@ -30,11 +38,16 @@ export class PostQueryRepository {
     });
   }
 
-  async getOne(id: number): Promise<PostOutputDto | null> {
+  async findById(id: number): Promise<PostOutputDto | null> {
     const foundPost = await this.prisma.post.findUnique({
       where: { id: id, status: 'public', isDeleted: false },
       include: {
         photos: { where: { isDeleted: false } },
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -43,24 +56,45 @@ export class PostQueryRepository {
     return this.mapToOutput(foundPost);
   }
 
-  async findUserProfile(
+  async findByIdWithPhotos(id: number) {
+    return this.prisma.post.findUnique({
+      where: {
+        id,
+        isDeleted: false,
+      },
+      include: {
+        photos: {
+          where: { isDeleted: false },
+        },
+        user: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findUserPosts(
     id: number,
     query: BaseQueryParams,
-    userId?: number | null,
+    currentUserId?: number | null,
   ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
     const findUser = await this.prisma.user.findUnique({
       where: { id: id },
     });
 
     if (!findUser) return null;
-    // if (userId === null || userId === undefined) {
-    if (userId === null) {
+
+    if (currentUserId === null) {
       query.pageSize = Math.min(query.pageSize || 10, 8);
       query.pageNumber = Math.min(query.pageSize, 1);
     }
+
     const totalCount = await this.prisma.post.count({
       where: { status: 'public', isDeleted: false, userId: id },
     });
+
     const posts = await this.prisma.post.findMany({
       where: { status: 'public', isDeleted: false, userId: id },
       orderBy: { [query.sortBy]: query.sortDirection },
@@ -68,29 +102,19 @@ export class PostQueryRepository {
       take: query.pageSize,
       include: {
         photos: { where: { isDeleted: false } },
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
+
     return PaginatedViewDto.mapToView({
       items: posts.map((post) => this.mapToOutput(post)),
       page: query.pageNumber,
       size: query.pageSize,
       totalCount: totalCount,
-    });
-    // return posts.map((post) => this.mapToOutput(post));
-  }
-
-  async findByIdWithPhotos(id: number) {
-    return this.prisma.post.findUnique({
-      where: {
-        id,
-        // userId,
-        isDeleted: false,
-      },
-      include: {
-        photos: {
-          where: { isDeleted: false },
-        },
-      },
     });
   }
 
@@ -99,6 +123,7 @@ export class PostQueryRepository {
       id: post.id.toString(),
       description: post.description ?? '',
       photos: post.photos.map((p) => p.photoUrl),
+      userId: post.user.id.toString(),
       status: post.status === 'public',
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),

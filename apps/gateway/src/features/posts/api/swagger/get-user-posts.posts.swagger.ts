@@ -1,0 +1,14 @@
+import { applyDecorators } from '@nestjs/common';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+
+export function GetAllUserPostsDocs() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get all user posts',
+    }),
+    ApiResponse({
+      status: 200,
+      description: 'Success',
+    }),
+  );
+}
