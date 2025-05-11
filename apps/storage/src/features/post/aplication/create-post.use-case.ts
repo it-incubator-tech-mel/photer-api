@@ -36,7 +36,7 @@
 //           Bucket: 'inctagram-photer',
 //           Key: fileName,
 //           Body: stream,
-//           ContentType: file.mimetype || 'application/octet-stream',
+//           ContentType: file.mimetype || 'aplication/octet-stream',
 //           ContentLength: buffer.length, // Добавляем длину здесь
 //         };
 //

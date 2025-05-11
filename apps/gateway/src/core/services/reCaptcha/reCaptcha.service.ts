@@ -10,7 +10,7 @@ export class ReCaptchaService {
       'https://www.google.com/recaptcha/api/siteverify',
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'aplication/x-www-form-urlencoded',
         },
         method: 'POST',
         body: `secret=${this.captchaConfig.captchaSecret}&response=${token}`,

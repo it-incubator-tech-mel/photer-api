@@ -11,6 +11,7 @@ import {
   Patch,
   Post,
   Query,
+  Request,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -25,7 +26,7 @@ import {
 } from '@nestjs/swagger';
 import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from './dto/input/create-post.input.dto';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
@@ -46,7 +47,8 @@ import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
 import { BaseQueryParams } from '../../../../base/dto/base.query-param';
 import { GetAllPostsCommand } from '../aplication/use-case/get-all-posts.use-case';
 import { PostGetPost } from './dto/swagger.dto/post.get-post';
-import { GetMyProfileCommand } from '../aplication/use-case/get-my-profile';
+import { OptionalJwtAuthGuard } from '../../../core/guards/optional-jwt-auth.guard';
+import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
 
 @Controller('posts')
 export class PostsController {
@@ -55,6 +57,7 @@ export class PostsController {
     private storageProxyClient: ClientProxy,
     private readonly postQueryRepository: PostQueryRepository,
     private commandBus: CommandBus,
+    private postRepository: PostQueryRepository,
   ) {}
 
   @Get()
@@ -303,32 +306,49 @@ export class PostsController {
     }
   }
 
-  @Get('profile/:id')
-  @ApiOperation({
-    summary: 'returns profile - (unauthorized user has access to only 8 posts)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Success',
-    type: [PostGetPost],
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 201,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Not Found',
-  })
+  // @Get('profile/:id')
+  // @ApiOperation({
+  //   summary: 'returns profile - (unauthorized user has access to only 8 posts)',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Success',
+  //   type: [PostGetPost],
+  //   content: {
+  //     'application/json': {
+  //       example: {
+  //         statusCode: 201,
+  //       },
+  //     },
+  //   },
+  // })
+  // @ApiResponse({
+  //   status: 404,
+  //   description: 'Not Found',
+  // })
+  // // @UseGuards()
+  // @HttpCode(HttpStatus.OK)
+  // async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
+  //   const profile = await this.commandBus.execute(
+  //     new GetMyProfileCommand(id, query),
+  //   );
+  //   if (!profile) throw new NotFoundException();
+  //   return profile;
+  // }
+
+  @Get('users/:id')
+  @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
-    const profile = await this.commandBus.execute(
-      new GetMyProfileCommand(id, query),
-    );
-    if (!profile) throw new NotFoundException();
-    return profile;
+  async getUserPosts(
+    @Param('id') id: number,
+    @Request() req: { user: { userId: number | null } },
+    @Query() query: BaseQueryParams,
+  ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
+    const posts: PaginatedViewDto<PostOutputDto[] | null> =
+      await this.postRepository.findUserProfile(id, query, req.user.userId);
+
+    if (!posts) throw new NotFoundException();
+
+    return posts;
   }
 }
