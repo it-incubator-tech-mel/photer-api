@@ -4,7 +4,7 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 export function GetAllUserPostsDocs() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get all user posts',
+      summary: 'Get all user post',
     }),
     ApiResponse({
       status: 200,
