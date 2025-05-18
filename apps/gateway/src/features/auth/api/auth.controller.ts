@@ -160,7 +160,7 @@ export class AuthController {
   @ApiResponse({
     status: 204,
     description:
-      'Input data is accepted.Email with confirmation code will be send to passed email address.Confirmation code should be inside link as query param, for example: https://some-front.com/confirm-registration?code=youtcodehere',
+      'Input data is accepted.Email with confirmation code will be send to passed email address.Confirmation code should be inside link as base-input-query-params param, for example: https://some-front.com/confirm-registration?code=youtcodehere',
   })
   @ApiResponse({
     status: 400,
