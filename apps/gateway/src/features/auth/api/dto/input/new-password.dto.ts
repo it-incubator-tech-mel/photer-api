@@ -13,7 +13,7 @@ export class NewPasswordDto {
   @IsNotEmpty({ message: 'newPassword is required' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
     message:
-      'Username can only contain letters, numbers, underscores, and hyphens',
+      'New password can only contain letters, numbers, underscores, and hyphens',
   })
   newPassword: string;
   @ApiProperty({
