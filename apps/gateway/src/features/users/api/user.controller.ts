@@ -1,7 +1,7 @@
 /*
 import { Controller, Get, HttpCode, HttpStatus, Param } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { GetUserCommand } from '../../posts/aplication/use-case/User/get-user.use-case';
+import { GetUserCommand } from '../../post/aplication/use-case/User/get-user.use-case';
 import { NotFoundException } from '../../../core/exception-filters/exceptions/exception-types';
 
 @Controller('users')
@@ -17,7 +17,7 @@ export class UserController {
 
   // @Get('profile/:id')
   // @ApiOperation({
-  //   summary: 'returns profile - (unauthorized user has access to only 8 posts)',
+  //   summary: 'returns profile - (unauthorized user has access to only 8 post)',
   // })
   // @ApiResponse({
   //   status: 200,
@@ -37,9 +37,9 @@ export class UserController {
   // })
   // // @UseGuards()
   // @HttpCode(HttpStatus.OK)
-  // async getMyPosts(@Query() query: BaseQueryParams, @Param('id') id: number) {
+  // async getMyPosts(@Query() base-input-query-params: BaseQueryParams, @Param('id') id: number) {
   //   const profile = await this.commandBus.execute(
-  //     new GetMyProfileCommand(id, query),
+  //     new GetMyProfileCommand(id, base-input-query-params),
   //   );
   //   if (!profile) throw new NotFoundException();
   //   return profile;

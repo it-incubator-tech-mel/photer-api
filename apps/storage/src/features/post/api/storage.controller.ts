@@ -24,6 +24,7 @@ export class StorageController {
       UploadFilesInputDto,
       payload,
     );
+
     const errors = await validate(dto);
     if (errors.length > 0) {
       throw new BadRequestException(errors);

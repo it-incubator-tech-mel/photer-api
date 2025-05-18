@@ -37,44 +37,41 @@ import {
 import { ResultStatus } from '../../../../base/notification/notification';
 import { UpdatePostDto } from './dto/input/update-post.input.dto';
 import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
-import { BaseQueryParams } from '../../../../base/dto/base.query-param';
+import { BaseQueryParams } from '../../../../base/dto/base-input-query-params/base.query-params';
 import { OptionalJwtAuthGuard } from '../../../core/guards/optional-jwt-auth.guard';
-import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
-import { PostRepository } from '../infrastructure/post.repository';
+import { BasePaginatedOutputDto } from '../../../../base/dto/base-output-dto/base-paginated.output.dto';
 import { GetAllPostsDocs } from './swagger/get-all.posts.swagger';
 import { GetOnePostDocs } from './swagger/get-one.posts.swagger';
 import { CreatePostDocs } from './swagger/create.posts.swagger';
 import { UpdatePostDocs } from './swagger/update.posts.swagger';
 import { DeletePostDocs } from './swagger/delete.posts.swagger';
 import { GetAllUserPostsDocs } from './swagger/get-user-posts.posts.swagger';
+import { PostQueryParams } from '../../../../../storage/src/features/post/api/query/get-all-post.query';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     @Inject('STORAGE_POST_SERVICE')
-    private storageProxyClient: ClientProxy,
+    // private storageProxyClient: ClientProxy,
     private commandBus: CommandBus,
     private readonly postQueryRepository: PostQueryRepository,
-    private readonly postRepository: PostRepository,
   ) {}
 
+  // TODO: pagesCount not valid (last page is empty)
   @Get()
   @GetAllPostsDocs()
   async getAll(
-    @Query() query: BaseQueryParams,
-  ): Promise<PaginatedViewDto<PostOutputDto[]>> {
-    const posts: PaginatedViewDto<PostOutputDto[]> =
-      await this.postQueryRepository.findAllPosts(query);
-
-    return posts;
+    @Query() query: PostQueryParams,
+  ): Promise<BasePaginatedOutputDto<PostOutputDto[]>> {
+    return await this.postQueryRepository.findAll(query);
   }
 
+  // +
   @Get(':id')
   @GetOnePostDocs()
   @HttpCode(HttpStatus.OK)
-  async getOne(
-    @Param('id', new ParseIntPipe()) id: number,
-  ): Promise<PostOutputDto> {
+  async getOne(@Param('id', ParseIntPipe) id: number): Promise<PostOutputDto> {
+    console.log('typeof id', typeof id);
     const result: PostOutputDto = await this.postQueryRepository.findById(id);
 
     if (!result) {
@@ -84,6 +81,7 @@ export class PostsController {
     return result;
   }
 
+  // -
   @Post()
   @CreatePostDocs()
   @UseInterceptors(
@@ -121,24 +119,37 @@ export class PostsController {
     if (!photos || photos.length === 0) {
       throw new Error('No files uploaded.');
     }
-    const description = body.description;
-    const pattern = { cmd: 'uploadFiles' };
-    const savePhotos = this.storageProxyClient.send(pattern, {
-      files: photos.map((f) => ({
-        buffer: f.buffer,
-        originalName: f.originalname,
-        mimetype: f.mimetype,
-      })),
-      userId,
-    });
 
-    const data = await firstValueFrom(savePhotos);
+    const description: string = body.description;
+
     const result = await this.commandBus.execute(
-      new CreatePostCommand({ ...data, description }),
+      new CreatePostCommand({ photos, description, userId }),
     );
+
     return result;
+
+    // if (!photos || photos.length === 0) {
+    //   throw new Error('No files uploaded.');
+    // }
+    // const description = body.description;
+    // const pattern = { cmd: 'uploadFiles' };
+    // const savePhotos = this.storageProxyClient.send(pattern, {
+    //   files: photos.map((f) => ({
+    //     buffer: f.buffer,
+    //     originalName: f.originalname,
+    //     mimetype: f.mimetype,
+    //   })),
+    //   userId,
+    // });
+    //
+    // const data = await firstValueFrom(savePhotos);
+    // const result = await this.commandBus.execute(
+    //   new CreatePostCommand({ ...data, description }),
+    // );
+    // return result;
   }
 
+  // -
   @Patch(':id')
   @UpdatePostDocs()
   @UseGuards(BearerAuthGuard)
@@ -167,6 +178,7 @@ export class PostsController {
     }
   }
 
+  // -
   @Delete(':id')
   @DeletePostDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -175,39 +187,24 @@ export class PostsController {
     @Param('id', new ParseIntPipe()) id: number,
     @CurrentUserId() userId: number,
   ): Promise<void> {
-    const post = await this.postQueryRepository.findByIdWithPhotos(id);
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
-
-    if (post.userId !== userId) {
-      throw new ForbiddenException('Not post owner');
-    }
-
-    const deleteFilesPattern = { cmd: 'deleteFiles' };
-    const deletedLength = await firstValueFrom(
-      this.storageProxyClient.send(deleteFilesPattern, {
-        fileUrls: post.photos.map((p) => p.photoUrl),
+    const result = await this.commandBus.execute(
+      new DeletePostCommand({
+        postId: id,
         userId,
       }),
     );
 
-    // [Nest] 11852  - 04/24/2025, 5:47:01 PM   ERROR [ExceptionsHandler] Object(2) {
-    //   status: 'error',
-    //     message: 'Internal server error'
-    // }
-    if (post.photos.length === deletedLength) {
-      const result = await this.commandBus.execute(
-        new DeletePostCommand({ postId: id, userId }),
-      );
-      if (result.status === ResultStatus.Forbidden) {
-        throw new ForbiddenException(result.errorMessage);
-      }
-    } else {
-      throw new InternalServerErrorException();
+    switch (result.status) {
+      case ResultStatus.NotFound:
+        throw new NotFoundException(result.message);
+      case ResultStatus.Forbidden:
+        throw new ForbiddenException(result.message);
+      default:
+        throw new InternalServerErrorException(result.message);
     }
   }
 
+  // -
   @Get('users/:id')
   @GetAllUserPostsDocs()
   @UseGuards(OptionalJwtAuthGuard)
@@ -216,8 +213,8 @@ export class PostsController {
     @Param('id') id: number,
     @Request() req: { user: { userId: number | null } },
     @Query() query: BaseQueryParams,
-  ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
-    const posts: PaginatedViewDto<PostOutputDto[] | null> =
+  ): Promise<BasePaginatedOutputDto<PostOutputDto[] | null>> {
+    const posts: BasePaginatedOutputDto<PostOutputDto[] | null> =
       await this.postQueryRepository.findUserPosts(id, query, req.user.userId);
 
     if (!posts) throw new NotFoundException();

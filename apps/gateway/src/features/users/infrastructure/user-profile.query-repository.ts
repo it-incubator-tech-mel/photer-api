@@ -1,6 +1,4 @@
-import { BaseQueryParams } from '../../../../base/dto/base.query-param';
-import { PaginatedViewDto } from '../../../../base/dto/base.paginated.view-dto';
-import { PostOutputDto } from '../../posts/api/dto/output/post.output.dto';
+import { BasePaginatedOutputDto } from '../../../../base/dto/base-output-dto/base-paginated.output.dto';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 export class UserProfileQueryRepository {
@@ -8,7 +6,7 @@ export class UserProfileQueryRepository {
 
   // async findUserProfile(
   //   id: number,
-  //   query: BaseQueryParams,
+  //   base-input-query-params: BaseQueryParams,
   //   userId?: number | null,
   // ): Promise<PaginatedViewDto<PostOutputDto[] | null>> {
   //   const findUser = await this.prisma.user.findUnique({
@@ -18,27 +16,27 @@ export class UserProfileQueryRepository {
   //   if (!findUser) return null;
   //   // if (userId === null || userId === undefined) {
   //   if (userId === null) {
-  //     query.pageSize = Math.min(query.pageSize || 10, 8);
-  //     query.pageNumber = Math.min(query.pageSize, 1);
+  //     base-input-query-params.pageSize = Math.min(base-input-query-params.pageSize || 10, 8);
+  //     base-input-query-params.pageNumber = Math.min(base-input-query-params.pageSize, 1);
   //   }
   //   const totalCount = await this.prisma.post.count({
   //     where: { status: 'public', isDeleted: false, userId: id },
   //   });
-  //   const posts = await this.prisma.post.findMany({
+  //   const post = await this.prisma.post.findMany({
   //     where: { status: 'public', isDeleted: false, userId: id },
-  //     orderBy: { [query.sortBy]: query.sortDirection },
-  //     skip: query.calculateSkip(),
-  //     take: query.pageSize,
+  //     orderBy: { [base-input-query-params.sortBy]: base-input-query-params.sortDirection },
+  //     skip: base-input-query-params.calculateSkip(),
+  //     take: base-input-query-params.pageSize,
   //     include: {
   //       photos: { where: { isDeleted: false } },
   //     },
   //   });
   //   return PaginatedViewDto.mapToView({
-  //     items: posts.map((post) => this.mapToOutput(post)),
-  //     page: query.pageNumber,
-  //     size: query.pageSize,
+  //     items: post.map((post) => this.mapToOutput(post)),
+  //     page: base-input-query-params.pageNumber,
+  //     size: base-input-query-params.pageSize,
   //     totalCount: totalCount,
   //   });
-  //   // return posts.map((post) => this.mapToOutput(post));
+  //   // return post.map((post) => this.mapToOutput(post));
   // }
 }

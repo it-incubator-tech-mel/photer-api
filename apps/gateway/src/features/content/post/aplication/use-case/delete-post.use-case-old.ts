@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/post.repository';
 import { PhotoRepository } from '../../infrastructure/photo.repository';
-import { Notification } from '../../../../../base/notification/notification';
-import { Post } from '../../domain/post.entity';
+import { Notification } from '../../../../../../base/notification/notification';
+import { Post } from '../../domain/post.aggregate';
 
 export class DeletePostCommand {
   constructor(

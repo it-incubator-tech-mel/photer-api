@@ -30,7 +30,7 @@
 //         const buffer = Buffer.from(file.buffer.data);
 //         const stream = Readable.from(buffer);
 //
-//         const fileName = `posts/${userId}/${new Date().toISOString().split('T')[0]}/${Date.now()}-${Math.floor(Math.random() * 1000)}.png`;
+//         const fileName = `post/${userId}/${new Date().toISOString().split('T')[0]}/${Date.now()}-${Math.floor(Math.random() * 1000)}.png`;
 //
 //         const uploadParams = {
 //           Bucket: 'inctagram-photer',
@@ -60,7 +60,7 @@
 //       userId: addPhotoInDb.userId,
 //     };
 //     // const uploadPromises = filesPaths.map(async (photoItem) => {
-//     //   const fileName = `posts/${userId}/${new Date().toISOString().split('T')[0]}/${new Date().toISOString().split('T')[0]}-${Math.floor(Math.random() * 10000)}.png`;
+//     //   const fileName = `post/${userId}/${new Date().toISOString().split('T')[0]}/${new Date().toISOString().split('T')[0]}-${Math.floor(Math.random() * 10000)}.png`;
 //     //   const bucketParam = {
 //     //     Bucket: 'inctagram-photer',
 //     //     Key: fileName,

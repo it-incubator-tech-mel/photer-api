@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 
-export abstract class PaginatedViewDto<T> {
+export class BasePaginatedOutputDto<T> {
   @ApiProperty({
     description: 'Array of items',
     type: 'array',
-    items: { $ref: 'T' },
+    items: {
+      oneOf: [],
+    },
   })
-  @Type(() => Array<T>)
-  abstract items: T;
+  items: T;
 
   @ApiProperty({
     example: 100,
@@ -34,12 +34,12 @@ export abstract class PaginatedViewDto<T> {
   })
   pageSize: number;
 
-  public static mapToView<T>(data: {
+  public static mapToOutput<T>(data: {
     items: T;
     page: number;
     size: number;
     totalCount: number;
-  }): PaginatedViewDto<T> {
+  }): BasePaginatedOutputDto<T> {
     return {
       totalCount: data.totalCount,
       pagesCount: Math.ceil(data.totalCount / data.size),
