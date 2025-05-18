@@ -16,43 +16,41 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
 import { CreatePostDto } from './dto/input/create-post.input.dto';
 import { CommandBus } from '@nestjs/cqrs';
-import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
-import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { memoryStorage } from 'multer';
 import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
 import { PostOutputDto } from './dto/output/post.output.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { PostQueryRepository } from '../infrastructure/posts.query-repository';
 import { DeletePostCommand } from '../aplication/use-case/delete-post.use-case';
-import {
-  BadRequestException,
-  ForbiddenException,
-  InternalServerErrorException,
-  NotFoundException,
-} from '../../../core/exception-filters/exceptions/exception-types';
-import { ResultStatus } from '../../../../base/notification/notification';
 import { UpdatePostDto } from './dto/input/update-post.input.dto';
 import { UpdatePostCommand } from '../aplication/use-case/update-post.use-case';
-import { BaseQueryParams } from '../../../../base/dto/base-input-query-params/base.query-params';
-import { OptionalJwtAuthGuard } from '../../../core/guards/optional-jwt-auth.guard';
-import { BasePaginatedOutputDto } from '../../../../base/dto/base-output-dto/base-paginated.output.dto';
 import { GetAllPostsDocs } from './swagger/get-all.posts.swagger';
 import { GetOnePostDocs } from './swagger/get-one.posts.swagger';
 import { CreatePostDocs } from './swagger/create.posts.swagger';
 import { UpdatePostDocs } from './swagger/update.posts.swagger';
 import { DeletePostDocs } from './swagger/delete.posts.swagger';
 import { GetAllUserPostsDocs } from './swagger/get-user-posts.posts.swagger';
-import { PostQueryParams } from '../../../../../storage/src/features/post/api/query/get-all-post.query';
+import { BasePaginatedOutputDto } from '../../../../../base/dto/base-output-dto/base-paginated.output.dto';
+import { PostQueryParams } from '../../../../../../storage/src/features/post/api/query/get-all-posts.query';
+import {
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '../../../../core/exception-filters/exceptions/exception-types';
+import { CurrentUserId } from '../../../../core/decorators/param-decorators/current-user-id.decorator';
+import { BearerAuthGuard } from '../../../../core/guards/bearer-auth.guard';
+import { ResultStatus } from '../../../../../base/notification/notification';
+import { OptionalJwtAuthGuard } from '../../../../core/guards/optional-jwt-auth.guard';
+import { BaseQueryParams } from '../../../../../base/dto/base-input-query-params/base.query-params';
+import { FileUploadInterceptor } from '../../../../core/interceptors/file-upload.interceptor';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     @Inject('STORAGE_POST_SERVICE')
-    // private storageProxyClient: ClientProxy,
     private commandBus: CommandBus,
     private readonly postQueryRepository: PostQueryRepository,
   ) {}
@@ -84,31 +82,7 @@ export class PostsController {
   // -
   @Post()
   @CreatePostDocs()
-  @UseInterceptors(
-    FilesInterceptor('photos', 10, {
-      storage: memoryStorage(),
-      limits: {
-        fileSize: 20 * 1024 * 1024, // 20Mb
-        files: 10, // max 10 photos
-      },
-      fileFilter: (req, file, callback) => {
-        const allowedMimeTypes = ['image/jpeg', 'image/png'];
-        if (allowedMimeTypes.includes(file.mimetype)) {
-          callback(null, true);
-        } else {
-          callback(
-            new BadRequestException([
-              {
-                message: 'Invalid file format. Only JPEG/PNG are allowed.',
-                field: 'photos',
-              },
-            ]),
-            false,
-          );
-        }
-      },
-    }),
-  )
+  @UseInterceptors(FileUploadInterceptor)
   @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async create(
