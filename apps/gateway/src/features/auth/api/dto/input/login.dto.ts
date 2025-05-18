@@ -22,7 +22,7 @@ export class LoginDto {
   @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
     message:
-      'Username can only contain letters, numbers, underscores, and hyphens',
+      'Password can only contain letters, numbers, underscores, and hyphens',
   })
   password: string;
 }
