@@ -21,19 +21,13 @@ export class Post {
   // methods
 
   // Factory method for creating a new post
-  static create(
-    description: string,
-    userId: number,
-    //initialPhotos: Photo[] = [],
-  ): Post {
-    this.validateDescription(description);
-
-    // const photos: Photo[] = initialPhotos.map((p: Photo) =>
-    //   Photo.create(p.getUrl(), p, new Date()),
-    // );
+  static create(userId: number, description?: string): Post {
+    if (description) {
+      Post.validateDescription(description);
+    }
 
     return new Post(
-      0, // In DB auto-increment
+      null, // In DB auto-increment
       description,
       userId,
       [],
@@ -65,6 +59,28 @@ export class Post {
       params.status,
       params.isDeleted,
     );
+  }
+
+  getAllProps(): {
+    id: number | null;
+    description: string;
+    userId: number;
+    photos: Photo[];
+    createdAt: Date;
+    updatedAt: Date;
+    status: PostStatus;
+    isDeleted: boolean;
+  } {
+    return {
+      id: this.id,
+      description: this.description,
+      userId: this.userId,
+      photos: this.photos,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      status: this.status,
+      isDeleted: this.isDeleted,
+    };
   }
 
   updateDescription(newDescription: string): void {
@@ -103,9 +119,15 @@ export class Post {
   }
 
   markAsDeleted(): void {
+    if (this.isDeleted) return;
+
     this.isDeleted = true;
     this.updatedAt = new Date();
+
+    this.photos.forEach((photo: Photo) => photo.markAsDeleted());
   }
+
+  // static
 
   private static validateDescription(description: string): void {
     if (description.length > 500) {

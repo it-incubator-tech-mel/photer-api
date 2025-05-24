@@ -3,7 +3,7 @@ import { DomainValidationError } from '../../../../../../common/errors/domain-va
 export class Photo {
   private constructor(
     private readonly id: number,
-    private url: string,
+    private photoUrl: string,
     private postId: number,
     private createdAt: Date,
     private isDeleted: boolean = false,
@@ -19,14 +19,14 @@ export class Photo {
 
   static restore(params: {
     id: number;
-    url: string;
+    photoUrl: string;
     postId: number;
     createdAt: Date;
     isDeleted: boolean;
   }): Photo {
     return new Photo(
       params.id,
-      params.url,
+      params.photoUrl,
       params.postId,
       params.createdAt,
       params.isDeleted,
@@ -38,7 +38,7 @@ export class Photo {
   }
 
   private static isValidUrl(url: string): boolean {
-    const parsedUrl = new URL(url);
+    const parsedUrl: URL = new URL(url);
 
     const isProtocolValid: boolean = ['http:', 'https:'].includes(
       parsedUrl.protocol,
@@ -55,8 +55,8 @@ export class Photo {
     return this.id;
   }
 
-  getUrl(): string {
-    return this.url;
+  getPhotoUrl(): string {
+    return this.photoUrl;
   }
 
   getPostId(): number {
