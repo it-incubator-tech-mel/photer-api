@@ -3,17 +3,17 @@ import { IsOptional, IsString, Length } from 'class-validator';
 import { Trim } from '../../../../../../core/decorators/trim';
 
 export class CreatePostDto {
-  @ApiProperty({
-    type: 'array',
-    items: {
-      type: 'string',
-      format: 'binary',
-    },
-    description: 'Array of photos (JPEG/PNG only)',
-    minItems: 1,
-    maxItems: 10,
-  })
-  photos: Express.Multer.File[];
+  // @ApiProperty({
+  //   type: 'array',
+  //   items: {
+  //     type: 'string',
+  //     format: 'binary',
+  //   },
+  //   description: 'Array of photos (JPEG/PNG only)',
+  //   minItems: 1,
+  //   maxItems: 10,
+  // })
+  // photos: Express.Multer.File[];
 
   @ApiProperty({
     description: 'Post description (optional)',
@@ -27,5 +27,5 @@ export class CreatePostDto {
   @Length(0, 500, {
     message: 'Description must contain up to 500 characters.',
   })
-  description?: string;
+  description?: string = undefined;
 }

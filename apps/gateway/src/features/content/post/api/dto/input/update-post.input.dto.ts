@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, Length } from 'class-validator';
-import { Trim } from '../../../../../core/decorators/trim';
+import { Trim } from '../../../../../../core/decorators/trim';
 
 export class UpdatePostDto {
   @ApiProperty({

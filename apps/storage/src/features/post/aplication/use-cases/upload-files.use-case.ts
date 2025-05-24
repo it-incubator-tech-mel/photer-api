@@ -57,6 +57,7 @@ export class UploadFilesUseCase implements ICommandHandler<UploadFilesCommand> {
     await this.saveFileMetadata(locations, userId);
 
     const fileUrls: string[] = locations.map((loc) => loc.location);
+
     return {
       fileUrls,
       userId,

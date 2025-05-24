@@ -33,7 +33,7 @@ export class DeletePostUseCase implements ICommandHandler<DeletePostCommand> {
     }
 
     await this.photoRepository.softDeleteByPostId(postId);
-    await this.postRepository.softDelete(postId, userId);
+    await this.postRepository.softDelete(postId);
 
     return Notification.success();
   }

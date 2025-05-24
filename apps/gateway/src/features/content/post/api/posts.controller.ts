@@ -5,23 +5,19 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Inject,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
-  Request,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CreatePostDto } from './dto/input/create-post.input.dto';
 import { CommandBus } from '@nestjs/cqrs';
-import { memoryStorage } from 'multer';
 import { CreatePostCommand } from '../aplication/use-case/create-post.use-case';
 import { PostOutputDto } from './dto/output/post.output.dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { PostQueryRepository } from '../infrastructure/posts.query-repository';
 import { DeletePostCommand } from '../aplication/use-case/delete-post.use-case';
 import { UpdatePostDto } from './dto/input/update-post.input.dto';
@@ -42,15 +38,18 @@ import {
 } from '../../../../core/exception-filters/exceptions/exception-types';
 import { CurrentUserId } from '../../../../core/decorators/param-decorators/current-user-id.decorator';
 import { BearerAuthGuard } from '../../../../core/guards/bearer-auth.guard';
-import { ResultStatus } from '../../../../../base/notification/notification';
+import {
+  Notification,
+  ResultStatus,
+} from '../../../../../base/notification/notification';
 import { OptionalJwtAuthGuard } from '../../../../core/guards/optional-jwt-auth.guard';
 import { BaseQueryParams } from '../../../../../base/dto/base-input-query-params/base.query-params';
 import { FileUploadInterceptor } from '../../../../core/interceptors/file-upload.interceptor';
+import { OptionalUserId } from '../../../../core/decorators/param-decorators/current-user-optional-user-id.param.decorator';
 
 @Controller('posts')
 export class PostsController {
   constructor(
-    @Inject('STORAGE_POST_SERVICE')
     private commandBus: CommandBus,
     private readonly postQueryRepository: PostQueryRepository,
   ) {}
@@ -69,7 +68,6 @@ export class PostsController {
   @GetOnePostDocs()
   @HttpCode(HttpStatus.OK)
   async getOne(@Param('id', ParseIntPipe) id: number): Promise<PostOutputDto> {
-    console.log('typeof id', typeof id);
     const result: PostOutputDto = await this.postQueryRepository.findById(id);
 
     if (!result) {
@@ -79,7 +77,7 @@ export class PostsController {
     return result;
   }
 
-  // -
+  // TODO: in use case delete logic from storage if error
   @Post()
   @CreatePostDocs()
   @UseInterceptors(FileUploadInterceptor)
@@ -90,40 +88,32 @@ export class PostsController {
     @Body() body: CreatePostDto,
     @CurrentUserId() userId: number,
   ) {
-    if (!photos || photos.length === 0) {
-      throw new Error('No files uploaded.');
+    if (!photos?.length) {
+      throw new BadRequestException([
+        { field: 'photos', message: 'At least one photo is required' },
+      ]);
     }
 
-    const description: string = body.description;
+    const createResult: Notification<number | null> =
+      await this.commandBus.execute<
+        CreatePostCommand,
+        Notification<number | null>
+      >(
+        new CreatePostCommand({
+          photos,
+          description: body.description,
+          userId,
+        }),
+      );
 
-    const result = await this.commandBus.execute(
-      new CreatePostCommand({ photos, description, userId }),
-    );
+    if (createResult.status !== ResultStatus.Success || !createResult.data) {
+      throw new InternalServerErrorException(createResult.errorMessage);
+    }
 
-    return result;
-
-    // if (!photos || photos.length === 0) {
-    //   throw new Error('No files uploaded.');
-    // }
-    // const description = body.description;
-    // const pattern = { cmd: 'uploadFiles' };
-    // const savePhotos = this.storageProxyClient.send(pattern, {
-    //   files: photos.map((f) => ({
-    //     buffer: f.buffer,
-    //     originalName: f.originalname,
-    //     mimetype: f.mimetype,
-    //   })),
-    //   userId,
-    // });
-    //
-    // const data = await firstValueFrom(savePhotos);
-    // const result = await this.commandBus.execute(
-    //   new CreatePostCommand({ ...data, description }),
-    // );
-    // return result;
+    return this.postQueryRepository.findById(createResult.data);
   }
 
-  // -
+  // +
   @Patch(':id')
   @UpdatePostDocs()
   @UseGuards(BearerAuthGuard)
@@ -152,7 +142,7 @@ export class PostsController {
     }
   }
 
-  // -
+  // +
   @Delete(':id')
   @DeletePostDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -169,6 +159,8 @@ export class PostsController {
     );
 
     switch (result.status) {
+      case ResultStatus.Success:
+        return;
       case ResultStatus.NotFound:
         throw new NotFoundException(result.message);
       case ResultStatus.Forbidden:
@@ -184,12 +176,18 @@ export class PostsController {
   @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getUserPosts(
-    @Param('id') id: number,
-    @Request() req: { user: { userId: number | null } },
+    @Param('id') userId: number,
+    // @Request() req: { user: { userId: number | null } },
     @Query() query: BaseQueryParams,
+    @OptionalUserId() optionalUserId: number | null,
   ): Promise<BasePaginatedOutputDto<PostOutputDto[] | null>> {
+    // console.log('optionalUserId', optionalUserId);
     const posts: BasePaginatedOutputDto<PostOutputDto[] | null> =
-      await this.postQueryRepository.findUserPosts(id, query, req.user.userId);
+      await this.postQueryRepository.findUserPosts(
+        userId,
+        query,
+        optionalUserId,
+      );
 
     if (!posts) throw new NotFoundException();
 

@@ -1,10 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/post.repository';
-import { PhotoRepository } from '../../infrastructure/photo.repository';
 import { Post } from '../../domain/post.aggregate';
+import { Notification } from '../../../../../../base/notification/notification';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { Notification } from '../../../../../../base/notification/notification';
+import { Inject } from '@nestjs/common';
 
 /*
 	- upload photos in storage
@@ -16,8 +16,7 @@ export class CreatePostCommand {
   constructor(
     public readonly data: {
       photos: Express.Multer.File[];
-      description: string | null;
-      // fileUrls: string[];
+      description?: string;
       userId: number;
     },
   ) {}
@@ -26,46 +25,54 @@ export class CreatePostCommand {
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(
-    private readonly postRepository: PostRepository,
-    private readonly photoRepository: PhotoRepository,
+    @Inject('STORAGE_POST_SERVICE')
     private storageProxyClient: ClientProxy,
+    private readonly postRepository: PostRepository,
   ) {}
 
-  async execute({ data }: CreatePostCommand) {
+  async execute({
+    data,
+  }: CreatePostCommand): Promise<Notification<number | null>> {
     const { photos, userId, description } = data;
+
     let post: Post;
 
     try {
-      // upload photos in storage
-      const uploadResult = await firstValueFrom(
-        this.storageProxyClient.send('uploadFiles', {
-          files: photos.map((f) => ({
-            buffer: f.buffer,
-            originalName: f.originalname,
-            mimetype: f.mimetype,
-          })),
-          userId,
-        }),
-      );
+      const pattern = { cmd: 'uploadFiles' };
+      const uploadResult: { fileUrls: [string]; userId: number } =
+        await firstValueFrom(
+          this.storageProxyClient.send(pattern, {
+            files: photos.map((f) => ({
+              buffer: f.buffer,
+              originalName: f.originalname,
+              mimetype: f.mimetype,
+            })),
+            userId,
+          }),
+        );
 
-      if (!uploadResult?.fileUrls?.length) {
-        return Notification.internalError('File upload failed');
+      if (
+        !uploadResult?.fileUrls ||
+        (uploadResult.fileUrls as string[]).length === 0
+      ) {
+        Notification.internalError('No file URLs received');
       }
 
-      // create aggregate
-      post = Post.create(description, userId);
+      post = Post.create(userId, description);
+
       uploadResult.fileUrls.forEach((url) => post.addPhoto(url));
 
-      // save all aggregate
-      await this.postRepository.save(post);
+      const savedPost: Post = await this.postRepository.save(post);
 
-      return Notification.success(post.getId());
+      return Notification.success(savedPost.getId());
     } catch (err) {
+      console.log('CreatePostUseCase error', err);
       if (post) {
-        await this.postRepository.delete(post.getId());
-        // Здесь можно добавить удаление файлов из хранилища
+        await this.postRepository.softDelete(post.getId());
+        // May add logic to delete files from storage
       }
-      return Notification.error(error.message);
+
+      return Notification.internalError(err.message);
     }
   }
 }

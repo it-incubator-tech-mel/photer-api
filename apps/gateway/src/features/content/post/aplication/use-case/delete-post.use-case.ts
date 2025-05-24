@@ -1,10 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/post.repository';
-import { PhotoRepository } from '../../infrastructure/photo.repository';
 import { Notification } from '../../../../../../base/notification/notification';
 import { Post } from '../../domain/post.aggregate';
 import { firstValueFrom } from 'rxjs';
 import { ClientProxy } from '@nestjs/microservices';
+import { Inject } from '@nestjs/common';
 
 export class DeletePostCommand {
   constructor(
@@ -18,69 +18,48 @@ export class DeletePostCommand {
 @CommandHandler(DeletePostCommand)
 export class DeletePostUseCase implements ICommandHandler<DeletePostCommand> {
   constructor(
+    @Inject('STORAGE_POST_SERVICE')
+    private storageProxyClient: ClientProxy,
     private readonly postRepository: PostRepository,
-    private readonly photoRepository: PhotoRepository,
-    private readonly storageProxyClient: ClientProxy,
   ) {}
 
-  async execute({ payload }: DeletePostCommand): Promise<Notification> {
+  async execute({ payload }: DeletePostCommand): Promise<any> {
     const { postId, userId } = payload;
-
-    const post: Post = await this.postRepository.findById(postId);
-    if (!post) {
-      return Notification.notFound('Post not found');
-    }
-
-    if (post.getId() !== userId) {
-      return Notification.forbidden('Not post owner');
-    }
-
     try {
+      // get aggregate
+      const post: Post = await this.postRepository.findById(postId);
+      if (!post) return Notification.notFound('Post not found');
+
+      // check rights
+      if (post.getUserId() !== userId) {
+        return Notification.forbidden('Not post owner');
+      }
+
+      // delete through aggregate
+      post.markAsDeleted();
+      await this.postRepository.save(post);
+
       const photoUrls: string[] =
         post.getPhotos().map((p) => p.getPhotoUrl()) || [];
 
+      // delete files
       const deleteFilesPattern = { cmd: 'deleteFiles' };
-      const deleteResult = await firstValueFrom(
+      const deleteStorageResult = await firstValueFrom(
         this.storageProxyClient.send(deleteFilesPattern, {
           fileUrls: photoUrls,
           userId,
         }),
       );
 
-      // [Nest] 11852  - 04/24/2025, 5:47:01 PM   ERROR [ExceptionsHandler] Object(2) {
-      //   status: 'error',
-      //     message: 'Internal server error'
-      // }
-
-      if (deleteResult.deletedLength !== photoUrls.length) {
-        return Notification.forbidden('Partial files deletion');
+      // check result
+      if (deleteStorageResult.deletedLength !== photoUrls.length) {
+        return Notification.internalError('Partial files deletion');
       }
 
-      // delete the post from db
-      const deletePostResult: Post =
-        await this.postRepository.softDelete(postId);
-      // await this.photoRepository.softDeleteByPostId(postId);
-      // await this.postRepository.softDelete(postId, userId);
-      if (!deletePostResult) {
-        return Notification.forbidden('Partial files deletion');
-      }
+      return Notification.success();
     } catch (e) {
       console.error('Storage microservice communication error:', e);
-      return Notification.internalError('Storage service unavailable');
+      return Notification.internalError('Deletion failed');
     }
-
-    // const post: Post = await this.postRepository.findByIdAndUserId(
-    //   postId,
-    //   userId,
-    // );
-    //
-    // if (!post) {
-    //   return Notification.forbidden("Post doesn't belongs to current user");
-    // }
-    //
-    // await this.photoRepository.softDeleteByPostId(postId);
-    // await this.postRepository.softDelete(postId, userId);
-    //
-    // return Notification.success();
   }
 }

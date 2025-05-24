@@ -36,7 +36,9 @@ export class DeleteFilesUseCase implements ICommandHandler<DeleteFilesCommand> {
     );
     await this.fileMetadataRepository.removeFilesByKeys(userId, fileUrls);
 
-    return fileUrls.length;
+    return {
+      deletedLength: fileUrls.length,
+    };
   }
 
   private extractKeyFromUrl(url: string): string {

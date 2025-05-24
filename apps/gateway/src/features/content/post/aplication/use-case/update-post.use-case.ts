@@ -1,9 +1,9 @@
 import { UpdatePostDto } from '../../api/dto/input/update-post.input.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/post.repository';
-import { Notification } from '../../../../../base/notification/notification';
 import { Post } from '../../domain/post.aggregate';
-import { DomainValidationError } from '../../../../../../common/errors/domain-validation-error';
+import { Notification } from '../../../../../../base/notification/notification';
+import { DomainValidationError } from '../../../../../../../common/errors/domain-validation-error';
 
 export class UpdatePostCommand {
   constructor(
@@ -21,6 +21,7 @@ export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
     const { userId, postId, dto } = command;
 
     const post: Post = await this.postRepository.findById(postId);
+
     if (!post) {
       return Notification.notFound('Post not found');
     }

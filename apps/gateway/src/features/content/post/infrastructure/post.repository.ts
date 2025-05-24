@@ -7,26 +7,48 @@ import { PrismaService } from '../../../../prisma/prisma.service';
 export class PostRepository {
   constructor(private prisma: PrismaService) {}
 
-  async save(post: Post): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      // create or update post
-      const dbPost = await tx.post.upsert({
-        where: { id: post.getId() || -1 },
-        create: this.toPersistence(post),
-        update: this.toPersistence(post),
-      });
+  async save(post: Post): Promise<Post> {
+    return this.prisma.$transaction(async (tx) => {
+      // If post is new (id = null или undefined)
+      if (post.getId() === null || post.getId() === undefined) {
+        const dbPost = await tx.post.create({
+          data: this.toPersistence(post),
+        });
 
-      // delete old photo and create new
-      await tx.photo.deleteMany({ where: { postId: dbPost.id } });
+        // save photo
+        await tx.photo.createMany({
+          data: post.getPhotos().map((photo) => ({
+            photoUrl: photo.getPhotoUrl(),
+            postId: dbPost.id,
+            createdAt: photo.getCreatedAt(),
+            isDeleted: photo.getIsDeleted(),
+          })),
+        });
 
-      await tx.photo.createMany({
-        data: post.getPhotos().map((photo) => ({
-          url: photo.getUrl(),
-          postId: dbPost.id,
-          createdAt: photo.getCreatedAt(),
-          isDeleted: photo.getIsDeleted(),
-        })),
-      });
+        return Post.restore({
+          ...post.getAllProps(),
+          id: dbPost.id,
+        });
+      } else {
+        // update
+        await tx.post.update({
+          where: { id: post.getId() },
+          data: this.toPersistence(post),
+        });
+
+        // delete old photos and add new
+        await tx.photo.deleteMany({ where: { postId: post.getId() } });
+        await tx.photo.createMany({
+          data: post.getPhotos().map((photo) => ({
+            photoUrl: photo.getPhotoUrl(),
+            postId: post.getId(),
+            createdAt: photo.getCreatedAt(),
+            isDeleted: photo.getIsDeleted(),
+          })),
+        });
+
+        return post;
+      }
     });
   }
 
@@ -59,24 +81,41 @@ export class PostRepository {
     return post ? this.mapToDomain(post) : null;
   }
 
-  async softDelete(id: number): Promise<Post> {
-    const updatedPost = await this.prisma.post.update({
-      where: { id },
-      data: { isDeleted: true },
-    });
+  async softDelete(id: number): Promise<boolean> {
+    try {
+      const result: boolean = await this.prisma.$transaction(async (tx) => {
+        const postUpdate = await tx.post.updateMany({
+          where: {
+            id,
+            isDeleted: false,
+          },
+          data: { isDeleted: true },
+        });
 
-    return this.mapToDomain(updatedPost);
+        if (postUpdate.count === 0) return false;
+
+        await tx.photo.updateMany({
+          where: { postId: id },
+          data: { isDeleted: true },
+        });
+
+        return true;
+      });
+
+      return result;
+    } catch (error) {
+      return false;
+    }
   }
 
   private toPersistence(post: Post): any {
     return {
-      id: post.getId(),
+      // Not include id, if it null/undefined
+      ...(post.getId() && { id: post.getId() }),
       description: post.getDescription(),
       userId: post.getUserId(),
       status: post.getStatus(),
       isDeleted: post.getIsDeleted(),
-      createdAt: post.getCreatedAt(),
-      updatedAt: post.getUpdatedAt(),
     };
   }
 
@@ -85,13 +124,13 @@ export class PostRepository {
       id: dbPost.id,
       description: dbPost.description,
       userId: dbPost.userId,
-      photos: dbPost.photos.map((photo) =>
+      photos: dbPost.photos.map((photoData: any) =>
         Photo.restore({
-          id: photo.id,
-          url: photo.url,
-          postId: photo.postId,
-          createdAt: photo.createdAt,
-          isDeleted: photo.isDeleted,
+          id: photoData.id,
+          photoUrl: photoData.photoUrl,
+          postId: photoData.postId,
+          createdAt: photoData.createdAt,
+          isDeleted: photoData.isDeleted,
         }),
       ),
       createdAt: dbPost.createdAt,
@@ -100,36 +139,4 @@ export class PostRepository {
       isDeleted: dbPost.isDeleted,
     });
   }
-
-  // async create(post: Post): Promise<Post> {
-  //   const createdPost = await this.prisma.post.create({
-  //     data: {
-  //       description: post.getDescription(),
-  //       userId: post.getUserId(),
-  //       createdAt: post.getCreatedAt(),
-  //       updatedAt: post.getUpdatedAt(),
-  //       photos: {
-  //         create: post.getPhotos().map((photo: Photo) => ({
-  //           photoUrl: photo.getPhotoUrl(),
-  //           createdAt: photo.getCreatedAt(),
-  //         })),
-  //       },
-  //     },
-  //     include: {
-  //       photos: true,
-  //     },
-  //   });
-  //
-  //   return this.mapToDomain(createdPost);
-  // }
-
-  // async save(post: Post): Promise<void> {
-  //   await this.prisma.post.update({
-  //     where: { id: post.getId() },
-  //     data: {
-  //       description: post.getDescription(),
-  //       updatedAt: post.getUpdatedAt(),
-  //     },
-  //   });
-  // }
 }

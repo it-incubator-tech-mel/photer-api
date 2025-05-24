@@ -62,12 +62,12 @@ export class PostQueryRepository {
   }
 
   async findUserPosts(
-    id: number,
+    userId: number,
     query: BaseQueryParams,
     currentUserId?: number | null,
   ): Promise<BasePaginatedOutputDto<PostOutputDto[] | null>> {
     const findUser = await this.prisma.user.findUnique({
-      where: { id: id },
+      where: { id: userId },
     });
 
     if (!findUser) return null;
@@ -78,11 +78,11 @@ export class PostQueryRepository {
     }
 
     const totalCount = await this.prisma.post.count({
-      where: { status: 'public', isDeleted: false, userId: id },
+      where: { status: 'public', isDeleted: false, userId: userId },
     });
 
     const posts = await this.prisma.post.findMany({
-      where: { status: 'public', isDeleted: false, userId: id },
+      where: { status: 'public', isDeleted: false, userId: userId },
       orderBy: { [query.sortBy]: query.sortDirection },
       skip: query.calculateSkip(),
       take: query.pageSize,
