@@ -67,26 +67,3 @@ export class BaseQueryParams<TSortBy extends string = SortBy> {
     return (this.pageNumber - 1) * this.pageSize;
   }
 }
-
-// user - query - params.ts;
-//
-// export const UserSortBy = {
-// 	...BaseSortBy,
-// 	USERNAME: 'username',
-// 	EMAIL: 'email',
-// } as const;
-//
-// export type UserSortBy = typeof UserSortBy[keyof typeof UserSortBy]; // 'createdAt' | 'username' | 'email'
-//
-// export class UserQueryParams extends BaseQueryParams<UserSortBy> {
-// 	@ApiProperty({
-//    description: 'User sorting field',
-// 		enum: Object.values(UserSortBy), // ['createdAt', 'username', 'email']
-// 		example: UserSortBy.USERNAME,
-// 		default: BaseSortBy.CREATED_AT,
-//    required: false
-// 	})
-// 	@IsEnum(UserSortBy)
-// 	@IsOptional()
-// 	override sortBy: UserSortBy = BaseSortBy.CREATED_AT;
-// }
