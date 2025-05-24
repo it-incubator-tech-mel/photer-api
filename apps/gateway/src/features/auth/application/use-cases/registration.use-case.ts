@@ -61,17 +61,20 @@ export class RegistrationUseCase
     );
 
     const user: User = User.create(username, passwordHash, email);
-
+    user.confirmEmail();
+    console.log('create user', user);
     await this.userRepository.create(user);
 
-    await this.mailerService.sendEmail(
-      user.getEmail(),
-      registrationEmailTemplate(
-        user.getConfirmationCode(),
-        this.coreConfig.baseUrl,
-      ),
-      'Registration Confirmation',
-    );
+    // temp comment user confirmed
+    // await this.mailerService.sendEmail(
+    //   user.getEmail(),
+    //   registrationEmailTemplate(
+    //     user.getConfirmationCode(),
+    //     this.coreConfig.baseUrl,
+    //   ),
+    //   'Registration Confirmation',
+    // );
+    //
 
     return Notification.success();
   }
