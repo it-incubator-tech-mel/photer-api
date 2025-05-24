@@ -16,6 +16,7 @@ export function DeletePostDocs() {
       status: 403,
       description: 'If try to delete post of other user',
     }),
+
     ApiResponse({
       status: 404,
       description: 'Not Found',

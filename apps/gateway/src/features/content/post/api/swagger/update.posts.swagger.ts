@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { APIErrorResult } from '../../../../core/swagger/api-error/error-response.dto';
+import { APIErrorResult } from '../../../../../core/swagger/api-error/error-response.dto';
 
 export function UpdatePostDocs() {
   return applyDecorators(

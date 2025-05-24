@@ -10,5 +10,9 @@ export function GetAllUserPostsDocs() {
       status: 200,
       description: 'Success',
     }),
+    ApiResponse({
+      status: 404,
+      description: 'Not Found',
+    }),
   );
 }

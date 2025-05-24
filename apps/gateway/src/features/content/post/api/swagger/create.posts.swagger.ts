@@ -6,8 +6,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { PostOutputDto } from '../dto/output/post.output.dto';
-import { APIErrorResult } from '../../../../core/swagger/api-error/error-response.dto';
 import { CreatePostDto } from '../dto/input/create-post.input.dto';
+import { APIErrorResult } from '../../../../../core/swagger/api-error/error-response.dto';
 
 export function CreatePostDocs() {
   return applyDecorators(
