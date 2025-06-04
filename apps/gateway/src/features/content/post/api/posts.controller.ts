@@ -46,6 +46,7 @@ import { OptionalJwtAuthGuard } from '../../../../core/guards/optional-jwt-auth.
 import { BaseQueryParams } from '../../../../../base/dto/base-input-query-params/base.query-params';
 import { FileUploadInterceptor } from '../../../../core/interceptors/file-upload.interceptor';
 import { OptionalUserId } from '../../../../core/decorators/param-decorators/current-user-optional-user-id.param.decorator';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @Controller('posts')
 export class PostsController {
@@ -79,6 +80,7 @@ export class PostsController {
 
   // TODO: in use case delete logic from storage if error
   @Post()
+  @ApiSecurity('refreshToken')
   @CreatePostDocs()
   @UseInterceptors(FileUploadInterceptor)
   @UseGuards(BearerAuthGuard)
@@ -115,6 +117,7 @@ export class PostsController {
 
   // +
   @Patch(':id')
+  @ApiSecurity('refreshToken')
   @UpdatePostDocs()
   @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -144,6 +147,7 @@ export class PostsController {
 
   // +
   @Delete(':id')
+  @ApiSecurity('refreshToken')
   @DeletePostDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(BearerAuthGuard)
