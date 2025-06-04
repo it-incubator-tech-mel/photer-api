@@ -6,12 +6,23 @@ import { ProfileOutputDto } from '../api/dto/output/profile.output.dto';
 export class ProfileQueryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(id: number, username: string): Promise<ProfileOutputDto> {
+  async findById(id: number): Promise<ProfileOutputDto> {
     const profile = await this.prisma.profile.findUnique({
       where: { id },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
 
     if (!profile) return null;
+
+    console.log('profile in repo', profile);
+
+    const username: string = profile.user.username;
 
     return this.mapToOutput(profile, username);
   }

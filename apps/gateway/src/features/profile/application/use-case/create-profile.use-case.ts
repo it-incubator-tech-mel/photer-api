@@ -31,7 +31,6 @@ export class CreateProfileUseCase
   ) {}
 
   async execute(command: CreateProfileCommand): Promise<Notification<number>> {
-    // console.log('command', command);
     const {
       userId,
       username,
@@ -51,12 +50,12 @@ export class CreateProfileUseCase
       return Notification.badRequest([
         {
           message: 'Profile already exists',
-          field: 'userId',
+          field: 'username',
         },
       ]);
     }
 
-    // update username
+    // 2. update username
     const usernameResult: Notification<User> =
       await this.userService.updateUsername(userId, username);
 
@@ -66,7 +65,7 @@ export class CreateProfileUseCase
       return Notification.internalError(usernameResult.errorMessage);
     }
 
-    // create profile
+    // 3. create profile
     let profile: Profile;
     try {
       profile = Profile.create(

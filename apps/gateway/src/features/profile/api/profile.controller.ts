@@ -1,8 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -17,9 +20,13 @@ import { Notification } from '../../../../base/notification/notification';
 import {
   BadRequestException,
   InternalServerErrorException,
+  NotFoundException,
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { ProfileQueryRepository } from '../infrastructure/profile.query-repository';
 import { ProfileOutputDto } from './dto/output/profile.output.dto';
+import { PostOutputDto } from '../../content/post/api/dto/output/post.output.dto';
+import { GetOneProfileDocs } from './swagger/get-one.profile.swagger';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @Controller('profile')
 export class ProfileController {
@@ -28,7 +35,9 @@ export class ProfileController {
     private readonly profileQueryRepository: ProfileQueryRepository,
   ) {}
 
+  // +
   @Post()
+  @ApiSecurity('refreshToken')
   @CreateProfileDocs()
   @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -36,14 +45,11 @@ export class ProfileController {
     @CurrentUserId() userId: number,
     @Body() dto: CreateProfileDto,
   ): Promise<ProfileOutputDto> {
-    // console.log('userId', userId);
-    // console.log('dto', dto);
     const createResult: Notification = await this.commandBus.execute(
       new CreateProfileCommand(
         userId,
         dto.username,
         dto.firstName,
-
         dto.lastName,
         dto.birthDate ? new Date(dto.birthDate) : undefined,
         dto.country,
@@ -52,9 +58,6 @@ export class ProfileController {
       ),
     );
 
-    // console.log('createResult', createResult);
-    // console.log('createResult.data', createResult.data);
-
     switch (createResult.status) {
       case ResultStatus.BadRequest:
         throw new BadRequestException(createResult.extensions);
@@ -62,9 +65,23 @@ export class ProfileController {
         throw new InternalServerErrorException();
     }
 
-    return this.profileQueryRepository.findById(
-      createResult.data,
-      dto.username,
-    );
+    return this.profileQueryRepository.findById(createResult.data);
+  }
+
+  // +
+  @Get(':id')
+  @GetOneProfileDocs()
+  @HttpCode(HttpStatus.OK)
+  async getOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ProfileOutputDto> {
+    const result: ProfileOutputDto =
+      await this.profileQueryRepository.findById(id);
+
+    if (!result) {
+      throw new NotFoundException(`Profile with id ${id} not found`);
+    }
+
+    return result;
   }
 }

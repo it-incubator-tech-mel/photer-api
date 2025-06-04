@@ -17,7 +17,7 @@ export class UserService {
         return Notification.badRequest([
           {
             message: 'User not found',
-            field: 'userId',
+            field: 'username',
           },
         ]);
       }
