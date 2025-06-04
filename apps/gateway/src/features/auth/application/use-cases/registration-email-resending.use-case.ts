@@ -6,11 +6,11 @@ import {
   ResultStatus,
 } from '../../../../../base/notification/notification';
 import { randomUUID } from 'crypto';
-import { User } from '../../domain/user.entity';
+import { User } from '../../../users/domain/user.entity';
 import { add } from 'date-fns';
 import { CommandHandler } from '@nestjs/cqrs/dist/decorators/command-handler.decorator';
 import { ICommandHandler } from '@nestjs/cqrs/dist/interfaces/commands/command-handler.interface';
-import { UserRepository } from '../../infrastructure/users.repository';
+import { UserRepository } from '../../../users/infrastructure/user.repository';
 
 export class RegistrationEmailResendingCommand {
   constructor(public readonly email: string) {}

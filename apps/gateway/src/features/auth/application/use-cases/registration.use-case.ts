@@ -1,11 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
 import { Notification } from '../../../../../base/notification/notification';
-import { User } from '../../domain/user.entity';
+import { User } from '../../../users/domain/user.entity';
 import { CoreConfig } from '../../../../core/config/core.config';
-import { UserRepository } from '../../infrastructure/users.repository';
+import { UserRepository } from '../../../users/infrastructure/user.repository';
 
 export class RegistrationUserCommand {
   constructor(

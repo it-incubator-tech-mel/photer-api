@@ -48,7 +48,7 @@ import { CurrentDeviceIat } from '../../../core/decorators/param-decorators/curr
 import { CurrentUserIdFromDevice } from '../../../core/decorators/param-decorators/current-user-id-from-device.decorator';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { AuthMeOutputDto } from './dto/output/auth-me.dto';
-import { UserQueryRepository } from '../infrastructure/users.query-repository';
+import { UserQueryRepository } from '../../users/infrastructure/user.query-repository';
 import { ReCaptchaService } from '../../../core/services/reCaptcha/reCaptcha.service';
 import { OAuthCommand } from '../application/use-cases/oauth.use-case';
 import { PasswordRecoveryResendingDto } from './dto/input/password-recovery-resending.dto';
@@ -56,7 +56,7 @@ import { PasswordRecoveryResendingCommand } from '../application/use-cases/passw
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { CurrentUser } from '../../../core/decorators/param-decorators/current-user.decorator';
 import { OAuthLoginGuard } from '../../../core/guards/oauth/oauth.guard';
-import { User } from '../domain/user.entity';
+import { User } from '../../users/domain/user.entity';
 import { RefreshTokenCommand } from '../application/use-cases/refresh-token.use-case';
 
 @UseGuards(ThrottlerGuard)

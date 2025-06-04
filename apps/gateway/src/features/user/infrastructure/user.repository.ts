@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { User } from '../domain/user.entity';
+import { IUserRepository } from './user.repository.interface';
 
 @Injectable()
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   constructor(private prisma: PrismaService) {}
 
   async create(user: User): Promise<void> {
@@ -29,6 +30,14 @@ export class UserRepository {
     });
   }
 
+  async findById(id: number): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { emailConfirmation: true },
+    });
+    return user ? this.mapToDomain(user) : null;
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
       where: { username },
@@ -46,12 +55,56 @@ export class UserRepository {
     return user ? this.mapToDomain(user) : null;
   }
 
-  async findById(id: number): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      include: { emailConfirmation: true },
+  async update(user: User): Promise<User> {
+    return this.prisma.$transaction(async (tx) => {
+      // Обновляем основную информацию пользователя
+      await tx.user.update({
+        where: { id: user.getId() },
+        data: {
+          username: user.getUsername(),
+          password: user.getPassword(),
+          updatedAt: new Date(),
+        },
+      });
+
+      // update email confirmation
+      await tx.emailConfirmation.upsert({
+        where: { userId: user.getId() },
+        update: {
+          confirmationCode: user.getConfirmationCode(),
+          expirationDate: user.getConfirmationExpiration(),
+          isConfirmed: user.isEmailConfirmed(),
+        },
+        create: {
+          userId: user.getId(),
+          confirmationCode: user.getConfirmationCode(),
+          expirationDate: user.getConfirmationExpiration(),
+          isConfirmed: user.isEmailConfirmed(),
+        },
+      });
+
+      // update password recovery
+      if (user.getRecoveryCode()) {
+        await tx.passwordRecovery.upsert({
+          where: { userId: user.getId() },
+          update: {
+            recoveryCode: user.getRecoveryCode(),
+            expirationDate: user.getRecoveryExpiration(),
+          },
+          create: {
+            userId: user.getId(),
+            recoveryCode: user.getRecoveryCode()!,
+            expirationDate: user.getRecoveryExpiration()!,
+          },
+        });
+      } else {
+        await tx.passwordRecovery.deleteMany({
+          where: { userId: user.getId() },
+        });
+      }
+
+      return this.findById(user.getId());
     });
-    return user ? this.mapToDomain(user) : null;
   }
 
   async findByConfirmationCode(confirmationCode: string): Promise<User | null> {

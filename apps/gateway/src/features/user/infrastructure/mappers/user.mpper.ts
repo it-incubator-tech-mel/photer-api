@@ -1,4 +1,4 @@
-import { AuthMeOutputDto } from '../../api/dto/output/auth-me.dto';
+import { AuthMeOutputDto } from '../../../auth/api/dto/output/auth-me.dto';
 
 export class UserMapper {
   static toAuthMeOutput(user): AuthMeOutputDto {

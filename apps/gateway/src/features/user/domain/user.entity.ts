@@ -69,6 +69,22 @@ export class User {
     );
   }
 
+  updateUsername(newUsername: string): boolean {
+    if (this.username === newUsername) return false;
+
+    if (newUsername.length < 3 || newUsername.length > 30) {
+      throw new Error('Invalid username length');
+    }
+
+    if (!/^[a-zA-Z0-9_-]*$/.test(newUsername)) {
+      throw new Error('Username contains invalid characters');
+    }
+
+    this.username = newUsername;
+    this.updatedAt = new Date();
+    return true;
+  }
+
   // getters
 
   getId(): number {

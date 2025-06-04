@@ -2,7 +2,7 @@ import { Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AuthController } from './api/auth.controller';
 import { RegistrationUseCase } from './application/use-cases/registration.use-case';
-import { UserRepository } from './infrastructure/users.repository';
+import { UserRepository } from '../users/infrastructure/user.repository';
 import { ConfirmRegistrationUseCase } from './application/use-cases/confirm-registration.use-case';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { RegistrationEmailResendingUseCase } from './application/use-cases/registration-email-resending.use-case';
@@ -19,7 +19,7 @@ import { LocalStrategy } from '../../core/strategies/local.strategy';
 import { AuthService } from './application/services/auth-service';
 import { PasswordRecoveryUseCase } from './application/use-cases/password-recovery.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
-import { UserQueryRepository } from './infrastructure/users.query-repository';
+import { UserQueryRepository } from '../users/infrastructure/user.query-repository';
 import { BearerStrategy } from '../../core/strategies/bearer.strategies';
 import { RefreshTokenStrategy } from '../../core/strategies/refresh-token.strategy';
 import { GoogleStrategy } from '../../core/strategies/google.strategy';
@@ -29,6 +29,7 @@ import { GitHubStrategy } from '../../core/strategies/github.strategy';
 import { PasswordRecoveryResendingUseCase } from './application/use-cases/password-recovery-resending.use-case';
 import { JwtStrategy } from '../../core/strategies/optional-jwt.strategies';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
+import { UserModule } from '../users/user.module';
 
 const useCases: Provider[] = [
   RegistrationUseCase,
@@ -68,6 +69,7 @@ const services: Provider[] = [AuthService, JwtTokenService];
     MailerModule,
     CryptoModule,
     ReCaptchaModule,
+    UserModule,
     JwtModule.registerAsync({
       useFactory: (jwtConfig: JwtConfig) => {
         const jwtSecret: string = jwtConfig.jwtSecret;

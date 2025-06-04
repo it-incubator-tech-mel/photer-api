@@ -7,7 +7,7 @@ import {
 } from '../../../../core/services/jwt/jwt-token.service';
 import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
 import { randomUUID } from 'crypto';
-import { User } from '../../domain/user.entity';
+import { User } from '../../../users/domain/user.entity';
 import { Device } from '../../../devices/domain/device.entity';
 
 export class OAuthCommand {
