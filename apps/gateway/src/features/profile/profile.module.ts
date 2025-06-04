@@ -3,8 +3,8 @@ import { ProfileController } from './api/profile.controller';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ProfileRepository } from './infrastructure/profile.repository';
 import { ProfileQueryRepository } from './infrastructure/profile.query-repository';
-import { UserModule } from '../users/user.module';
 import { CreateProfileUseCase } from './application/use-case/create-profile.use-case';
+import { UserModule } from '../user/user.module';
 
 const useCases: Provider[] = [CreateProfileUseCase];
 

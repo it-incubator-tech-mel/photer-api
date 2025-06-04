@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
 import { Notification } from '../../../../../base/notification/notification';
+import { DeviceRepository } from '../../../device/infrastructure/device.repository';
 
 export class LogoutCommand {
   constructor(

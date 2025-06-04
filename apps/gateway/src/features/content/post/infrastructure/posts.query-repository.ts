@@ -108,7 +108,6 @@ export class PostQueryRepository {
     return {
       id: post.id.toString(),
       description: post.description ?? '',
-      userId: post.userId,
       photos: post.photos.map((p) => p.photoUrl),
       userId: post.user.id.toString(),
       status: post.status === 'public',

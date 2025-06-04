@@ -1,9 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
-import { UserRepository } from '../../../users/infrastructure/user.repository';
 import { Notification } from '../../../../../base/notification/notification';
 import { NewPasswordDto } from '../../api/dto/input/new-password.dto';
-import { User } from '../../../users/domain/user.entity';
+import { User } from '../../../user/domain/user.entity';
+import { UserRepository } from '../../../user/infrastructure/user.repository';
 
 export class NewPasswordCommand {
   constructor(public readonly newPasswordDto: NewPasswordDto) {}

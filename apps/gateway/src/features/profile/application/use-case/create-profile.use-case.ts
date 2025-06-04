@@ -4,9 +4,9 @@ import {
   Notification,
   ResultStatus,
 } from '../../../../../base/notification/notification';
-import { User } from '../../../users/domain/user.entity';
-import { UserService } from '../../../users/application/services/user.service';
 import { Profile } from '../../domain/profile.entity';
+import { UserService } from '../../../user/application/services/user.service';
+import { User } from '../../../user/domain/user.entity';
 
 export class CreateProfileCommand {
   constructor(

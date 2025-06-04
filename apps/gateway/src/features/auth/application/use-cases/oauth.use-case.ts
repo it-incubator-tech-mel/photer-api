@@ -5,10 +5,10 @@ import {
   JwtTokenService,
   RefreshTokenPayload,
 } from '../../../../core/services/jwt/jwt-token.service';
-import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
 import { randomUUID } from 'crypto';
-import { User } from '../../../users/domain/user.entity';
-import { Device } from '../../../devices/domain/device.entity';
+import { User } from '../../../user/domain/user.entity';
+import { DeviceRepository } from '../../../device/infrastructure/device.repository';
+import { Device } from '../../../device/domain/device.entity';
 
 export class OAuthCommand {
   constructor(

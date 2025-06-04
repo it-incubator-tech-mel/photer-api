@@ -1,13 +1,13 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { DeviceRepository } from '../../../devices/infrastructure/device.repository';
 import { Notification } from '../../../../../base/notification/notification';
 import { randomUUID } from 'node:crypto';
-import { Device } from '../../../devices/domain/device.entity';
 import {
   AccessTokenPayload,
   JwtTokenService,
   RefreshTokenPayload,
 } from '../../../../core/services/jwt/jwt-token.service';
+import { DeviceRepository } from '../../../device/infrastructure/device.repository';
+import { Device } from '../../../device/domain/device.entity';
 
 export class LoginCommand {
   constructor(

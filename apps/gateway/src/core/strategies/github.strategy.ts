@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { ProviderType } from '@prisma/client';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
 import { AuthService } from '../../features/auth/application/services/auth-service';
-import { User } from '../../features/users/domain/user.entity';
+import { User } from '../../features/user/domain/user.entity';
 
 interface VerifyCallback {
   (error: any, user?: any, info?: any): void;

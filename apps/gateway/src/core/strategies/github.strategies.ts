@@ -4,11 +4,11 @@ import { Profile } from 'passport';
 import { Strategy } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
-import { UserRepository } from '../../features/users/infrastructure/user.repository';
-import { User } from '../../features/users/domain/user.entity';
 import { OAuthAccountRepository } from '../../features/auth/infrastructure/oauth-account.repository';
 import { AuthService } from '../../features/auth/application/services/auth-service';
 import { ProviderType } from '@prisma/client';
+import { UserRepository } from '../../features/user/infrastructure/user.repository';
+import { User } from '../../features/user/domain/user.entity';
 
 /**
  * 1) find user by email --> + -->  2) merge oAuthAccount (may exist or no, register by other method)

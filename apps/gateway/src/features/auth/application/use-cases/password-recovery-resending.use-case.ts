@@ -1,10 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../../users/infrastructure/user.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';
 import { CoreConfig } from '../../../../core/config/core.config';
 import { Notification } from '../../../../../base/notification/notification';
 import { passwordRecoveryEmailTemplate } from '../../../../core/services/mailler/email-templates/password-recovery-email-template';
-import { User } from '../../../users/domain/user.entity';
+import { User } from '../../../user/domain/user.entity';
+import { UserRepository } from '../../../user/infrastructure/user.repository';
 
 export class PasswordRecoveryResendingCommand {
   constructor(public readonly email: string) {}
