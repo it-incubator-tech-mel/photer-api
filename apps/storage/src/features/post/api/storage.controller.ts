@@ -20,11 +20,11 @@ export class StorageController {
     }[];
     userId: number;
   }) {
-    console.log(1);
     const dto: UploadFilesInputDto = plainToInstance(
       UploadFilesInputDto,
       payload,
     );
+
     const errors = await validate(dto);
     if (errors.length > 0) {
       throw new BadRequestException(errors);

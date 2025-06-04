@@ -4,7 +4,7 @@ import { Profile } from 'passport';
 import { Strategy } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '../exception-filters/exceptions/exception-types';
-import { User } from '../../features/auth/domain/user.entity';
+import { User } from '../../features/users/domain/user.entity';
 import { AuthService } from '../../features/auth/application/services/auth-service';
 import { ProviderType } from '@prisma/client';
 

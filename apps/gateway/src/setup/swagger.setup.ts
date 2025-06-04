@@ -30,5 +30,9 @@ export function swaggerSetup(app: INestApplication) {
   const document: OpenAPIObject = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(GLOBAL_PREFIX, app, document, {
     customSiteTitle: 'Photer Swagger',
+    swaggerOptions: {
+      defaultModelExpandDepth: 3,
+      defaultModelsExpandDepth: 3,
+    },
   });
 }

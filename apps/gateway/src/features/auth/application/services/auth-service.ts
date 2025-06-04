@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Notification } from '../../../../../base/notification/notification';
 import { CryptoService } from '../../../../core/services/crypto/crypto.service';
-import { User } from '../../domain/user.entity';
-import { UserRepository } from '../../infrastructure/users.repository';
+import { User } from '../../../users/domain/user.entity';
+import { UserRepository } from '../../../users/infrastructure/user.repository';
 import { ProviderType } from '@prisma/client';
 import { OAuthAccountRepository } from '../../infrastructure/oauth-account.repository';
 import { MailerService } from '../../../../core/services/mailler/mailer.service';

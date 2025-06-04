@@ -18,7 +18,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
     //    "paths": {
-    //      "@posts/*": ["apps/gateway/src/features/posts/*"],
+    //      "@post/*": ["apps/gateway/src/features/post/*"],
     //      "@storage/*": ["apps/storage/src/features/*"]
     //    }
   }
