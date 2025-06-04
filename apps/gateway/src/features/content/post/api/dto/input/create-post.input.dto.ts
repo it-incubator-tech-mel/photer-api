@@ -3,18 +3,6 @@ import { IsOptional, IsString, Length } from 'class-validator';
 import { Trim } from '../../../../../../core/decorators/trim';
 
 export class CreatePostDto {
-  // @ApiProperty({
-  //   type: 'array',
-  //   items: {
-  //     type: 'string',
-  //     format: 'binary',
-  //   },
-  //   description: 'Array of photos (JPEG/PNG only)',
-  //   minItems: 1,
-  //   maxItems: 10,
-  // })
-  // photos: Express.Multer.File[];
-
   @ApiProperty({
     description: 'Post description (optional)',
     required: false,
