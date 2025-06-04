@@ -43,18 +43,30 @@ export class CreateProfileUseCase
       aboutMe,
     } = command;
 
+    // 1. check profile already exists
+    const existingProfile: Profile =
+      await this.profileRepository.findByUserId(userId);
+
+    if (existingProfile) {
+      return Notification.badRequest([
+        {
+          message: 'Profile already exists',
+          field: 'userId',
+        },
+      ]);
+    }
+
+    // update username
     const usernameResult: Notification<User> =
       await this.userService.updateUsername(userId, username);
-    console.log('usernameResult1', usernameResult);
 
     if (usernameResult.status == ResultStatus.BadRequest) {
       return Notification.badRequest(usernameResult.extensions);
-    } else if (usernameResult.status !== ResultStatus.InternalError) {
+    } else if (usernameResult.status == ResultStatus.InternalError) {
       return Notification.internalError(usernameResult.errorMessage);
     }
 
-    console.log('before save profile');
-
+    // create profile
     let profile: Profile;
     try {
       profile = Profile.create(
@@ -67,11 +79,10 @@ export class CreateProfileUseCase
         aboutMe,
       );
 
-      await this.profileRepository.save(profile);
+      const savedProfile: Profile = await this.profileRepository.save(profile);
+      return Notification.success(savedProfile.getId());
     } catch (error) {
       return Notification.internalError('Failed to create profile');
     }
-
-    return Notification.success(profile.getId());
   }
 }

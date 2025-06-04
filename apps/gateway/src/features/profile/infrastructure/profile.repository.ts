@@ -6,9 +6,9 @@ import { Profile } from '../domain/profile.entity';
 export class ProfileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(profile: Profile): Promise<void> {
-    console.log('ProfileRepository save profile', profile);
-    await this.prisma.profile.upsert({
+  async save(profile: Profile): Promise<Profile> {
+    // console.log('ProfileRepository save profile', profile);
+    const savedProfile = await this.prisma.profile.upsert({
       where: { userId: profile.getUserId() },
       update: {
         firstName: profile.getFirstName(),
@@ -32,26 +32,50 @@ export class ProfileRepository {
         updatedAt: profile.getUpdatedAt(),
       },
     });
+
+    return this.mapToDomain(savedProfile);
   }
 
-  // async findByUserId(userId: number): Promise<Profile | null> {
-  //   const profileData = await this.prisma.profile.findUnique({
-  //     where: { userId },
+  // async create(profile: Profile): Promise<Profile> {
+  //   const createdProfile = await this.prisma.profile.create({
+  //     data: {
+  //       userId: profile.getUserId(),
+  //       firstName: profile.getFirstName(),
+  //       lastName: profile.getLastName(),
+  //       birthDate: profile.getBirthDate(),
+  //       country: profile.getCountry(),
+  //       city: profile.getCity(),
+  //       aboutMe: profile.getAboutMe(),
+  //       createdAt: profile.getCreatedAt(),
+  //       updatedAt: profile.getUpdatedAt(),
+  //     },
   //   });
   //
-  //   if (!profileData) return null;
-  //
-  //   return Profile.restore(
-  //     profileData.id,
-  //     profileData.userId,
-  //     profileData.firstName,
-  //     profileData.lastName,
-  //     profileData.createdAt,
-  //     profileData.updatedAt,
-  //     profileData.birthDate || undefined,
-  //     profileData.country || undefined,
-  //     profileData.city || undefined,
-  //     profileData.aboutMe || undefined,
-  //   );
+  //   return this.mapToDomain(createdProfile);
   // }
+
+  async findByUserId(userId: number): Promise<Profile | null> {
+    const profile = await this.prisma.profile.findUnique({
+      where: {
+        userId: userId,
+      },
+    });
+
+    return profile ? this.mapToDomain(profile) : null;
+  }
+
+  private mapToDomain(dbProfile: any): Profile {
+    return Profile.restore(
+      dbProfile.id,
+      dbProfile.userId,
+      dbProfile.firstName,
+      dbProfile.lastName,
+      dbProfile.createdAt,
+      dbProfile.updatedAt,
+      dbProfile.birthDate || undefined,
+      dbProfile.country || undefined,
+      dbProfile.city || undefined,
+      dbProfile.aboutMe || undefined,
+    );
+  }
 }
