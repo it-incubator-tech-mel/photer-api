@@ -54,6 +54,16 @@ export class ProfileRepository {
   //   return this.mapToDomain(createdProfile);
   // }
 
+  async findById(id: number): Promise<Profile | null> {
+    const profile = await this.prisma.profile.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    return profile ? this.mapToDomain(profile) : null;
+  }
+
   async findByUserId(userId: number): Promise<Profile | null> {
     const profile = await this.prisma.profile.findUnique({
       where: {

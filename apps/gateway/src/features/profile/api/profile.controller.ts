@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -19,14 +20,17 @@ import { ResultStatus } from '../../../../base/notification/notification';
 import { Notification } from '../../../../base/notification/notification';
 import {
   BadRequestException,
+  ForbiddenException,
   InternalServerErrorException,
   NotFoundException,
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { ProfileQueryRepository } from '../infrastructure/profile.query-repository';
 import { ProfileOutputDto } from './dto/output/profile.output.dto';
-import { PostOutputDto } from '../../content/post/api/dto/output/post.output.dto';
 import { GetOneProfileDocs } from './swagger/get-one.profile.swagger';
 import { ApiSecurity } from '@nestjs/swagger';
+import { UpdateProfileDocs } from './swagger/update.profile.swagger';
+import { UpdateProfileDto } from './dto/input/update-profile.input.dto';
+import { UpdateProfileCommand } from '../application/use-case/update-profile.use-case';
 
 @Controller('profile')
 export class ProfileController {
@@ -34,6 +38,23 @@ export class ProfileController {
     private readonly commandBus: CommandBus,
     private readonly profileQueryRepository: ProfileQueryRepository,
   ) {}
+
+  // +
+  @Get(':id')
+  @GetOneProfileDocs()
+  @HttpCode(HttpStatus.OK)
+  async getOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ProfileOutputDto> {
+    const result: ProfileOutputDto =
+      await this.profileQueryRepository.findById(id);
+
+    if (!result) {
+      throw new NotFoundException(`Profile with id ${id} not found`);
+    }
+
+    return result;
+  }
 
   // +
   @Post()
@@ -68,20 +89,45 @@ export class ProfileController {
     return this.profileQueryRepository.findById(createResult.data);
   }
 
-  // +
-  @Get(':id')
-  @GetOneProfileDocs()
-  @HttpCode(HttpStatus.OK)
-  async getOne(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<ProfileOutputDto> {
-    const result: ProfileOutputDto =
-      await this.profileQueryRepository.findById(id);
+  // !!!
+  @Patch(':id')
+  @ApiSecurity('refreshToken')
+  @UpdateProfileDocs()
+  @UseGuards(BearerAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async update(
+    @CurrentUserId() userId: number,
+    @Param('id', ParseIntPipe) profileId: number,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<void> {
+    const result: Notification = await this.commandBus.execute<
+      UpdateProfileCommand,
+      Notification
+    >(
+      new UpdateProfileCommand(
+        profileId,
+        userId,
+        dto.username,
+        dto.firstName,
+        dto.lastName,
+        dto.birthDate ? new Date(dto.birthDate) : undefined,
+        dto.country,
+        dto.city,
+        dto.aboutMe,
+      ),
+    );
 
-    if (!result) {
-      throw new NotFoundException(`Profile with id ${id} not found`);
+    switch (result.status) {
+      case ResultStatus.NotFound:
+        throw new NotFoundException(result.errorMessage);
+      case ResultStatus.Forbidden:
+        throw new ForbiddenException(result.errorMessage);
+      case ResultStatus.BadRequest:
+        throw new BadRequestException(result.extensions);
+      case ResultStatus.Success:
+        return;
+      default:
+        throw new InternalServerErrorException('Unexpected error');
     }
-
-    return result;
   }
 }

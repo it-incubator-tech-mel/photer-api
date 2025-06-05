@@ -62,22 +62,23 @@ export class Profile {
     );
   }
 
-  // update(
-  //   firstName: string,
-  //   lastName: string,
-  //   birthDate?: Date,
-  //   country?: string,
-  //   city?: string,
-  //   aboutMe?: string,
-  // ): void {
-  //   this.firstName = firstName;
-  //   this.lastName = lastName;
-  //   this.birthDate = birthDate;
-  //   this.country = country;
-  //   this.city = city;
-  //   this.aboutMe = aboutMe;
-  //   this.updatedAt = new Date();
-  // }
+  update(
+    firstName?: string,
+    lastName?: string,
+    birthDate?: Date,
+    country?: string,
+    city?: string,
+    aboutMe?: string,
+  ): void {
+    if (firstName !== undefined) this.firstName = firstName;
+    if (lastName !== undefined) this.lastName = lastName;
+    if (birthDate !== undefined) this.birthDate = birthDate;
+    if (country !== undefined) this.country = country;
+    if (city !== undefined) this.city = city;
+    if (aboutMe !== undefined) this.aboutMe = aboutMe;
+
+    this.updatedAt = new Date();
+  }
 
   // getters
 

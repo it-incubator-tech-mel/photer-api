@@ -4,9 +4,10 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { ProfileRepository } from './infrastructure/profile.repository';
 import { ProfileQueryRepository } from './infrastructure/profile.query-repository';
 import { CreateProfileUseCase } from './application/use-case/create-profile.use-case';
+import { UpdateProfileUseCase } from './application/use-case/update-profile.use-case';
 import { UserModule } from '../user/user.module';
 
-const useCases: Provider[] = [CreateProfileUseCase];
+const useCases: Provider[] = [CreateProfileUseCase, UpdateProfileUseCase];
 
 const repos: Provider[] = [ProfileRepository, ProfileQueryRepository];
 @Module({
