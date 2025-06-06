@@ -155,7 +155,7 @@ export class PostsController {
     @Param('id', new ParseIntPipe()) id: number,
     @CurrentUserId() userId: number,
   ): Promise<void> {
-    const result = await this.commandBus.execute(
+    const result: Notification = await this.commandBus.execute(
       new DeletePostCommand({
         postId: id,
         userId,
@@ -166,11 +166,11 @@ export class PostsController {
       case ResultStatus.Success:
         return;
       case ResultStatus.NotFound:
-        throw new NotFoundException(result.message);
+        throw new NotFoundException(result.errorMessage);
       case ResultStatus.Forbidden:
-        throw new ForbiddenException(result.message);
+        throw new ForbiddenException(result.errorMessage);
       default:
-        throw new InternalServerErrorException(result.message);
+        throw new InternalServerErrorException(result.errorMessage);
     }
   }
 
