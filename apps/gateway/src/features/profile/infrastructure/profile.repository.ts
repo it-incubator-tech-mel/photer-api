@@ -74,6 +74,12 @@ export class ProfileRepository {
     return profile ? this.mapToDomain(profile) : null;
   }
 
+  async softDelete(id: number): Promise<void> {
+    await this.prisma.profile.delete({
+      where: { id },
+    });
+  }
+
   private mapToDomain(dbProfile: any): Profile {
     return Profile.restore(
       dbProfile.id,

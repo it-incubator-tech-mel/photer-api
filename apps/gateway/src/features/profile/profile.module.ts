@@ -6,8 +6,13 @@ import { ProfileQueryRepository } from './infrastructure/profile.query-repositor
 import { CreateProfileUseCase } from './application/use-case/create-profile.use-case';
 import { UpdateProfileUseCase } from './application/use-case/update-profile.use-case';
 import { UserModule } from '../user/user.module';
+import { DeleteProfileUseCase } from './application/use-case/delete-profile.use-case';
 
-const useCases: Provider[] = [CreateProfileUseCase, UpdateProfileUseCase];
+const useCases: Provider[] = [
+  CreateProfileUseCase,
+  UpdateProfileUseCase,
+  DeleteProfileUseCase,
+];
 
 const repos: Provider[] = [ProfileRepository, ProfileQueryRepository];
 @Module({

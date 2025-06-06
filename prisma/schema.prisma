@@ -36,6 +36,7 @@ model Profile {
   avatarUrl String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  isDeleted Boolean   @default(false)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([country])

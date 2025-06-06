@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -31,6 +32,8 @@ import { ApiSecurity } from '@nestjs/swagger';
 import { UpdateProfileDocs } from './swagger/update.profile.swagger';
 import { UpdateProfileDto } from './dto/input/update-profile.input.dto';
 import { UpdateProfileCommand } from '../application/use-case/update-profile.use-case';
+import { DeleteProfileDocs } from './swagger/delete.profile.swagger';
+import { DeleteProfileCommand } from '../application/use-case/delete-profile.use-case';
 
 @Controller('profile')
 export class ProfileController {
@@ -89,7 +92,7 @@ export class ProfileController {
     return this.profileQueryRepository.findById(createResult.data);
   }
 
-  // !!!
+  // +
   @Patch(':id')
   @ApiSecurity('refreshToken')
   @UpdateProfileDocs()
@@ -128,6 +131,27 @@ export class ProfileController {
         return;
       default:
         throw new InternalServerErrorException('Unexpected error');
+    }
+  }
+
+  // +
+  @Delete()
+  @ApiSecurity('refreshToken')
+  @DeleteProfileDocs()
+  @UseGuards(BearerAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(@CurrentUserId() userId: number): Promise<void> {
+    const result: Notification = await this.commandBus.execute(
+      new DeleteProfileCommand(userId),
+    );
+
+    switch (result.status) {
+      case ResultStatus.Success:
+        return;
+      case ResultStatus.NotFound:
+        throw new NotFoundException(result.errorMessage);
+      default:
+        throw new InternalServerErrorException(result.errorMessage);
     }
   }
 }
