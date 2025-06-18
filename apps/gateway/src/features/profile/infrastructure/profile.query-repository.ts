@@ -38,8 +38,8 @@ export class ProfileQueryRepository {
       region: profile.region ?? null,
       birthDate: profile.birthDate ? profile.birthDate.toISOString() : null,
       aboutMe: profile.aboutMe ?? null,
-      avatars: this.getProfileAvatars(profile),
-      // avatars: ['https://example.com/avatar1.jpg'],
+      // avatars: this.getProfileAvatars(profile),
+      avatarUrl: profile.avatarUrl ?? null,
       createdAt: profile.createdAt.toISOString(),
       updatedAt: profile.updatedAt.toISOString(),
     };

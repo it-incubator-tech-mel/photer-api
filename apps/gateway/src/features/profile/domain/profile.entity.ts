@@ -10,6 +10,7 @@ export class Profile {
     private country?: string,
     private city?: string,
     private aboutMe?: string,
+    private avatarUrl?: string,
   ) {}
 
   static create(
@@ -33,6 +34,7 @@ export class Profile {
       country,
       city,
       aboutMe,
+      undefined,
     );
   }
 
@@ -47,6 +49,7 @@ export class Profile {
     country?: string,
     city?: string,
     aboutMe?: string,
+    avatarUrl?: string,
   ): Profile {
     return new Profile(
       id,
@@ -59,6 +62,7 @@ export class Profile {
       country,
       city,
       aboutMe,
+      avatarUrl,
     );
   }
 
@@ -78,6 +82,10 @@ export class Profile {
     if (aboutMe !== undefined) this.aboutMe = aboutMe;
 
     this.updatedAt = new Date();
+  }
+
+  updateAvatarUrl(avatarUrl?: string) {
+    if (avatarUrl !== undefined) this.avatarUrl = avatarUrl;
   }
 
   // getters
@@ -112,6 +120,10 @@ export class Profile {
 
   getAboutMe(): string | undefined {
     return this.aboutMe;
+  }
+
+  getAvatarUrl(): string | undefined {
+    return this.avatarUrl;
   }
 
   getCreatedAt(): Date {

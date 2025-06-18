@@ -7,16 +7,36 @@ import { CreateProfileUseCase } from './application/use-case/create-profile.use-
 import { UpdateProfileUseCase } from './application/use-case/update-profile.use-case';
 import { UserModule } from '../user/user.module';
 import { DeleteProfileUseCase } from './application/use-case/delete-profile.use-case';
+import { UploadAvatarUseCase } from './application/use-case/upload-avatar.use-case';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { StorageMicroserviceConfig } from '../../core/config/storage-microservice.config';
 
 const useCases: Provider[] = [
   CreateProfileUseCase,
   UpdateProfileUseCase,
   DeleteProfileUseCase,
+  UploadAvatarUseCase,
 ];
 
 const repos: Provider[] = [ProfileRepository, ProfileQueryRepository];
 @Module({
-  imports: [CqrsModule, UserModule],
+  imports: [
+    CqrsModule,
+    ClientsModule.registerAsync([
+      {
+        name: 'STORAGE_POST_SERVICE',
+        inject: [StorageMicroserviceConfig],
+        useFactory: (config: StorageMicroserviceConfig) => ({
+          transport: Transport.TCP,
+          options: {
+            host: config.tcpHost,
+            port: config.tcpPort,
+          },
+        }),
+      },
+    ]),
+    UserModule,
+  ],
   controllers: [ProfileController],
   providers: [...repos, ...useCases],
 })

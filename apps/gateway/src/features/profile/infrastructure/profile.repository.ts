@@ -17,6 +17,7 @@ export class ProfileRepository {
         country: profile.getCountry(),
         city: profile.getCity(),
         aboutMe: profile.getAboutMe(),
+        avatarUrl: profile.getAvatarUrl(),
         updatedAt: profile.getUpdatedAt(),
       },
       create: {
@@ -28,6 +29,7 @@ export class ProfileRepository {
         country: profile.getCountry(),
         city: profile.getCity(),
         aboutMe: profile.getAboutMe(),
+        avatarUrl: profile.getAvatarUrl(),
         createdAt: profile.getCreatedAt(),
         updatedAt: profile.getUpdatedAt(),
       },

@@ -44,7 +44,7 @@ import {
 } from '../../../../../base/notification/notification';
 import { OptionalJwtAuthGuard } from '../../../../core/guards/optional-jwt-auth.guard';
 import { BaseQueryParams } from '../../../../../base/dto/base-input-query-params/base.query-params';
-import { FileUploadInterceptor } from '../../../../core/interceptors/file-upload.interceptor';
+import { PostPhotosUploadInterceptor } from '../../../../core/interceptors/post-photos-upload.interceptor';
 import { OptionalUserId } from '../../../../core/decorators/param-decorators/current-user-optional-user-id.param.decorator';
 import { ApiSecurity } from '@nestjs/swagger';
 
@@ -82,7 +82,7 @@ export class PostsController {
   @Post()
   @ApiSecurity('refreshToken')
   @CreatePostDocs()
-  @UseInterceptors(FileUploadInterceptor)
+  @UseInterceptors(PostPhotosUploadInterceptor)
   @UseGuards(BearerAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async create(

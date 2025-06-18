@@ -19,11 +19,11 @@ import { memoryStorage } from 'multer';
  * - Filters by MIME types: JPEG/PNG only
  * * 3. In case of validation errors, it throws a Bad Request Exception.
  *
- * Usage: @UseInterceptors(FileUploadInterceptor) in the controller
+ * Usage: @UseInterceptors(PostPhotosUploadInterceptor) in the controller
  */
 
 @Injectable()
-export class FileUploadInterceptor implements NestInterceptor {
+export class PostPhotosUploadInterceptor implements NestInterceptor {
   private interceptor: NestInterceptor;
 
   constructor() {

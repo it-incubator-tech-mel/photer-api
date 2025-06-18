@@ -9,7 +9,9 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { CreateProfileDto } from './dto/input/create-profile.input.dto';
@@ -34,6 +36,10 @@ import { UpdateProfileDto } from './dto/input/update-profile.input.dto';
 import { UpdateProfileCommand } from '../application/use-case/update-profile.use-case';
 import { DeleteProfileDocs } from './swagger/delete.profile.swagger';
 import { DeleteProfileCommand } from '../application/use-case/delete-profile.use-case';
+import { UploadProfileAvatarDocs } from './swagger/upload.profile-avatar.swagger';
+import { UploadAvatarInterceptor } from './interceptors/upload-avatar.interceptor';
+import { UploadAvatarOutputDto } from './dto/output/upload-avatar.output.dto';
+import { UploadAvatarCommand } from '../application/use-case/upload-avatar.use-case';
 
 @Controller('profile')
 export class ProfileController {
@@ -153,5 +159,38 @@ export class ProfileController {
       default:
         throw new InternalServerErrorException(result.errorMessage);
     }
+  }
+
+  // -
+  @Post('avatar')
+  @ApiSecurity('refreshToken')
+  @UploadProfileAvatarDocs()
+  @UseInterceptors(UploadAvatarInterceptor)
+  @UseGuards(BearerAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  async uploadAvatar(
+    @CurrentUserId() userId: number,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<UploadAvatarOutputDto> {
+    if (!file) {
+      throw new BadRequestException([
+        {
+          field: 'avatar',
+          message: 'Avatar file is required',
+        },
+      ]);
+    }
+
+    const uploadResult: Notification<number | null> =
+      await this.commandBus.execute<
+        UploadAvatarCommand,
+        Notification<number | null>
+      >(new UploadAvatarCommand(userId, file));
+
+    console.log('uploadResult in controller', uploadResult);
+
+    return {
+      avatarUrl: 'https://amazon.s3.com/example.com',
+    };
   }
 }

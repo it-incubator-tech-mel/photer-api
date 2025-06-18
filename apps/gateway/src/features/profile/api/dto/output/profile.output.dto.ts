@@ -65,12 +65,12 @@ export class ProfileOutputDto {
     description: 'Array of profile photo URLs',
     type: [String],
     example: [
-      'https://storage.example.com/profiles/1/avatar_main.jpg',
+      'https://storage.example.com/1/avatar1.jpg',
       // 'https://storage.example.com/profiles/1/avatar_hiking.jpg',
     ],
     required: false,
   })
-  avatars: string[];
+  avatarUrl: string[];
 
   @ApiProperty({
     description: 'Profile creation timestamp',
