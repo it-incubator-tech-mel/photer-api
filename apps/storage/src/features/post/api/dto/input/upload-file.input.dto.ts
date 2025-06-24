@@ -4,13 +4,21 @@ import { IsBuffer } from '../../../../../core/validators/is-buffer.validator';
 
 class UploadFileDto {
   @IsBuffer()
-  buffer: Buffer;
+  buffer: { type: 'Buffer'; data: number[] };
 
   @IsNotEmpty()
   originalName: string;
 
   @IsMimeType()
   mimetype: string;
+}
+
+export class UploadFileInputDto {
+  @Type(() => UploadFileDto)
+  file: UploadFileDto;
+
+  @IsInt()
+  userId: number;
 }
 
 export class UploadFilesInputDto {

@@ -12,9 +12,10 @@ import {
 import { CoreConfig } from './config/core.config';
 import { StorageController } from './features/post/api/storage.controller';
 import { DeleteFilesUseCase } from './features/post/aplication/use-cases/delete-files.use-case';
+import { UploadAvatarUseCase } from './features/post/aplication/use-cases/upload-avatar.use-case';
 
 const services = [StorageService];
-const useCases = [UploadFilesUseCase, DeleteFilesUseCase];
+const useCases = [UploadFilesUseCase, DeleteFilesUseCase, UploadAvatarUseCase];
 const repos = [FileMetadataRepository];
 
 @Module({

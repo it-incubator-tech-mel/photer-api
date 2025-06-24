@@ -28,7 +28,7 @@ export class UploadAvatarInterceptor implements NestInterceptor {
   private interceptor: NestInterceptor;
 
   constructor() {
-    const InterceptorClass = FileInterceptor('avatar', {
+    const InterceptorClass = FileInterceptor('file', {
       storage: memoryStorage(),
       limits: {
         fileSize: 10 * 1024 * 1024, // 10Mb

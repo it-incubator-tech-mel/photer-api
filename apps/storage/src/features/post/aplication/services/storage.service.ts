@@ -33,8 +33,13 @@ export class StorageService {
     mimetype: string,
     userId: number,
     originalName: string,
+    folderName: string = 'files',
   ) {
-    const fileName: string = this.generateFileName(userId, originalName);
+    const fileName: string = this.generateFileName(
+      userId,
+      originalName,
+      folderName,
+    );
 
     const uploadParams = {
       Bucket: this.bucket,
@@ -65,9 +70,13 @@ export class StorageService {
     }
   }
 
-  private generateFileName(userId: number, originalName: string): string {
+  private generateFileName(
+    userId: number,
+    originalName: string,
+    folderName: string,
+  ): string {
     const extension: string = originalName.split('.').pop();
-    return `files/${userId}/${new Date().toISOString().split('T')[0]}/${Date.now()}-${Math.floor(Math.random() * 1000)}.${extension}`;
+    return `${folderName}/${userId}/${new Date().toISOString().split('T')[0]}/${Date.now()}-${Math.floor(Math.random() * 1000)}.${extension}`;
   }
 
   async deleteFile(key: string): Promise<void> {

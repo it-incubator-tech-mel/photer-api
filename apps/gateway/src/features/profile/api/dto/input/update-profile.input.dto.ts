@@ -1,10 +1,4 @@
-import {
-  IsDateString,
-  IsOptional,
-  Length,
-  Matches,
-  Validate,
-} from 'class-validator';
+import { IsOptional, Length, Matches, Validate } from 'class-validator';
 import { MinAge } from '../../../../../core/decorators/custom/min-age.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 

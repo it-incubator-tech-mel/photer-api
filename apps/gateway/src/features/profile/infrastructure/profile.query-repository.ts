@@ -20,8 +20,6 @@ export class ProfileQueryRepository {
 
     if (!profile) return null;
 
-    console.log('profile in repo', profile);
-
     const username: string = profile.user.username;
 
     return this.mapToOutput(profile, username);

@@ -24,12 +24,13 @@ export class UploadAvatarUseCase
   ) {}
   async execute(
     command: UploadAvatarCommand,
-  ): Promise<Notification<number | null>> {
-    console.log(command);
+  ): Promise<Notification<{ fileUrl: string } | null>> {
+    console.log('UploadAvatarCommand', command);
     const { userId, file } = command;
 
     try {
-      const profile: Profile = await this.profileRepository.findById(userId);
+      const profile: Profile =
+        await this.profileRepository.findByUserId(userId);
       // TODO: ???
       if (!profile) {
         return Notification.internalError('Profile does not exist');
@@ -59,10 +60,12 @@ export class UploadAvatarUseCase
 
       // save changes after update avatar url
       await this.profileRepository.save(profile);
+
+      return Notification.success({
+        fileUrl: profile.getAvatarUrl(),
+      });
     } catch (err) {
       console.log('UploadAvatarUseCase error', err);
     }
-
-    return Notification.success(2);
   }
 }

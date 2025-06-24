@@ -181,16 +181,16 @@ export class ProfileController {
       ]);
     }
 
-    const uploadResult: Notification<number | null> =
+    const uploadResult: Notification<{ fileUrl: string } | null> =
       await this.commandBus.execute<
         UploadAvatarCommand,
-        Notification<number | null>
+        Notification<{ fileUrl: string } | null>
       >(new UploadAvatarCommand(userId, file));
 
     console.log('uploadResult in controller', uploadResult);
 
     return {
-      avatarUrl: 'https://amazon.s3.com/example.com',
+      avatarUrl: uploadResult.data.fileUrl,
     };
   }
 }
