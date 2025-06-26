@@ -13,7 +13,7 @@ class UploadFileDto {
   mimetype: string;
 }
 
-export class UploadFileInputDto {
+export class UploadPostPhotoInputDto {
   @Type(() => UploadFileDto)
   file: UploadFileDto;
 

@@ -38,6 +38,18 @@ export class Profile {
     );
   }
 
+  static createBasic(userId: number) {
+    const now: Date = new Date();
+    return new Profile(
+      0,
+      userId,
+      '',
+      '',
+      now, // createdAt
+      now, // updatedAt
+    );
+  }
+
   static restore(
     id: number,
     userId: number,
@@ -85,7 +97,15 @@ export class Profile {
   }
 
   updateAvatarUrl(avatarUrl?: string) {
-    if (avatarUrl !== undefined) this.avatarUrl = avatarUrl;
+    if (avatarUrl !== undefined) {
+      this.avatarUrl = avatarUrl;
+      this.updatedAt = new Date();
+    }
+  }
+
+  deleteAvatar(): void {
+    this.avatarUrl = undefined;
+    this.updatedAt = new Date();
   }
 
   // getters

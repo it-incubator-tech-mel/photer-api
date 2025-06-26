@@ -1,7 +1,7 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema } from '@nestjs/mongoose';
 
 @Schema()
-export class AvatarMetadata {
+export class PhotoMetadataBase {
   @Prop({ required: true })
   fileLocation: string;
 
@@ -17,6 +17,3 @@ export class AvatarMetadata {
   @Prop({ default: false })
   isDeleted: boolean;
 }
-
-export const AvatarMetadataSchema =
-  SchemaFactory.createForClass(AvatarMetadata);

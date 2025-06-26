@@ -1,11 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { StorageService } from '../services/storage.service';
-import { FileMetadataRepository } from '../../infastructure/file-metadata.repository';
-import { FileMetadata } from '../../mongo.schemas/file-metadata.schema';
+import { StorageService } from '../../../common/services/storage.service';
+import { PostPhotoMetadataRepository } from '../../infastructure/post-photo.metadata.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { PostPhotoMetadata } from '../../mongo.schemas/post-photo-metadata.schema';
 
-export class UploadFilesCommand {
+export class UploadPostPhotoCommand {
   constructor(
     public readonly payload: {
       files: {
@@ -18,16 +18,18 @@ export class UploadFilesCommand {
   ) {}
 }
 
-@CommandHandler(UploadFilesCommand)
-export class UploadFilesUseCase implements ICommandHandler<UploadFilesCommand> {
+@CommandHandler(UploadPostPhotoCommand)
+export class UploadPostPhotoUseCase
+  implements ICommandHandler<UploadPostPhotoCommand>
+{
   constructor(
     private readonly storageService: StorageService,
-    @InjectModel(FileMetadata.name)
-    private readonly fileMetadataModel: Model<FileMetadata>,
-    private readonly fileMetadataRepository: FileMetadataRepository,
+    @InjectModel(PostPhotoMetadata.name)
+    private readonly fileMetadataModel: Model<PostPhotoMetadata>,
+    private readonly fileMetadataRepository: PostPhotoMetadataRepository,
   ) {}
 
-  async execute({ payload }: UploadFilesCommand) {
+  async execute({ payload }: UploadPostPhotoCommand) {
     const { files, userId } = payload;
 
     const locations = await Promise.all(

@@ -29,7 +29,6 @@ import { UpdatePostDocs } from './swagger/update.posts.swagger';
 import { DeletePostDocs } from './swagger/delete.posts.swagger';
 import { GetAllUserPostsDocs } from './swagger/get-user-posts.posts.swagger';
 import { BasePaginatedOutputDto } from '../../../../../base/dto/base-output-dto/base-paginated.output.dto';
-import { PostQueryParams } from '../../../../../../storage/src/features/post/api/query/get-all-posts.query';
 import {
   BadRequestException,
   ForbiddenException,
@@ -47,6 +46,7 @@ import { BaseQueryParams } from '../../../../../base/dto/base-input-query-params
 import { PostPhotosUploadInterceptor } from '../../../../core/interceptors/post-photos-upload.interceptor';
 import { OptionalUserId } from '../../../../core/decorators/param-decorators/current-user-optional-user-id.param.decorator';
 import { ApiSecurity } from '@nestjs/swagger';
+import { PostQueryParams } from './query/get-all-posts.query';
 
 @Controller('posts')
 export class PostsController {

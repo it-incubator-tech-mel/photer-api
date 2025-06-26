@@ -6,7 +6,7 @@ import {
   PutObjectCommandOutput,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { S3ClientConfig } from '../../../../config/s3-client.config';
+import { S3ClientConfig } from '../../../config/s3-client.config';
 
 @Injectable()
 export class StorageService {

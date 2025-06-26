@@ -1,9 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { StorageService } from '../services/storage.service';
-import { FileMetadataRepository } from '../../infastructure/file-metadata.repository';
+import { StorageService } from '../../../common/services/storage.service';
+import { PostPhotoMetadataRepository } from '../../infastructure/post-photo.metadata.repository';
 import { S3ClientConfig } from '../../../../config/s3-client.config';
 
-export class DeleteFilesCommand {
+export class DeletePostPhotoCommand {
   constructor(
     public readonly payload: {
       fileUrls: string[];
@@ -12,15 +12,17 @@ export class DeleteFilesCommand {
   ) {}
 }
 
-@CommandHandler(DeleteFilesCommand)
-export class DeleteFilesUseCase implements ICommandHandler<DeleteFilesCommand> {
+@CommandHandler(DeletePostPhotoCommand)
+export class DeletePostPhotoUseCase
+  implements ICommandHandler<DeletePostPhotoCommand>
+{
   constructor(
     private readonly storageService: StorageService,
-    private readonly fileMetadataRepository: FileMetadataRepository,
+    private readonly fileMetadataRepository: PostPhotoMetadataRepository,
     private readonly s3ClientConfig: S3ClientConfig,
   ) {}
 
-  async execute({ payload }: DeleteFilesCommand) {
+  async execute({ payload }: DeletePostPhotoCommand) {
     const { fileUrls, userId } = payload;
 
     // [
@@ -34,10 +36,11 @@ export class DeleteFilesUseCase implements ICommandHandler<DeleteFilesCommand> {
         this.storageService.deleteFile(this.extractKeyFromUrl(url)),
       ),
     );
-    await this.fileMetadataRepository.removeFilesByKeys(userId, fileUrls);
+    const { deletedCount } =
+      await this.fileMetadataRepository.removeFilesByKeys(userId, fileUrls);
 
     return {
-      deletedLength: fileUrls.length,
+      deletedLength: deletedCount,
     };
   }
 

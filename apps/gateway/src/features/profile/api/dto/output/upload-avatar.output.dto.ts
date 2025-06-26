@@ -6,5 +6,5 @@ export class UploadAvatarOutputDto {
     type: String,
     example: 'https://storage.example.com/1/avatar1.jpg',
   })
-  avatarUrl: string;
+  fileUrl: string;
 }

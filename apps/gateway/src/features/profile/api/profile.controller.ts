@@ -175,7 +175,7 @@ export class ProfileController {
     if (!file) {
       throw new BadRequestException([
         {
-          field: 'avatar',
+          field: 'file',
           message: 'Avatar file is required',
         },
       ]);
@@ -187,10 +187,8 @@ export class ProfileController {
         Notification<{ fileUrl: string } | null>
       >(new UploadAvatarCommand(userId, file));
 
-    console.log('uploadResult in controller', uploadResult);
-
     return {
-      avatarUrl: uploadResult.data.fileUrl,
+      fileUrl: uploadResult.data.fileUrl,
     };
   }
 }

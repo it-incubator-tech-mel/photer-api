@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { AvatarMetadata } from '../mongo.schemas/avatar-metadata.schema';
 
 @Injectable()
-export class avatarMetadataRepository {
+export class AvatarMetadataRepository {
   constructor(
     @InjectModel(AvatarMetadata.name)
     private avatarMetadataModel: Model<AvatarMetadata>,
@@ -14,10 +14,12 @@ export class avatarMetadataRepository {
     return this.avatarMetadataModel.create(avatarMetadata);
   }
 
-  async removeAvatarsByKeys(userId: number, keys: string[]) {
-    return this.avatarMetadataModel.updateMany(
-      { userId, fileLocation: { $in: keys } },
+  async removeAvatarByUrl(url: string): Promise<boolean> {
+    const result = await this.avatarMetadataModel.updateOne(
+      { fileLocation: url },
       { $set: { isDeleted: true } },
     );
+
+    return result.matchedCount === 1;
   }
 }

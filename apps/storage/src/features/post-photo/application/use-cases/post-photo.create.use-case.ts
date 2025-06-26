@@ -1,7 +1,7 @@
 // import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 // import { PutObjectCommand } from '@aws-sdk/client-s3';
 // import { Readable } from 'stream';
-// import { FileMetadataRepository } from '../infastructure/file-metadata.repository';
+// import { PostPhotoMetadataRepository } from '../infastructure/file-metadata.repository';
 // import { StorageService } from './services/storage.service';
 //
 // export class CreatePostCommand {
@@ -21,7 +21,7 @@
 // export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
 //   constructor(
 //     private readonly storageService: StorageService,
-//     private readonly postTcpRepository: FileMetadataRepository,
+//     private readonly postTcpRepository: PostPhotoMetadataRepository,
 //   ) {}
 //   async execute(command: CreatePostCommand) {
 //     const { files, userId } = command.payload;

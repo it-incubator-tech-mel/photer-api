@@ -1,10 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { StorageService } from '../services/storage.service';
-import { FileMetadataRepository } from '../../infastructure/file-metadata.repository';
-import { FileMetadata } from '../../mongo.schemas/file-metadata.schema';
+import { StorageService } from '../../../common/services/storage.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AvatarMetadata } from '../../mongo.schemas/avatar-metadata.schema';
+import { AvatarMetadataRepository } from '../../infrastructure/avatar-metadata.repository';
 
 export class UploadAvatarCommand {
   constructor(
@@ -25,13 +24,15 @@ export class UploadAvatarUseCase
 {
   constructor(
     private readonly storageService: StorageService,
-    @InjectModel(FileMetadata.name)
+    @InjectModel(AvatarMetadata.name)
     private readonly avatarMetadataModel: Model<AvatarMetadata>,
-    private readonly avatarMetadataRepository: FileMetadataRepository,
+    private readonly avatarMetadataRepository: AvatarMetadataRepository,
   ) {}
 
-  async execute({ payload }: UploadAvatarCommand) {
-    // console.log('UploadAvatarCommand payload', payload);
+  async execute({ payload }: UploadAvatarCommand): Promise<{
+    fileUrl: string;
+    userId: number;
+  }> {
     const { file, userId } = payload;
 
     const location: { key: string; location: string; etag: string } =
@@ -40,7 +41,7 @@ export class UploadAvatarUseCase
         file.mimetype,
         userId,
         file.originalName,
-        // 'avatars',
+        'avatars',
       );
 
     // location {
@@ -49,13 +50,9 @@ export class UploadAvatarUseCase
     // 		etag: '"355794d2934ea852195acbf72d27a610"'
     // }
 
-    // console.log('location', location);
-
-    await this.saveAvatarMetadata(location, userId);
+    await this.saveAvatarMetadataToDb(location, userId);
 
     const fileUrl: string = location.location;
-
-    // console.log('UploadAvatarCommand fileUrl', fileUrl);
 
     return {
       fileUrl,
@@ -63,7 +60,7 @@ export class UploadAvatarUseCase
     };
   }
 
-  async saveAvatarMetadata(
+  async saveAvatarMetadataToDb(
     avatarLocation: { location: string; key: string; etag: string },
     userId: number,
   ): Promise<void> {
