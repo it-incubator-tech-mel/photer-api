@@ -39,12 +39,12 @@ export class ProfileOutputDto {
   })
   country?: string;
 
-  @ApiProperty({
-    description: 'User region (state/province)',
-    example: 'Moscow Oblast',
-    required: false,
-  })
-  region?: string;
+  // @ApiProperty({
+  //   description: 'User region (state/province)',
+  //   example: 'Moscow Oblast',
+  //   required: false,
+  // })
+  // region?: string;
 
   @ApiProperty({
     description: 'User date of birth',

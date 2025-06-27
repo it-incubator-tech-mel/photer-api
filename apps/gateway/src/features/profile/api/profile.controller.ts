@@ -40,6 +40,7 @@ import { UploadProfileAvatarDocs } from './swagger/upload.profile-avatar.swagger
 import { UploadAvatarInterceptor } from './interceptors/upload-avatar.interceptor';
 import { UploadAvatarOutputDto } from './dto/output/upload-avatar.output.dto';
 import { UploadAvatarCommand } from '../application/use-case/upload-avatar.use-case';
+import { parseDateFromDdMmYyyy } from '../../../../base/utils/parse-date-from-DdMmYyyy';
 
 @Controller('profile')
 export class ProfileController {
@@ -119,7 +120,7 @@ export class ProfileController {
         dto.username,
         dto.firstName,
         dto.lastName,
-        dto.birthDate ? new Date(dto.birthDate) : undefined,
+        dto.birthDate ? parseDateFromDdMmYyyy(dto.birthDate) : undefined,
         dto.country,
         dto.city,
         dto.aboutMe,

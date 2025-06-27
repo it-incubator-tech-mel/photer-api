@@ -66,7 +66,6 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
 
       return Notification.success(savedPost.getId());
     } catch (err) {
-      console.log('CreatePostUseCase error', err);
       if (post) {
         await this.postRepository.softDelete(post.getId());
         // May add logic to delete files from storage

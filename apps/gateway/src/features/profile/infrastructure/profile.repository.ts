@@ -7,7 +7,6 @@ export class ProfileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(profile: Profile): Promise<Profile> {
-    // console.log('ProfileRepository save profile', profile);
     const savedProfile = await this.prisma.profile.upsert({
       where: { userId: profile.getUserId() },
       update: {
@@ -94,6 +93,7 @@ export class ProfileRepository {
       dbProfile.country || undefined,
       dbProfile.city || undefined,
       dbProfile.aboutMe || undefined,
+      dbProfile.avatarUrl || undefined,
     );
   }
 }

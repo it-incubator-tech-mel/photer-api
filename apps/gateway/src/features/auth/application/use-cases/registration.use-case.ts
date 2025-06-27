@@ -61,7 +61,7 @@ export class RegistrationUseCase
 
     const user: User = User.create(username, passwordHash, email);
     user.confirmEmail();
-    console.log('create user', user);
+
     await this.userRepository.create(user);
 
     // temp comment user confirmed

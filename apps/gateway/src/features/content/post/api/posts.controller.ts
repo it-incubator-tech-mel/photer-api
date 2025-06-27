@@ -185,7 +185,6 @@ export class PostsController {
     @Query() query: BaseQueryParams,
     @OptionalUserId() optionalUserId: number | null,
   ): Promise<BasePaginatedOutputDto<PostOutputDto[] | null>> {
-    // console.log('optionalUserId', optionalUserId);
     const posts: BasePaginatedOutputDto<PostOutputDto[] | null> =
       await this.postQueryRepository.findUserPosts(
         userId,

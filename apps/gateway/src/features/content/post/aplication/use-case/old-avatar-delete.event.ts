@@ -20,18 +20,20 @@ export class DeleteOldAvatarEventHandler
     const pattern = { cmd: 'delete_avatar' };
 
     try {
+      console.log('in event');
       const result: boolean = await firstValueFrom(
         this.storageProxyClient.send<boolean>(pattern, {
           fileUrl: event.oldAvatarUrl,
         }),
       );
-      console.log('Delete event result', result);
 
       if (!result) {
         console.log('Failed to delete avatar');
+        throw new Error('Failed to delete avatar');
       }
     } catch (error) {
       console.log('Deleting avatar error', error);
+      throw new Error('Deleting avatar error');
     }
   }
 }

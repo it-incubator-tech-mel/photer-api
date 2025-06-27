@@ -10,12 +10,14 @@ import { DeleteProfileUseCase } from './application/use-case/delete-profile.use-
 import { UploadAvatarUseCase } from './application/use-case/upload-avatar.use-case';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { StorageMicroserviceConfig } from '../../core/config/storage-microservice.config';
+import { DeleteOldAvatarEventHandler } from '../content/post/aplication/use-case/old-avatar-delete.event';
 
 const useCases: Provider[] = [
   CreateProfileUseCase,
   UpdateProfileUseCase,
   DeleteProfileUseCase,
   UploadAvatarUseCase,
+  DeleteOldAvatarEventHandler,
 ];
 
 const repos: Provider[] = [ProfileRepository, ProfileQueryRepository];
