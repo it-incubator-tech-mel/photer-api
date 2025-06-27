@@ -1,7 +1,8 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { ProfileRepository } from '../../infrastructure/profile.repository';
 import { Profile } from '../../domain/profile.entity';
 import { Notification } from '../../../../../base/notification/notification';
+import { DeleteOldAvatarEvent } from '../../../content/post/aplication/use-case/old-avatar-delete.event';
 
 export class DeleteProfileCommand {
   constructor(public readonly userId: number) {}
@@ -11,7 +12,10 @@ export class DeleteProfileCommand {
 export class DeleteProfileUseCase
   implements ICommandHandler<DeleteProfileCommand>
 {
-  constructor(private readonly profileRepository: ProfileRepository) {}
+  constructor(
+    private readonly profileRepository: ProfileRepository,
+    private readonly eventBus: EventBus,
+  ) {}
   async execute(command: DeleteProfileCommand): Promise<Notification> {
     const { userId } = command;
 
@@ -23,6 +27,8 @@ export class DeleteProfileUseCase
     }
 
     await this.profileRepository.softDelete(profile.getId());
+
+    this.eventBus.publish(new DeleteOldAvatarEvent(profile.getAvatarUrl()));
     return Notification.success();
   }
 }
