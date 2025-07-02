@@ -1,5 +1,43 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+class PostOwnerOutputDto {
+  @ApiProperty({
+    description: 'ID of the user who created the post',
+    example: '1',
+  })
+  userId: string;
+
+  @ApiProperty({
+    description: 'Username of the post owner',
+    example: 'alex123',
+  })
+  userName: string;
+
+  @ApiProperty({
+    description: 'First name of the post owner',
+    example: 'Alexander',
+    required: false,
+    nullable: true,
+  })
+  firstName: string | null;
+
+  @ApiProperty({
+    description: 'Last name of the post owner',
+    example: 'Ivanov',
+    required: false,
+    nullable: true,
+  })
+  lastName: string | null;
+
+  @ApiProperty({
+    description: 'Array of profile photo URLs',
+    example: 'https://storage.example.com/1/avatar1.jpg',
+    required: false,
+    nullable: true,
+  })
+  avatarUrl: string | null;
+}
+
 export class PostOutputDto {
   @ApiProperty({ description: 'Id of the post', example: '1' })
   id: string;
@@ -7,8 +45,10 @@ export class PostOutputDto {
   @ApiProperty({
     description: 'Description of the post',
     example: 'This is my first post',
+    required: false,
+    nullable: true,
   })
-  description: string;
+  description: string | null;
 
   @ApiProperty({
     description: 'Array of photo URLs',
@@ -21,10 +61,10 @@ export class PostOutputDto {
   photos: string[];
 
   @ApiProperty({
-    description: 'ID of the user who created the post',
-    example: 1,
+    description: 'Owner of the post',
+    type: () => PostOwnerOutputDto,
   })
-  userId: string;
+  owner: PostOwnerOutputDto;
 
   @ApiProperty({
     description: 'Post status: true = public, false = private',

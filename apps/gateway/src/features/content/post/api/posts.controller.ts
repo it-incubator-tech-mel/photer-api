@@ -174,7 +174,7 @@ export class PostsController {
     }
   }
 
-  // -
+  // +
   @Get('users/:id')
   @GetAllUserPostsDocs()
   @UseGuards(OptionalJwtAuthGuard)

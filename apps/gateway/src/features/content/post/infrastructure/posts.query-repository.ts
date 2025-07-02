@@ -51,6 +51,15 @@ export class PostQueryRepository {
         user: {
           select: {
             id: true,
+            username: true,
+            profile: {
+              where: { isDeleted: false },
+              select: {
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
+            },
           },
         },
       },
@@ -91,6 +100,15 @@ export class PostQueryRepository {
         user: {
           select: {
             id: true,
+            username: true,
+            profile: {
+              where: { isDeleted: false },
+              select: {
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
+            },
           },
         },
       },
@@ -107,9 +125,15 @@ export class PostQueryRepository {
   private mapToOutput(post: any): PostOutputDto {
     return {
       id: post.id.toString(),
-      description: post.description ?? '',
+      description: post.description ?? null,
       photos: post.photos.map((p) => p.photoUrl),
-      userId: post.user.id.toString(),
+      owner: {
+        userId: post.user.id.toString(),
+        userName: post.user.username,
+        firstName: post.user.profile?.firstName ?? null,
+        lastName: post.user.profile?.lastName ?? null,
+        avatarUrl: post.user.profile?.avatarUrl ?? null,
+      },
       status: post.status === 'public',
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
