@@ -25,6 +25,15 @@ export class PostQueryRepository {
         user: {
           select: {
             id: true,
+            username: true,
+            profile: {
+              where: { isDeleted: false },
+              select: {
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
+            },
           },
         },
       },

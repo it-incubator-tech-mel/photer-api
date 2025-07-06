@@ -29,7 +29,7 @@ import {
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { ProfileQueryRepository } from '../infrastructure/profile.query-repository';
 import { ProfileOutputDto } from './dto/output/profile.output.dto';
-import { GetOneProfileDocs } from './swagger/get-one.profile.swagger';
+import { GetByIdProfileDocs } from './swagger/get-by-id.profile.swagger';
 import { ApiSecurity } from '@nestjs/swagger';
 import { UpdateProfileDocs } from './swagger/update.profile.swagger';
 import { UpdateProfileDto } from './dto/input/update-profile.input.dto';
@@ -41,6 +41,7 @@ import { UploadAvatarInterceptor } from './interceptors/upload-avatar.intercepto
 import { UploadAvatarOutputDto } from './dto/output/upload-avatar.output.dto';
 import { UploadAvatarCommand } from '../application/use-case/upload-avatar.use-case';
 import { parseDateFromDdMmYyyy } from '../../../../base/utils/parse-date-from-DdMmYyyy';
+import { GetCurrentUserProfileDocs } from './swagger/get-current-user.profile.swagger';
 
 @Controller('profile')
 export class ProfileController {
@@ -49,11 +50,10 @@ export class ProfileController {
     private readonly profileQueryRepository: ProfileQueryRepository,
   ) {}
 
-  // +
   @Get(':id')
-  @GetOneProfileDocs()
+  @GetByIdProfileDocs()
   @HttpCode(HttpStatus.OK)
-  async getOne(
+  async getProfileById(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ProfileOutputDto> {
     const result: ProfileOutputDto =
@@ -66,7 +66,26 @@ export class ProfileController {
     return result;
   }
 
-  // +
+  @Get()
+  @ApiSecurity('refreshToken')
+  @GetCurrentUserProfileDocs()
+  @UseGuards(BearerAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getCurrentUserProfile(
+    @CurrentUserId() userId: number,
+  ): Promise<ProfileOutputDto> {
+    const result: ProfileOutputDto =
+      await this.profileQueryRepository.findByUserId(userId);
+
+    if (!result) {
+      throw new NotFoundException(
+        `Profile for user with id ${userId} not found`,
+      );
+    }
+
+    return result;
+  }
+
   @Post()
   @ApiSecurity('refreshToken')
   @CreateProfileDocs()
@@ -99,7 +118,6 @@ export class ProfileController {
     return this.profileQueryRepository.findById(createResult.data);
   }
 
-  // +
   @Patch(':id')
   @ApiSecurity('refreshToken')
   @UpdateProfileDocs()
@@ -141,7 +159,6 @@ export class ProfileController {
     }
   }
 
-  // +
   @Delete()
   @ApiSecurity('refreshToken')
   @DeleteProfileDocs()
@@ -162,7 +179,6 @@ export class ProfileController {
     }
   }
 
-  // -
   @Post('avatar')
   @ApiSecurity('refreshToken')
   @UploadProfileAvatarDocs()

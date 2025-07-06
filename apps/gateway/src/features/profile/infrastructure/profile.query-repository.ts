@@ -25,6 +25,25 @@ export class ProfileQueryRepository {
     return this.mapToOutput(profile, username);
   }
 
+  async findByUserId(userId: number): Promise<ProfileOutputDto> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!profile) return null;
+
+    const username: string = profile.user.username;
+
+    return this.mapToOutput(profile, username);
+  }
+
   private mapToOutput(profile: any, username: string): ProfileOutputDto {
     return {
       id: profile.id.toString(),
