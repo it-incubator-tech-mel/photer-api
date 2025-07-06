@@ -1,5 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+import { BasePaginatedOutputDto } from '../../../../../../base/dto/base-output-dto/base-paginated.output.dto';
+import { PostOutputDto } from '../dto/output/post.output.dto';
 
 export function GetAllUserPostsDocs() {
   return applyDecorators(
@@ -9,6 +11,23 @@ export function GetAllUserPostsDocs() {
     ApiResponse({
       status: 200,
       description: 'Success',
+      content: {
+        'application/json': {
+          schema: {
+            allOf: [
+              { $ref: getSchemaPath(BasePaginatedOutputDto) },
+              {
+                properties: {
+                  items: {
+                    type: 'array',
+                    items: { $ref: getSchemaPath(PostOutputDto) },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
     }),
     ApiResponse({
       status: 404,

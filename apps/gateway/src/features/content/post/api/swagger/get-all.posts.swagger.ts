@@ -6,7 +6,7 @@ import { BasePaginatedOutputDto } from '../../../../../../base/dto/base-output-d
 export function GetAllPostsDocs() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get all post',
+      summary: 'Get all posts',
     }),
     ApiResponse({
       status: 200,
@@ -25,30 +25,6 @@ export function GetAllPostsDocs() {
                 },
               },
             ],
-          },
-          examples: {
-            example1: {
-              value: {
-                items: [
-                  {
-                    id: '123',
-                    description: 'description',
-                    photos: [
-                      'https://cdn.example.com/posts/sunset-1.jpg',
-                      'https://cdn.example.com/posts/sunset-2.jpg',
-                    ],
-                    userId: '12',
-                    status: true,
-                    createdAt: '2024-05-20T14:32:15.123Z',
-                    updatedAt: '2024-05-20T14:32:15.123Z',
-                  },
-                ],
-                totalCount: 100,
-                pagesCount: 10,
-                page: 1,
-                pageSize: 10,
-              },
-            },
           },
         },
       },
