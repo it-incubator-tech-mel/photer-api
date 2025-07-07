@@ -24,6 +24,17 @@
         "webpack": true,
         "tsConfigPath": "apps/storage/tsconfig.app.json"
       }
+    },
+    "payments": {
+      "type": "application",
+      "root": "apps/payments",
+      "entryFile": "main",
+      "sourceRoot": "apps/payments/src",
+      "compilerOptions": {
+        "deleteOutDir": true,
+        "webpack": true,
+        "tsConfigPath": "apps/payments/tsconfig.app.json"
+      }
     }
   }
 }
