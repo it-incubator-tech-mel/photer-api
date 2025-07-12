@@ -6,6 +6,12 @@ export class ReCaptchaService {
   constructor(private captchaConfig: CaptchaConfig) {}
 
   async isValue(token: string): Promise<boolean> {
+    console.log('isValue token', token);
+    console.log(
+      'isValue this.captchaConfig.captchaSecret',
+      this.captchaConfig.captchaSecret,
+    );
+
     const result: Response = await fetch(
       'https://www.google.com/recaptcha/api/siteverify',
       {
