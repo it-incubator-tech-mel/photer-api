@@ -19,6 +19,8 @@ export class ReCaptchaService {
 
     const response: ReCaptchaResponse = await result.json();
 
+    console.log('isValue response result', response);
+
     if (!response.success) return false;
 
     return response.score >= 0.7;
