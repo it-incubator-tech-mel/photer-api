@@ -6,6 +6,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { PostsModule } from './features/content/post/posts.module';
 import { ProfileModule } from './features/profile/profile.module';
 import { DeviceModule } from './features/device/device.module';
+import { SubscriptionModule } from './features/subscription/subscription.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { DeviceModule } from './features/device/device.module';
     ProfileModule,
     DeviceModule,
     PostsModule,
+    SubscriptionModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {

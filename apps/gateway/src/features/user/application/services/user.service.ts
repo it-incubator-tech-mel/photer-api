@@ -50,4 +50,8 @@ export class UserService {
       return Notification.internalError('Failed to update username');
     }
   }
+
+  async upgradeToBusinessAccount(userId: number) {
+    await this.userRepository.updateUserAccountType(userId, 'BUSINESS');
+  }
 }
