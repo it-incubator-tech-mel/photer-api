@@ -1,6 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern } from '@nestjs/microservices';
-import { SubscriptionService } from '../application/subscription.service';
+import { ActivateSubscriptionCommand } from '../application/use-cases/activate-subscription.usecase';
+import { CommandBus } from '@nestjs/cqrs';
 
 export class SubscriptionActivatedEvent {
   constructor(
@@ -12,14 +13,16 @@ export class SubscriptionActivatedEvent {
 
 @Controller()
 export class SubscriptionListener {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
+  constructor(private readonly commandBus: CommandBus) {}
 
   @EventPattern('subscription_activated')
   async handleSubscriptionActivated(event: SubscriptionActivatedEvent) {
-    await this.subscriptionService.activateSubscription(
-      event.subscriptionId,
-      event.endDate,
-      event.externalId,
+    await this.commandBus.execute(
+      new ActivateSubscriptionCommand(
+        event.subscriptionId,
+        event.endDate,
+        event.externalId,
+      ),
     );
   }
 }

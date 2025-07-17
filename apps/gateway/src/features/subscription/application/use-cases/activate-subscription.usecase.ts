@@ -1,9 +1,14 @@
-// gateway/src/subscription/use-cases/activate-subscription.usecase.ts
 import { Injectable } from '@nestjs/common';
 import { SubscriptionRepository } from '../../infrastructure/subscription.repository';
 import { UserRepository } from '../../../user/infrastructure/user.repository';
 
-export class ActivateSubscriptionCommand {}
+export class ActivateSubscriptionCommand {
+  constructor(
+    public readonly subscriptionId: number,
+    public readonly endDate: Date,
+    public readonly externalId: string,
+  ) {}
+}
 
 @Injectable()
 export class ActivateSubscriptionUseCase {
@@ -12,18 +17,18 @@ export class ActivateSubscriptionUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(subscriptionId: number, endDate: Date, externalId: string) {
-    // Обновляем подписку
+  async execute(command: ActivateSubscriptionCommand) {
+    // update subscription
     const subscription = await this.subscriptionRepository.update(
-      subscriptionId,
+      command.subscriptionId,
       {
         status: 'ACTIVE',
-        validUntil: endDate,
-        externalId,
+        validUntil: command.endDate,
+        externalId: command.externalId,
       },
     );
 
-    // Обновляем пользователя
+    // update account type for user
     await this.userRepository.updateUserAccountType(
       subscription.userId,
       'BUSINESS',
