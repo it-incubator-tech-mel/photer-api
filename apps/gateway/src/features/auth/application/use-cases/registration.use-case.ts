@@ -5,6 +5,9 @@ import { Notification } from '../../../../../base/notification/notification';
 import { CoreConfig } from '../../../../core/config/core.config';
 import { UserRepository } from '../../../user/infrastructure/user.repository';
 import { User } from '../../../user/domain/user.entity';
+import {
+  registrationEmailTemplate
+} from '../../../../core/services/mailler/email-templates/registration-email-template';
 
 export class RegistrationUserCommand {
   constructor(
@@ -60,20 +63,17 @@ export class RegistrationUseCase
     );
 
     const user: User = User.create(username, passwordHash, email);
-    user.confirmEmail();
 
     await this.userRepository.create(user);
 
-    // temp comment user confirmed
-    // await this.mailerService.sendEmail(
-    //   user.getEmail(),
-    //   registrationEmailTemplate(
-    //     user.getConfirmationCode(),
-    //     this.coreConfig.baseUrl,
-    //   ),
-    //   'Registration Confirmation',
-    // );
-    //
+    await this.mailerService.sendEmail(
+      user.getEmail(),
+      registrationEmailTemplate(
+        user.getConfirmationCode(),
+        this.coreConfig.baseUrl,
+      ),
+      'Registration Confirmation',
+    );
 
     return Notification.success();
   }
