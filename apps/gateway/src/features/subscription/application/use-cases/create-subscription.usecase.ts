@@ -1,22 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { SubscriptionRepository } from '../../infrastructure/subscription.repository';
 import { SubscriptionPeriod } from '../../api/dto/create-subscription.dto';
 import { SubscriptionStatus, PaymentProvider } from '@prisma/client';
+import { ClientProxy } from '@nestjs/microservices';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class CreateSubscriptionCommand {
   constructor(
     public readonly userId: number,
     public readonly subscriptionPeriod: SubscriptionPeriod,
-    public readonly PaymentProvider: PaymentProvider,
+    public readonly paymentProvider: PaymentProvider,
     public readonly baseUrl: string,
   ) {}
 }
 
-@Injectable()
-export class CreateSubscriptionUseCase {
+@CommandHandler(CreateSubscriptionCommand)
+export class CreateSubscriptionUseCase
+  implements ICommandHandler<CreateSubscriptionCommand>
+{
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
-    // private readonly paymentsClient: PaymentsServiceClient,
+    @Inject('PAYMENTS_SERVICE') private readonly paymentsClient: ClientProxy,
   ) {}
 
   async execute(command: CreateSubscriptionCommand) {
@@ -34,25 +38,32 @@ export class CreateSubscriptionUseCase {
       status: SubscriptionStatus.PENDING,
       accountType: 'BUSINESS',
       autoRenewal: true,
-      paymentProvider: command.PaymentProvider,
+      paymentProvider: command.paymentProvider,
     });
 
     // define price
     const amount: number = this.getPriceByType(command.subscriptionPeriod);
 
     // create payment session
-    // const sessionUrl = await this.paymentsClient.createSubscriptionSession({
-    //   userId: command.userId.toString(),
-    //   amount,
-    //   currency: 'usd',
-    //   paymentType: command.paymentType,
-    //   baseUrl: command.baseUrl,
-    //   typeSubscription: command.subscriptionType,
-    //   subscriptionId: subscription.id.toString(),
-    // });
-
-    return 'https://my-site.com';
-    // return sessionUrl;
+    return new Promise<string>((resolve, reject) => {
+      this.paymentsClient
+        .send(
+          { cmd: 'create_payment_session' },
+          {
+            userId: command.userId.toString(),
+            amount,
+            currency: 'usd',
+            paymentProvider: command.paymentProvider,
+            baseUrl: command.baseUrl,
+            subscriptionPeriod: command.subscriptionPeriod,
+            subscriptionId: subscription.id.toString(),
+          },
+        )
+        .subscribe({
+          next: (url) => resolve(url),
+          error: (err) => reject(err),
+        });
+    });
   }
 
   private getPriceByType(type: string): number {

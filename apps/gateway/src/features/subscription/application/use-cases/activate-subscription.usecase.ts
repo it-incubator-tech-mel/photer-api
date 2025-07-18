@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { SubscriptionRepository } from '../../infrastructure/subscription.repository';
 import { UserRepository } from '../../../user/infrastructure/user.repository';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class ActivateSubscriptionCommand {
   constructor(
@@ -10,8 +10,10 @@ export class ActivateSubscriptionCommand {
   ) {}
 }
 
-@Injectable()
-export class ActivateSubscriptionUseCase {
+@CommandHandler(ActivateSubscriptionCommand)
+export class ActivateSubscriptionUseCase
+  implements ICommandHandler<ActivateSubscriptionCommand>
+{
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly userRepository: UserRepository,

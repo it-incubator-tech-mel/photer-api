@@ -1,3 +1,5 @@
+import { IsEnum, IsUrl } from 'class-validator';
+
 export enum SubscriptionPeriod {
   MONTHLY = 'MONTHLY',
   WEEKLY = 'WEEKLY',
@@ -10,7 +12,12 @@ export enum PaymentProvider {
 }
 
 export class CreateSubscriptionDto {
+  @IsEnum(SubscriptionPeriod)
   readonly subscriptionPeriod: SubscriptionPeriod;
+
+  @IsEnum(PaymentProvider)
   readonly paymentProvider: PaymentProvider;
+
+  @IsUrl()
   readonly baseUrl: string;
 }

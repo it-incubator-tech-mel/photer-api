@@ -1,8 +1,15 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { StripeController } from './payments.controller';
-import { PaymentsService } from './payments.service';
-import { ConfigModule } from '@nestjs/config';
-import { RawBodyMiddleware } from '../middleware/raw-body.middleware';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RabbitMQModule } from './infrastructure/rabbitmq/rabbitmq.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PaymentEntity } from './domain/payment.entity';
+import { SubscriptionEntity } from './domain/subscription.entity';
+import { StripeService } from './application/services/stripe.service';
+import { HandlePaymentHandler } from './application/use-cases/handle-payment.use-case';
+import { PaymentsController } from './api/payments.controller';
+import { PaymentsService } from './application/services/payments.service';
+import { CqrsModule } from '@nestjs/cqrs';
 
 @Module({
   imports: [
@@ -15,12 +22,22 @@ import { RawBodyMiddleware } from '../middleware/raw-body.middleware';
       ],
       isGlobal: true,
     }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        url: config.get('PAYMENTS_DB_URL'),
+        entities: [PaymentEntity, SubscriptionEntity],
+        synchronize: true,
+        logging: config.get('NODE_ENV') === 'development',
+      }),
+    }),
+    CqrsModule,
+    TypeOrmModule.forFeature([PaymentEntity, SubscriptionEntity]),
+    RabbitMQModule,
+    EventEmitterModule.forRoot(),
   ],
-  controllers: [StripeController],
-  providers: [PaymentsService],
+  controllers: [PaymentsController],
+  providers: [StripeService, PaymentsService, HandlePaymentHandler],
 })
-export class PaymentsModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RawBodyMiddleware).forRoutes('stripe/webhook');
-  }
-}
+export class PaymentsModule {}

@@ -1,23 +1,14 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UseGuards,
-  BadRequestException,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
-import { SubscriptionService } from '../application/subscription.service';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateSubscriptionCommand } from '../application/use-cases/create-subscription.usecase';
+import { BadRequestException } from '../../../core/exception-filters/exceptions/exception-types';
 
 @Controller('subscriptions')
 export class SubscriptionController {
-  constructor(
-    private readonly subscriptionService: SubscriptionService,
-    private readonly commandBus: CommandBus,
-  ) {}
+  constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
   @UseGuards(BearerAuthGuard)
@@ -37,7 +28,13 @@ export class SubscriptionController {
 
       return { url: sessionUrl };
     } catch (error) {
-      throw new BadRequestException(error.message);
+      console.log('createSubscription', error.message);
+      throw new BadRequestException([
+        {
+          field: 'paymentProvider',
+          message: 'Something went wrong when subscribing',
+        },
+      ]);
     }
   }
 }

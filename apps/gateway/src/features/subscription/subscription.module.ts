@@ -6,6 +6,8 @@ import { ActivateSubscriptionUseCase } from './application/use-cases/activate-su
 import { CreateSubscriptionUseCase } from './application/use-cases/create-subscription.usecase';
 import { UserModule } from '../user/user.module';
 import { CqrsModule } from '@nestjs/cqrs';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 const repos: Provider[] = [SubscriptionRepository];
 
@@ -15,7 +17,27 @@ const useCases: Provider[] = [
 ];
 
 @Module({
-  imports: [CqrsModule, UserModule],
+  imports: [
+    ClientsModule.registerAsync([
+      {
+        name: 'PAYMENTS_SERVICE',
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBITMQ_URL')],
+            queue: 'payments_queue',
+            queueOptions: {
+              durable: true,
+            },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
+    CqrsModule,
+    UserModule,
+  ],
   controllers: [SubscriptionController, SubscriptionListener],
   providers: [...repos, ...useCases],
   exports: [],
