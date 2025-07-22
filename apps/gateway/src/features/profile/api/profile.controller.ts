@@ -29,7 +29,7 @@ import {
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { ProfileQueryRepository } from '../infrastructure/profile.query-repository';
 import { ProfileOutputDto } from './dto/output/profile.output.dto';
-import { GetByIdProfileDocs } from './swagger/get-by-id.profile.swagger';
+import { GetByProfileIdDocs } from './swagger/get-by-profile-id.profile.swagger';
 import { ApiSecurity } from '@nestjs/swagger';
 import { UpdateProfileDocs } from './swagger/update.profile.swagger';
 import { UpdateProfileDto } from './dto/input/update-profile.input.dto';
@@ -42,6 +42,7 @@ import { UploadAvatarOutputDto } from './dto/output/upload-avatar.output.dto';
 import { UploadAvatarCommand } from '../application/use-case/upload-avatar.use-case';
 import { parseDateFromDdMmYyyy } from '../../../../base/utils/parse-date-from-DdMmYyyy';
 import { GetCurrentUserProfileDocs } from './swagger/get-current-user.profile.swagger';
+import { GetProfileByUserIdDocs } from './swagger/get-by-user-id.profile.swagger';
 
 @Controller('profile')
 export class ProfileController {
@@ -51,7 +52,7 @@ export class ProfileController {
   ) {}
 
   @Get(':id')
-  @GetByIdProfileDocs()
+  @GetByProfileIdDocs()
   @HttpCode(HttpStatus.OK)
   async getProfileById(
     @Param('id', ParseIntPipe) id: number,
@@ -80,6 +81,24 @@ export class ProfileController {
     if (!result) {
       throw new NotFoundException(
         `Profile for user with id ${userId} not found`,
+      );
+    }
+
+    return result;
+  }
+
+  @Get('user/:id')
+  @GetProfileByUserIdDocs()
+  @HttpCode(HttpStatus.OK)
+  async getProfileByUserId(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ProfileOutputDto> {
+    const result: ProfileOutputDto =
+      await this.profileQueryRepository.findByUserId(id);
+
+    if (!result) {
+      throw new NotFoundException(
+        `Profile for user with id ${id} not found`,
       );
     }
 
