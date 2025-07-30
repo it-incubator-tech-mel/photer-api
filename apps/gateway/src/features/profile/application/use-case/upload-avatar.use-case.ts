@@ -63,7 +63,6 @@ export class UploadAvatarUseCase
       profile.updateAvatarUrl(uploadResult.fileUrl);
       await this.profileRepository.save(profile);
 
-      console.log('oldAvatarUrl', oldAvatarUrl);
       if (oldAvatarUrl) {
         this.eventBus.publish(new DeleteOldAvatarEvent(oldAvatarUrl));
       }

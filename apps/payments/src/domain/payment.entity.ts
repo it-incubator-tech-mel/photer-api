@@ -14,7 +14,7 @@ export class PaymentEntity {
   id: string;
 
   @Column({ type: 'int' })
-  amount: number; // В центах
+  amount: number; // in cents
 
   @Column({ length: 3 })
   currency: string;

@@ -34,7 +34,6 @@ export class AvatarController {
 
   @MessagePattern({ cmd: 'delete_avatar' })
   async deleteAvatar(payload: DeleteAvatarInputDto) {
-    console.log('in deleteAvatar MessagePattern');
     // converts payload object into instance of the DeleteAvatarInputDto class
     const dto: DeleteAvatarInputDto = plainToInstance(
       DeleteAvatarInputDto,

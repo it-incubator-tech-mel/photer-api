@@ -4,7 +4,8 @@ import { ClientProxy } from '@nestjs/microservices';
 @Injectable()
 export class PaymentsService {
   constructor(
-    @Inject('PAYMENTS_SERVICE') private readonly client: ClientProxy,
+    @Inject('GATEWAY_SERVICE')
+    private readonly client: ClientProxy,
   ) {}
 
   async sendActivationEvent(

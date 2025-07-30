@@ -20,7 +20,6 @@ export class DeleteOldAvatarEventHandler
     const pattern = { cmd: 'delete_avatar' };
 
     try {
-      console.log('in event');
       const result: boolean = await firstValueFrom(
         this.storageProxyClient.send<boolean>(pattern, {
           fileUrl: event.oldAvatarUrl,

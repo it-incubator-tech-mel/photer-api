@@ -11,7 +11,7 @@ export enum PaymentProvider {
   PAYPAL = 'PAYPAL',
 }
 
-export class CreateSessionDto {
+export class CreateSessionInputDto {
   @IsString()
   userId: string;
 

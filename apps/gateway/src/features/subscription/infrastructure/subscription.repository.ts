@@ -15,25 +15,36 @@ export class SubscriptionRepository {
     return this.prisma.subscription.findFirst({
       where: {
         userId,
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
       },
     });
   }
 
-  async upsert(data: {
+  async findPendingByUserId(userId: number): Promise<Subscription | null> {
+    return this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: SubscriptionStatus.PENDING,
+      },
+    });
+  }
+
+  async create(data: {
     userId: number;
     status: SubscriptionStatus;
     accountType: AccountType;
     autoRenewal: boolean;
     paymentProvider: PaymentProvider;
+    externalId?: string | null;
   }): Promise<Subscription> {
-    return this.prisma.subscription.upsert({
-      where: { userId: data.userId },
-      create: data,
-      update: {
+    return this.prisma.subscription.create({
+      data: {
+        userId: data.userId,
         status: data.status,
+        accountType: data.accountType,
+        autoRenewal: data.autoRenewal,
         paymentProvider: data.paymentProvider,
-        validUntil: null,
+        externalId: data.externalId ?? null,
       },
     });
   }

@@ -1,9 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { SubscriptionRepository } from '../../infrastructure/subscription.repository';
-import { SubscriptionPeriod } from '../../api/dto/create-subscription.dto';
-import { SubscriptionStatus, PaymentProvider } from '@prisma/client';
+import { SubscriptionPeriod } from '../../api/dto/input/create-subscription.input.dto';
+import {
+  SubscriptionStatus,
+  PaymentProvider,
+  AccountType,
+} from '@prisma/client';
 import { ClientProxy } from '@nestjs/microservices';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Notification } from '../../../../../base/notification/notification';
 
 export class CreateSubscriptionCommand {
   constructor(
@@ -24,38 +29,46 @@ export class CreateSubscriptionUseCase
   ) {}
 
   async execute(command: CreateSubscriptionCommand) {
-    // check if active subscription exists
-    const existingSubscription =
-      await this.subscriptionRepository.findActiveByUserId(command.userId);
+    const { userId, subscriptionPeriod, paymentProvider, baseUrl } = command;
 
-    if (existingSubscription) {
-      throw new Error('User already has an active subscription');
+    // 1. Checking for an active subscription
+    const activeSubscription =
+      await this.subscriptionRepository.findActiveByUserId(userId);
+
+    if (activeSubscription) {
+      return Notification.conflict('User already has an active subscription');
     }
 
-    // create subscription status PENDING
-    const subscription = await this.subscriptionRepository.upsert({
-      userId: command.userId,
-      status: SubscriptionStatus.PENDING,
-      accountType: 'BUSINESS',
-      autoRenewal: true,
-      paymentProvider: command.paymentProvider,
-    });
+    // 2. Looking for an existing PENDING subscription (we will reuse it if there is one)
+    let subscription =
+      await this.subscriptionRepository.findPendingByUserId(userId);
 
-    // define price
-    const amount: number = this.getPriceByType(command.subscriptionPeriod);
+    if (!subscription) {
+      // 3. If not, create a new PENDING subscription.
+      subscription = await this.subscriptionRepository.create({
+        userId,
+        status: SubscriptionStatus.PENDING,
+        accountType: AccountType.BUSINESS,
+        autoRenewal: true,
+        paymentProvider,
+      });
+    }
 
-    // create payment session
-    return new Promise<string>((resolve, reject) => {
+    // 4. Calculating the price
+    const amount = this.getPriceByType(subscriptionPeriod);
+
+    // 5. Requesting a payment session
+    const sessionUrl = await new Promise<string>((resolve, reject) => {
       this.paymentsClient
         .send(
           { cmd: 'create_payment_session' },
           {
-            userId: command.userId.toString(),
+            userId: userId.toString(),
             amount,
             currency: 'usd',
-            paymentProvider: command.paymentProvider,
-            baseUrl: command.baseUrl,
-            subscriptionPeriod: command.subscriptionPeriod,
+            paymentProvider,
+            baseUrl,
+            subscriptionPeriod,
             subscriptionId: subscription.id.toString(),
           },
         )
@@ -64,10 +77,20 @@ export class CreateSubscriptionUseCase
           error: (err) => reject(err),
         });
     });
+
+    if (!sessionUrl) {
+      return Notification.conflict('User already has an active subscription');
+    }
+
+    return Notification.success(sessionUrl);
   }
 
   private getPriceByType(type: string): number {
-    const prices = { MONTHLY: 999, WEEKLY: 299, DAILY: 99 };
+    const prices = {
+      MONTHLY: 999,
+      WEEKLY: 299,
+      DAILY: 99,
+    };
     return prices[type] || prices.MONTHLY;
   }
 }

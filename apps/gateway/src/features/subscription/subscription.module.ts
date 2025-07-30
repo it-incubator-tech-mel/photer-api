@@ -18,6 +18,7 @@ const useCases: Provider[] = [
 
 @Module({
   imports: [
+    // Register hte producer for sending messages to the queue
     ClientsModule.registerAsync([
       {
         name: 'PAYMENTS_SERVICE',
@@ -27,14 +28,13 @@ const useCases: Provider[] = [
           options: {
             urls: [configService.get<string>('RABBITMQ_URL')],
             queue: 'payments_queue',
-            queueOptions: {
-              durable: true,
-            },
+            queueOptions: { durable: true },
           },
         }),
         inject: [ConfigService],
       },
     ]),
+
     CqrsModule,
     UserModule,
   ],

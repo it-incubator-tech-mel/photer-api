@@ -6,6 +6,7 @@ export enum ResultStatus {
   BadRequest = 'Bad Request',
   TooManyRequests = 'Too Many Requests',
   InternalError = 'Internal Error',
+  Conflict = 'Conflict',
 }
 
 export class Notification<T = null> {
@@ -71,6 +72,18 @@ export class Notification<T = null> {
   ): Notification<T> {
     return new Notification(
       ResultStatus.Forbidden,
+      null as any,
+      errorMessage,
+      extensions,
+    );
+  }
+
+  static conflict<T = null>(
+    errorMessage?: string,
+    extensions?: Array<{ field: string; message: string }>,
+  ): Notification<T> {
+    return new Notification(
+      ResultStatus.Conflict,
       null as any,
       errorMessage,
       extensions,

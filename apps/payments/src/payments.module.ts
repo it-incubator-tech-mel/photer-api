@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RabbitMQModule } from './infrastructure/rabbitmq/rabbitmq.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentEntity } from './domain/payment.entity';
@@ -10,6 +9,7 @@ import { HandlePaymentHandler } from './application/use-cases/handle-payment.use
 import { PaymentsController } from './api/payments.controller';
 import { PaymentsService } from './application/services/payments.service';
 import { CqrsModule } from '@nestjs/cqrs';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -34,7 +34,21 @@ import { CqrsModule } from '@nestjs/cqrs';
     }),
     CqrsModule,
     TypeOrmModule.forFeature([PaymentEntity, SubscriptionEntity]),
-    RabbitMQModule,
+    ClientsModule.registerAsync([
+      {
+        name: 'GATEWAY_SERVICE',
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBITMQ_URL')],
+            queue: 'gateway_queue',
+            queueOptions: { durable: true },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
     EventEmitterModule.forRoot(),
   ],
   controllers: [PaymentsController],

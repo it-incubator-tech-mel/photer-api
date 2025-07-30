@@ -1,21 +1,22 @@
-// raw-body.middleware.ts
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import * as bodyParser from 'body-parser';
 
 @Injectable()
 export class RawBodyMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: () => void) {
-    console.log('RawBodyMiddleware executed');
+  use(req: Request, res: Response, next: NextFunction) {
+    bodyParser.raw({ type: '*/*' })(req, res, (err) => {
+      if (err) {
+        console.error('[RawBodyMiddleware] Error:', err);
+        return next(err);
+      }
 
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk) => {
-      chunks.push(chunk);
-    });
+      // Сохраняем сырое тело
+      (req as any).rawBody = req.body;
 
-    req.on('end', () => {
-      const rawBody = Buffer.concat(chunks);
-      req['rawBody'] = rawBody;
-      console.log('Raw body stored:', rawBody.length, 'bytes');
+      // Очищаем req.body для избежания конфликтов
+      req.body = null;
+
       next();
     });
   }
