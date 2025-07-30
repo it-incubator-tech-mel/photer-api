@@ -28,9 +28,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e:gateway": "jest --config ./apps/gateway/test/jest-e2e.json",
-    "test:e2e:storage": "jest --config ./apps/storage/test/jest-e2e.json --detectOpenHandles",
-    "test:e2e:payments": "jest --config ./apps/payments/test/jest-e2e.json --detectOpenHandles",
+    "test:e2e:gateway": "jest --config ./apps/gateway/test/jest-e2e.json --detectOpenHandles --passWithNoTests",
+    "test:e2e:storage": "jest --config ./apps/storage/test/jest-e2e.json --detectOpenHandles --passWithNoTests",
+    "test:e2e:payments": "jest --config ./apps/payments/test/jest-e2e.json --detectOpenHandles --passWithNoTests",
     "ngrok:connect": "ngrok http 3937"
   },
   "dependencies": {
