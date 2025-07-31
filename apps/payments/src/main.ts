@@ -14,7 +14,7 @@ async function bootstrap() {
 
   // Only this route uses raw body (Buffer)
   app.use(
-    '/stripe/webhook',
+    '/api/v1/stripe/webhook',
     express.raw({
       type: 'application/json',
       verify: (req: any, res, buf: Buffer) => {
