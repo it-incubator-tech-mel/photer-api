@@ -39,6 +39,8 @@ async function bootstrap() {
     },
   });
 
+  app.setGlobalPrefix('api/v1');
+
   await app.startAllMicroservices();
   await app.listen(configService.get('PAYMENTS_TCP_PORT') || 3005);
   console.log(`✅ Payments service running on port ${await app.getUrl()}`);
