@@ -31,20 +31,26 @@ export class CreateSubscriptionUseCase
   async execute(command: CreateSubscriptionCommand) {
     const { userId, subscriptionPeriod, paymentProvider, baseUrl } = command;
 
-    // 1. Checking for an active subscription
     const activeSubscription =
       await this.subscriptionRepository.findActiveByUserId(userId);
 
-    if (activeSubscription) {
-      return Notification.conflict('User already has an active subscription');
+    // 1. Checking for an active subscription — disable autoRenewal
+    if (activeSubscription && activeSubscription.autoRenewal) {
+      await this.subscriptionRepository.update(activeSubscription.id, {
+        autoRenewal: false,
+      });
     }
 
     // 2. Looking for an existing PENDING subscription (we will reuse it if there is one)
     let subscription =
       await this.subscriptionRepository.findPendingByUserId(userId);
 
-    if (!subscription) {
-      // 3. If not, create a new PENDING subscription.
+    // 3. If not, create a new PENDING subscription.
+    if (subscription) {
+      await this.subscriptionRepository.update(subscription.id, {
+        updatedAt: new Date(),
+      });
+    } else {
       subscription = await this.subscriptionRepository.create({
         userId,
         status: SubscriptionStatus.PENDING,
@@ -78,6 +84,7 @@ export class CreateSubscriptionUseCase
         });
     });
 
+    // TODO: null
     if (!sessionUrl) {
       return Notification.conflict('User already has an active subscription');
     }

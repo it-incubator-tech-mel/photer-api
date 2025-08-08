@@ -8,11 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum AccountType {
-  PERSONAL
-  BUSINESS
-}
-
 model User {
   id                Int                @id @default(autoincrement())
   username          String             @db.VarChar(30)
@@ -21,14 +16,14 @@ model User {
   createdAt         DateTime           @default(now())
   isDeleted         Boolean            @default(false)
   updatedAt         DateTime           @updatedAt
+  accountType       AccountType        @default(PERSONAL)
   devices           Device[]
   emailConfirmation EmailConfirmation?
   providers         OAuthAccount[]
   passwordRecovery  PasswordRecovery?
   posts             Post[]
-  accountType       AccountType        @default(PERSONAL)
   profile           Profile?
-  subscription      Subscription?      @relation("UserSubscription")
+  subscriptions     Subscription[]     @relation("UserSubscription")
 }
 
 model Profile {
@@ -111,6 +106,28 @@ model Photo {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
+model Subscription {
+  id              Int                @id @default(autoincrement())
+  userId          Int
+  status          SubscriptionStatus @default(PENDING)
+  accountType     AccountType        @default(BUSINESS)
+  validUntil      DateTime?
+  autoRenewal     Boolean            @default(true)
+  paymentProvider PaymentProvider
+  externalId      String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  user            User               @relation("UserSubscription", fields: [userId], references: [id])
+
+  @@index([validUntil])
+  @@index([status])
+}
+
+enum AccountType {
+  PERSONAL
+  BUSINESS
+}
+
 enum ProviderType {
   GITHUB
   GOOGLE
@@ -131,22 +148,4 @@ enum SubscriptionStatus {
 enum PaymentProvider {
   STRIPE
   PAYPAL
-}
-
-model Subscription {
-  id                Int               @id @default(autoincrement())
-  userId            Int
-  user              User              @relation("UserSubscription", fields: [userId], references: [id])
-  status            SubscriptionStatus @default(PENDING)
-  accountType       AccountType       @default(BUSINESS)
-  validUntil        DateTime?
-  autoRenewal       Boolean           @default(true)
-  paymentProvider   PaymentProvider
-  externalId        String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-
-  @@unique([userId])
-  @@index([validUntil])
-  @@index([status])
 }

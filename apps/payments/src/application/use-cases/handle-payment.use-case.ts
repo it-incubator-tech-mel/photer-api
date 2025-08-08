@@ -26,21 +26,28 @@ export class HandlePaymentHandler
   async execute(command: HandlePaymentCommand) {
     const { dto } = command;
 
-    // Verification: is there already an active subscription with this SubscriptionId
+    // Subscription search by gatewaySubscriptionId
     const existing = await this.subscriptionRepo.findOne({
       where: { gatewaySubscriptionId: dto.subscriptionId },
       relations: ['payments'],
     });
 
-    // If it has already been created and is active, we don't do anything
+    // If the subscription is already active, we don't do anything.
     if (existing?.status === 'active') {
       return null;
     }
 
     try {
-      // If there is, we continue to use it
-      let subscription = existing;
-      if (!subscription) {
+      // Reuse logic: we reuse only if the pending status is
+      const reusableStatuses = ['pending'];
+      let subscription: SubscriptionEntity | null = null;
+
+      if (existing && reusableStatuses.includes(existing.status)) {
+        // Using an existing subscription
+        existing.updatedAt = new Date(new Date().toISOString());
+        subscription = await this.subscriptionRepo.save(existing);
+      } else {
+        // Creating a new subscription
         subscription = this.subscriptionRepo.create({
           userId: dto.userId,
           gatewaySubscriptionId: dto.subscriptionId,
@@ -49,10 +56,10 @@ export class HandlePaymentHandler
           status: 'pending',
           autoRenewal: true,
         });
-        await this.subscriptionRepo.save(subscription);
+        subscription = await this.subscriptionRepo.save(subscription);
       }
 
-      // Creating a payment (even if you already have a subscription)
+      // Creating a new payment
       const payment = this.paymentRepo.create({
         amount: dto.amount,
         currency: dto.currency,
@@ -62,7 +69,7 @@ export class HandlePaymentHandler
       });
       await this.paymentRepo.save(payment);
 
-      // Creating a payment session
+      // Creating a payment session depending on the provider
       switch (dto.paymentProvider) {
         case 'STRIPE':
           return await this.stripeService.createSubscriptionSession(dto);

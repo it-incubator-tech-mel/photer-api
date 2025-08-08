@@ -4,6 +4,7 @@ import {
   Column,
   OneToMany,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { PaymentEntity } from './payment.entity';
 
@@ -51,4 +52,7 @@ export class SubscriptionEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
