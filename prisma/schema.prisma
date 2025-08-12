@@ -47,6 +47,11 @@ model Profile {
   @@index([birthDate])
 }
 
+enum ProviderType {
+  GITHUB
+  GOOGLE
+}
+
 model OAuthAccount {
   id         Int          @id @default(autoincrement())
   userId     Int
@@ -83,6 +88,11 @@ model Device {
   exp        DateTime @default(now())
   isDeleted  Boolean  @default(false)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum PostStatusType {
+  private
+  public
 }
 
 model Post {
@@ -128,18 +138,9 @@ enum AccountType {
   BUSINESS
 }
 
-enum ProviderType {
-  GITHUB
-  GOOGLE
-}
-
-enum PostStatusType {
-  private
-  public
-}
-
 enum SubscriptionStatus {
   ACTIVE
+  UPCOMING
   PENDING
   EXPIRED
   CANCELED

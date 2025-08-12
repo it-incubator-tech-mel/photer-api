@@ -31,39 +31,55 @@ export class CreateSubscriptionUseCase
   async execute(command: CreateSubscriptionCommand) {
     const { userId, subscriptionPeriod, paymentProvider, baseUrl } = command;
 
-    const activeSubscription =
-      await this.subscriptionRepository.findActiveByUserId(userId);
+    const now = new Date();
 
-    // 1. Checking for an active subscription — disable autoRenewal
-    if (activeSubscription && activeSubscription.autoRenewal) {
-      await this.subscriptionRepository.update(activeSubscription.id, {
+    // 1. Find the latest subscription (any status)
+    const lastSubscription =
+      await this.subscriptionRepository.getLatest(userId);
+
+    // 2. Disable autoRenewal for the last subscription with autoRenewal = true
+    const lastAutoRenewSub =
+      await this.subscriptionRepository.findLastWithAutoRenewal(userId);
+    if (lastAutoRenewSub) {
+      await this.subscriptionRepository.update(lastAutoRenewSub.id, {
         autoRenewal: false,
       });
     }
 
-    // 2. Looking for an existing PENDING subscription (we will reuse it if there is one)
+    // 3. Try to re-use PENDING subscription
     let subscription =
       await this.subscriptionRepository.findPendingByUserId(userId);
 
-    // 3. If not, create a new PENDING subscription.
     if (subscription) {
       await this.subscriptionRepository.update(subscription.id, {
-        updatedAt: new Date(),
+        updatedAt: now,
       });
     } else {
+      // 4. Calculate start date
+      const startDate =
+        lastSubscription && lastSubscription.validUntil > now
+          ? lastSubscription.validUntil
+          : now;
+
+      // 5. Calculate validUntil
+      const validUntil = this.calculateValidUntil(
+        startDate,
+        subscriptionPeriod,
+      );
+
       subscription = await this.subscriptionRepository.create({
         userId,
         status: SubscriptionStatus.PENDING,
         accountType: AccountType.BUSINESS,
         autoRenewal: true,
         paymentProvider,
+        validUntil,
       });
     }
 
-    // 4. Calculating the price
+    // 6. Price and payment session
     const amount = this.getPriceByType(subscriptionPeriod);
 
-    // 5. Requesting a payment session
     const sessionUrl = await new Promise<string>((resolve, reject) => {
       this.paymentsClient
         .send(
@@ -84,14 +100,12 @@ export class CreateSubscriptionUseCase
         });
     });
 
-    // TODO: null
     if (!sessionUrl) {
       return Notification.conflict('User already has an active subscription');
     }
 
     return Notification.success(sessionUrl);
   }
-
   private getPriceByType(type: string): number {
     const prices = {
       MONTHLY: 999,
@@ -99,5 +113,25 @@ export class CreateSubscriptionUseCase
       DAILY: 99,
     };
     return prices[type] || prices.MONTHLY;
+  }
+
+  private calculateValidUntil(
+    startDate: Date,
+    subscriptionPeriod: SubscriptionPeriod,
+  ): Date {
+    const validUntil = new Date(startDate);
+    switch (subscriptionPeriod) {
+      case SubscriptionPeriod.DAILY:
+        validUntil.setDate(validUntil.getDate() + 1);
+        break;
+      case SubscriptionPeriod.WEEKLY:
+        validUntil.setDate(validUntil.getDate() + 7);
+        break;
+      case SubscriptionPeriod.MONTHLY:
+      default:
+        validUntil.setMonth(validUntil.getMonth() + 1);
+        break;
+    }
+    return validUntil;
   }
 }

@@ -11,12 +11,33 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class SubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findActiveByUserId(userId: number): Promise<Subscription | null> {
+  // async findActiveByUserId(userId: number): Promise<Subscription | null> {
+  //   return this.prisma.subscription.findFirst({
+  //     where: {
+  //       userId,
+  //       status: SubscriptionStatus.ACTIVE,
+  //     },
+  //   });
+  // }
+
+  async getLatest(userId: number): Promise<Subscription | null> {
+    return this.prisma.subscription.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findLastWithAutoRenewal(userId: number): Promise<Subscription | null> {
     return this.prisma.subscription.findFirst({
       where: {
         userId,
-        status: SubscriptionStatus.ACTIVE,
+        autoRenewal: true,
+        OR: [
+          { status: SubscriptionStatus.ACTIVE },
+          { status: SubscriptionStatus.UPCOMING },
+        ],
       },
+      orderBy: { validUntil: 'desc' },
     });
   }
 
@@ -35,6 +56,7 @@ export class SubscriptionRepository {
     accountType: AccountType;
     autoRenewal: boolean;
     paymentProvider: PaymentProvider;
+    validUntil?: Date | null;
     externalId?: string | null;
   }): Promise<Subscription> {
     return this.prisma.subscription.create({
@@ -44,6 +66,7 @@ export class SubscriptionRepository {
         accountType: data.accountType,
         autoRenewal: data.autoRenewal,
         paymentProvider: data.paymentProvider,
+        validUntil: data.validUntil ?? null,
         externalId: data.externalId ?? null,
       },
     });
