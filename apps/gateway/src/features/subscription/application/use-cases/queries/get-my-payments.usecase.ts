@@ -4,13 +4,13 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import { PaymentOutputDto } from '../../../api/dto/output/payment.output.dto';
 import { Notification } from '../../../../../../base/notification/notification';
-import { BaseQueryParams } from '../../../../../../../common/dto/base-input-query-params/base.query-params';
 import { BasePaginatedOutputDto } from '../../../../../../../common/dto/base-output-dto/base-paginated.output.dto';
+import { PaymentQueryParams } from '../../../api/dto/input/payment.query-params';
 
 export class GetMyPaymentsQuery {
   constructor(
     public readonly userId: number,
-    public readonly queryParams: BaseQueryParams,
+    public readonly queryParams: PaymentQueryParams,
   ) {}
 }
 

@@ -2,12 +2,12 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { BasePaginatedOutputDto } from '../../../../../common/dto/base-output-dto/base-paginated.output.dto';
 import { PaymentOutputDto } from '../../../api/dto/output/payment.output.dto';
 import { PaymentsQueryRepository } from '../../../infrastructure/repositories/payments.query-repository';
-import { BaseQueryParams } from '../../../../../common/dto/base-input-query-params/base.query-params';
+import { PaymentQueryParams } from '../../../api/dto/input/payment.query-params';
 
 export class GetMyPaymentsQuery {
   constructor(
     public readonly userId: string,
-    public readonly queryParams: BaseQueryParams,
+    public readonly queryParams: PaymentQueryParams,
   ) {}
 }
 

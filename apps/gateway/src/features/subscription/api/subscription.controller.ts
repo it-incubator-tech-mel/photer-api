@@ -15,6 +15,7 @@ import { PaymentOutputDto } from './dto/output/payment.output.dto';
 import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.usecase';
 import { BaseQueryParams } from '../../../../../common/dto/base-input-query-params/base.query-params';
 import { BasePaginatedOutputDto } from '../../../../../common/dto/base-output-dto/base-paginated.output.dto';
+import { PaymentQueryParams } from './dto/input/payment.query-params';
 
 @Controller('subscriptions')
 export class SubscriptionController {
@@ -55,7 +56,7 @@ export class SubscriptionController {
   @GetMyPaymentsDocs()
   @UseGuards(BearerAuthGuard)
   async getMyPayments(
-    @Query() query: BaseQueryParams,
+    @Query() query: PaymentQueryParams,
     @CurrentUserId() userId: number,
   ): Promise<BasePaginatedOutputDto<[PaymentOutputDto]>> {
     return this.queryBus.execute(new GetMyPaymentsQuery(userId, query));

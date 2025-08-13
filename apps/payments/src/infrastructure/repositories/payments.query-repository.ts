@@ -23,20 +23,22 @@ export class PaymentsQueryRepository {
   ): Promise<[PaymentEntity[], number]> {
     const { userId, skip, take, sortBy, sortDirection } = params;
 
-    const allowedSortFields: (keyof PaymentEntity)[] = ['createdAt', 'amount'];
-    const safeSortBy = allowedSortFields.includes(sortBy as keyof PaymentEntity)
-      ? sortBy
-      : 'createdAt';
+    const sortMapping: Record<string, string> = {
+      dateOfPayment: 'payment.createdAt',
+      endDateOfSubscription: 'subscription.currentPeriodEnd',
+    };
 
+    const safeSortBy = sortMapping[sortBy] || 'payment.createdAt';
     const safeSortDirection =
       sortDirection?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    return this.repo.findAndCount({
-      relations: ['subscription'],
-      where: { subscription: { userId: String(userId) } },
-      order: { [safeSortBy]: safeSortDirection },
-      skip,
-      take,
-    });
+    return this.repo
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.subscription', 'subscription')
+      .where('subscription.userId = :userId', { userId: String(userId) })
+      .orderBy(safeSortBy, safeSortDirection as 'ASC' | 'DESC')
+      .skip(skip)
+      .take(take)
+      .getManyAndCount();
   }
 }

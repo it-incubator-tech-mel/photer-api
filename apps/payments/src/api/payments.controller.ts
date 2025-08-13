@@ -13,6 +13,7 @@ import { BaseQueryParams } from '../../../common/dto/base-input-query-params/bas
 import { BasePaginatedOutputDto } from '../../../common/dto/base-output-dto/base-paginated.output.dto';
 import { PaymentOutputDto } from './dto/output/payment.output.dto';
 import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.use-case';
+import { PaymentQueryParams } from './dto/input/payment.query-params';
 
 interface RawBodyRequest extends Request {
   rawBody: Buffer;
@@ -75,7 +76,7 @@ export class PaymentsController {
 
   @MessagePattern({ cmd: 'get_my_payments' })
   async getMyPayments(
-    @Payload() payload: { userId: number } & BaseQueryParams,
+    @Payload() payload: { userId: number } & PaymentQueryParams,
   ): Promise<BasePaginatedOutputDto<PaymentOutputDto[]>> {
     const { userId, ...queryParams } = payload;
 
@@ -85,10 +86,13 @@ export class PaymentsController {
     // baseQueryParams.sortBy = queryParams.sortBy;
     // baseQueryParams.sortDirection = queryParams.sortDirection;
 
-    const baseQueryParams = Object.assign(new BaseQueryParams(), queryParams);
+    const paymentQueryParams = Object.assign(
+      new PaymentQueryParams(),
+      queryParams,
+    );
 
     return this.queryBus.execute(
-      new GetMyPaymentsQuery(String(userId), baseQueryParams),
+      new GetMyPaymentsQuery(String(userId), paymentQueryParams),
     );
   }
 }
