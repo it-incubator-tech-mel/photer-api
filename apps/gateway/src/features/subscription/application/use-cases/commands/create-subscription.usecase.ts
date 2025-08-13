@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { SubscriptionRepository } from '../../infrastructure/subscription.repository';
-import { SubscriptionPeriod } from '../../api/dto/input/create-subscription.input.dto';
+import { SubscriptionRepository } from '../../../infrastructure/subscription.repository';
+import { SubscriptionPeriod } from '../../../api/dto/input/create-subscription.input.dto';
 import {
   SubscriptionStatus,
   PaymentProvider,
@@ -8,7 +8,7 @@ import {
 } from '@prisma/client';
 import { ClientProxy } from '@nestjs/microservices';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Notification } from '../../../../../base/notification/notification';
+import { Notification } from '../../../../../../base/notification/notification';
 
 export class CreateSubscriptionCommand {
   constructor(

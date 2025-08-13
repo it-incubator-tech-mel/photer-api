@@ -1,5 +1,5 @@
-import { SubscriptionRepository } from '../../infrastructure/subscription.repository';
-import { UserRepository } from '../../../user/infrastructure/user.repository';
+import { SubscriptionRepository } from '../../../infrastructure/subscription.repository';
+import { UserRepository } from '../../../../user/infrastructure/user.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class ActivateSubscriptionCommand {

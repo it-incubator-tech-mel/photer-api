@@ -1,18 +1,18 @@
-import { StripeService } from '../services/stripe.service';
+import { StripeService } from '../../services/stripe.service';
 import { RpcException } from '@nestjs/microservices';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { SubscriptionEntity } from '../../domain/subscription.entity';
-import { PaymentEntity } from '../../domain/payment.entity';
-import { CreateSessionInputDto } from '../../api/dto/create-session.dto';
+import { SubscriptionEntity } from '../../../domain/subscription.entity';
+import { PaymentEntity } from '../../../domain/payment.entity';
+import { CreateSessionInputDto } from '../../../api/dto/input/create-session.input.dto';
 
 export class HandlePaymentCommand {
   constructor(public readonly dto: CreateSessionInputDto) {}
 }
 
 @CommandHandler(HandlePaymentCommand)
-export class HandlePaymentHandler
+export class HandlePaymentUseCase
   implements ICommandHandler<HandlePaymentCommand>
 {
   constructor(

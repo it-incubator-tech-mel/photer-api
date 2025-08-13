@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionEntity } from '../../domain/subscription.entity';
 import { Repository } from 'typeorm';
 import { PaymentEntity } from '../../domain/payment.entity';
-import { CreateSessionInputDto } from '../../api/dto/create-session.dto';
+import { CreateSessionInputDto } from '../../api/dto/input/create-session.input.dto';
 
 @Injectable()
 export class StripeService {

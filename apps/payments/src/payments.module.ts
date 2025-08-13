@@ -5,11 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentEntity } from './domain/payment.entity';
 import { SubscriptionEntity } from './domain/subscription.entity';
 import { StripeService } from './application/services/stripe.service';
-import { HandlePaymentHandler } from './application/use-cases/handle-payment.use-case';
 import { PaymentsController } from './api/payments.controller';
 import { PaymentsService } from './application/services/payments.service';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { PaymentsQueryRepository } from './infrastructure/repositories/payments.query-repository';
+import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.use-case';
 
 @Module({
   imports: [
@@ -52,6 +53,11 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     EventEmitterModule.forRoot(),
   ],
   controllers: [PaymentsController],
-  providers: [StripeService, PaymentsService, HandlePaymentHandler],
+  providers: [
+    StripeService,
+    PaymentsService,
+    GetMyPaymentsUseCase,
+    PaymentsQueryRepository,
+  ],
 })
 export class PaymentsModule {}

@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern } from '@nestjs/microservices';
-import { ActivateSubscriptionCommand } from '../application/use-cases/activate-subscription.usecase';
+import { ActivateSubscriptionCommand } from '../application/use-cases/commands/activate-subscription.usecase';
 import { CommandBus } from '@nestjs/cqrs';
 
 export class SubscriptionActivatedEvent {

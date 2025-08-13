@@ -1,14 +1,18 @@
 import { Controller, Headers, Get, Req, Post } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
   MessagePattern,
   Payload,
   Ctx,
   RmqContext,
 } from '@nestjs/microservices';
-import { CreateSessionInputDto } from './dto/create-session.dto';
-import { HandlePaymentCommand } from '../application/use-cases/handle-payment.use-case';
+import { CreateSessionInputDto } from './dto/input/create-session.input.dto';
+import { HandlePaymentCommand } from '../application/use-cases/commands/handle-payment.use-case';
 import { StripeService } from '../application/services/stripe.service';
+import { BaseQueryParams } from '../../../common/dto/base-input-query-params/base.query-params';
+import { BasePaginatedOutputDto } from '../../../common/dto/base-output-dto/base-paginated.output.dto';
+import { PaymentOutputDto } from './dto/output/payment.output.dto';
+import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.use-case';
 
 interface RawBodyRequest extends Request {
   rawBody: Buffer;
@@ -18,6 +22,7 @@ interface RawBodyRequest extends Request {
 export class PaymentsController {
   constructor(
     private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
     private readonly stripeService: StripeService,
   ) {}
 
@@ -66,5 +71,24 @@ export class PaymentsController {
     } catch (error: any) {
       throw new Error(`Webhook Error: ${error.message}`);
     }
+  }
+
+  @MessagePattern({ cmd: 'get_my_payments' })
+  async getMyPayments(
+    @Payload() payload: { userId: number } & BaseQueryParams,
+  ): Promise<BasePaginatedOutputDto<PaymentOutputDto[]>> {
+    const { userId, ...queryParams } = payload;
+
+    // const baseQueryParams = new BaseQueryParams();
+    // baseQueryParams.pageNumber = queryParams.pageNumber;
+    // baseQueryParams.pageSize = queryParams.pageSize;
+    // baseQueryParams.sortBy = queryParams.sortBy;
+    // baseQueryParams.sortDirection = queryParams.sortDirection;
+
+    const baseQueryParams = Object.assign(new BaseQueryParams(), queryParams);
+
+    return this.queryBus.execute(
+      new GetMyPaymentsQuery(String(userId), baseQueryParams),
+    );
   }
 }

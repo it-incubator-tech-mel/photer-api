@@ -1,19 +1,27 @@
-import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { CreateSubscriptionInputDto } from './dto/input/create-subscription.input.dto';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
-import { CommandBus } from '@nestjs/cqrs';
-import { CreateSubscriptionCommand } from '../application/use-cases/create-subscription.usecase';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreateSubscriptionCommand } from '../application/use-cases/commands/create-subscription.usecase';
 import {
   ConflictException,
   InternalServerErrorException,
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { CreateSubscriptionDocs } from './swagger/create.subscription.swagger';
 import { ResultStatus } from '../../../../base/notification/notification';
+import { GetMyPaymentsDocs } from './swagger/get.my-payments.swagger';
+import { PaymentOutputDto } from './dto/output/payment.output.dto';
+import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.usecase';
+import { BaseQueryParams } from '../../../../../common/dto/base-input-query-params/base.query-params';
+import { BasePaginatedOutputDto } from '../../../../../common/dto/base-output-dto/base-paginated.output.dto';
 
 @Controller('subscriptions')
 export class SubscriptionController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @Post()
   @CreateSubscriptionDocs()
@@ -41,5 +49,15 @@ export class SubscriptionController {
     }
 
     return { url: result.data };
+  }
+
+  @Get('my-payments')
+  @GetMyPaymentsDocs()
+  @UseGuards(BearerAuthGuard)
+  async getMyPayments(
+    @Query() query: BaseQueryParams,
+    @CurrentUserId() userId: number,
+  ): Promise<BasePaginatedOutputDto<[PaymentOutputDto]>> {
+    return this.queryBus.execute(new GetMyPaymentsQuery(userId, query));
   }
 }

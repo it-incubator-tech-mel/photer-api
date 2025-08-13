@@ -2,18 +2,20 @@ import { Module, Provider } from '@nestjs/common';
 import { SubscriptionRepository } from './infrastructure/subscription.repository';
 import { SubscriptionController } from './api/subscription.controller';
 import { SubscriptionListener } from './api/subscription.listener';
-import { ActivateSubscriptionUseCase } from './application/use-cases/activate-subscription.usecase';
-import { CreateSubscriptionUseCase } from './application/use-cases/create-subscription.usecase';
+import { ActivateSubscriptionUseCase } from './application/use-cases/commands/activate-subscription.usecase';
+import { CreateSubscriptionUseCase } from './application/use-cases/commands/create-subscription.usecase';
 import { UserModule } from '../user/user.module';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.usecase';
 
 const repos: Provider[] = [SubscriptionRepository];
 
 const useCases: Provider[] = [
   CreateSubscriptionUseCase,
   ActivateSubscriptionUseCase,
+  GetMyPaymentsUseCase,
 ];
 
 @Module({
@@ -34,7 +36,6 @@ const useCases: Provider[] = [
         inject: [ConfigService],
       },
     ]),
-
     CqrsModule,
     UserModule,
   ],
