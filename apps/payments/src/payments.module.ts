@@ -11,6 +11,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PaymentsQueryRepository } from './infrastructure/repositories/payments.query-repository';
 import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.use-case';
+import { HandlePaymentUseCase } from './application/use-cases/commands/handle-payment.use-case';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-pay
     StripeService,
     PaymentsService,
     GetMyPaymentsUseCase,
+    HandlePaymentUseCase,
     PaymentsQueryRepository,
   ],
 })
