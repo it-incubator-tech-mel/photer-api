@@ -8,14 +8,17 @@ import { UserModule } from '../user/user.module';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.usecase';
+import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.use-case';
+import { GetMySubscriptionsUseCase } from './application/use-cases/queries/get-my-subscriptions.use-case';
+import { SubscriptionQueryRepository } from './infrastructure/subscription.query-repository';
 
-const repos: Provider[] = [SubscriptionRepository];
+const repos: Provider[] = [SubscriptionRepository, SubscriptionQueryRepository];
 
 const useCases: Provider[] = [
   CreateSubscriptionUseCase,
   ActivateSubscriptionUseCase,
   GetMyPaymentsUseCase,
+  GetMySubscriptionsUseCase,
 ];
 
 @Module({

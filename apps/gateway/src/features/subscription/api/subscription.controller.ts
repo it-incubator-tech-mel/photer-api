@@ -12,10 +12,13 @@ import { CreateSubscriptionDocs } from './swagger/create.subscription.swagger';
 import { ResultStatus } from '../../../../base/notification/notification';
 import { GetMyPaymentsDocs } from './swagger/get.my-payments.swagger';
 import { PaymentOutputDto } from './dto/output/payment.output.dto';
-import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.usecase';
-import { BaseQueryParams } from '../../../../../common/dto/base-input-query-params/base.query-params';
+import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.use-case';
 import { BasePaginatedOutputDto } from '../../../../../common/dto/base-output-dto/base-paginated.output.dto';
 import { PaymentQueryParams } from './dto/input/payment.query-params';
+import { SubscriptionQueryParams } from './dto/input/subscription.query-params';
+import { SubscriptionOutputDto } from './dto/output/subscription.output.dto';
+import { GetMySubscriptionsDocs } from './swagger/get.my-subscriptions.swagger';
+import { GetUserSubscriptionsQuery } from '../application/use-cases/queries/get-my-subscriptions.use-case';
 
 @Controller('subscriptions')
 export class SubscriptionController {
@@ -60,5 +63,17 @@ export class SubscriptionController {
     @CurrentUserId() userId: number,
   ): Promise<BasePaginatedOutputDto<[PaymentOutputDto]>> {
     return this.queryBus.execute(new GetMyPaymentsQuery(userId, query));
+  }
+
+  @Get()
+  @GetMySubscriptionsDocs()
+  @UseGuards(BearerAuthGuard)
+  async getMySubscriptions(
+    @Query() query: SubscriptionQueryParams,
+    @CurrentUserId() userId: number,
+  ): Promise<BasePaginatedOutputDto<SubscriptionOutputDto[]>> {
+    return this.queryBus.execute(
+      new GetUserSubscriptionsQuery({ ...query, userId }),
+    );
   }
 }
