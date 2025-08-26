@@ -9,11 +9,12 @@ import {
 import { CreateSessionInputDto } from './dto/input/create-session.input.dto';
 import { HandlePaymentCommand } from '../application/use-cases/commands/handle-payment.use-case';
 import { StripeService } from '../application/services/stripe.service';
-import { BaseQueryParams } from '../../../common/dto/base-input-query-params/base.query-params';
 import { BasePaginatedOutputDto } from '../../../common/dto/base-output-dto/base-paginated.output.dto';
 import { PaymentOutputDto } from './dto/output/payment.output.dto';
 import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.use-case';
 import { PaymentQueryParams } from './dto/input/payment.query-params';
+import { DisableAutoRenewalInputDto } from './dto/input/disable-auto-renewal.input.dto';
+import { DisableAutoRenewalCommand } from '../application/use-cases/commands/disable-auto-renewal.use-case';
 
 interface RawBodyRequest extends Request {
   rawBody: Buffer;
@@ -94,5 +95,15 @@ export class PaymentsController {
     return this.queryBus.execute(
       new GetMyPaymentsQuery(String(userId), paymentQueryParams),
     );
+  }
+
+  @MessagePattern({ cmd: 'disable_auto_renewal' })
+  async disableAutoRenewal(
+    @Payload()
+    payload: DisableAutoRenewalInputDto,
+  ): Promise<boolean> {
+    console.log('payload', payload);
+
+    return this.commandBus.execute(new DisableAutoRenewalCommand(payload));
   }
 }

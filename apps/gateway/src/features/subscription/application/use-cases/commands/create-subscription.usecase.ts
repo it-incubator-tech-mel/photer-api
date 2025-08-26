@@ -9,6 +9,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Notification } from '../../../../../../base/notification/notification';
+import { lastValueFrom } from 'rxjs';
 
 export class CreateSubscriptionCommand {
   constructor(
@@ -41,6 +42,35 @@ export class CreateSubscriptionUseCase
     const lastAutoRenewSub =
       await this.subscriptionRepository.findLastWithAutoRenewal(userId);
     if (lastAutoRenewSub) {
+      // const isDisabled = await new Promise<string>((resolve, reject) => {
+      //   this.paymentsClient
+      //     .send(
+      //       { cmd: 'disable_auto_renewal' },
+      //       {
+      //         gatewaySubscriptionId: lastAutoRenewSub.id,
+      //         externalSubscriptionId: lastAutoRenewSub.externalId,
+      //       },
+      //     )
+      //     .subscribe({
+      //       next: (url) => resolve(url),
+      //       error: (err) => reject(err),
+      //     });
+      // });
+
+      const isDisabled = await lastValueFrom(
+        this.paymentsClient.send<boolean>(
+          { cmd: 'disable_auto_renewal' },
+          {
+            gatewaySubscriptionId: lastAutoRenewSub.id,
+            externalSubscriptionId: lastAutoRenewSub.externalId,
+          },
+        ),
+      );
+
+      if (!isDisabled) {
+        return Notification.internalError('');
+      }
+
       await this.subscriptionRepository.update(lastAutoRenewSub.id, {
         autoRenewal: false,
       });

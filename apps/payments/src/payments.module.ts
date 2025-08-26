@@ -12,6 +12,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PaymentsQueryRepository } from './infrastructure/repositories/payments.query-repository';
 import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.use-case';
 import { HandlePaymentUseCase } from './application/use-cases/commands/handle-payment.use-case';
+import { DisableAutoRenewalUseCase } from './application/use-cases/commands/disable-auto-renewal.use-case';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { HandlePaymentUseCase } from './application/use-cases/commands/handle-pa
     PaymentsService,
     GetMyPaymentsUseCase,
     HandlePaymentUseCase,
+    DisableAutoRenewalUseCase,
     PaymentsQueryRepository,
   ],
 })
