@@ -1,24 +1,24 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Inject } from '@nestjs/common';
 import { SubscriptionRepository } from '../../../infrastructure/subscription.repository';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { Inject } from '@nestjs/common';
 import { Notification } from '../../../../../../base/notification/notification';
+import { lastValueFrom } from 'rxjs';
 
-export class CancelAutoRenewalCommand {
+export class EnableAutoRenewalCommand {
   constructor(public readonly userId: number) {}
 }
 
-@CommandHandler(CancelAutoRenewalCommand)
-export class CancelAutoRenewalUseCase
-  implements ICommandHandler<CancelAutoRenewalCommand>
+@CommandHandler(EnableAutoRenewalCommand)
+export class EnableAutoRenewalUseCase
+  implements ICommandHandler<EnableAutoRenewalCommand>
 {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     @Inject('PAYMENTS_SERVICE') private readonly paymentsClient: ClientProxy,
   ) {}
 
-  async execute(command: CancelAutoRenewalCommand): Promise<Notification> {
+  async execute(command: EnableAutoRenewalCommand): Promise<Notification> {
     const { userId } = command;
 
     // 1. Find active subscription
@@ -29,15 +29,15 @@ export class CancelAutoRenewalUseCase
       return Notification.notFound('Active subscription not found');
     }
 
-    // 2. Check if already disabled
-    if (!subscription.autoRenewal) {
-      return Notification.conflict('Auto-renewal already canceled');
+    // 2. Check if already enabled
+    if (subscription.autoRenewal) {
+      return Notification.conflict('Auto-renewal already enabled');
     }
 
-    // 3. Ask payments service to disable auto-renewal
-    const isDisabled = await lastValueFrom(
+    // 3. Ask payments service to enable auto-renewal
+    const isEnabled = await lastValueFrom(
       this.paymentsClient.send<boolean>(
-        { cmd: 'disable_auto_renewal' },
+        { cmd: 'enable_auto_renewal' },
         {
           gatewaySubscriptionId: subscription.id,
           externalSubscriptionId: subscription.externalId,
@@ -45,15 +45,15 @@ export class CancelAutoRenewalUseCase
       ),
     );
 
-    if (!isDisabled) {
+    if (!isEnabled) {
       return Notification.conflict(
-        'Failed to disable auto-renewal in payment provider',
+        'Failed to enable auto-renewal in payment provider',
       );
     }
 
     // 4. Update gateway DB
     await this.subscriptionRepository.update(subscription.id, {
-      autoRenewal: false,
+      autoRenewal: true,
     });
 
     return Notification.success();

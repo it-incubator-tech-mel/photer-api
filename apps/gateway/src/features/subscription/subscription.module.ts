@@ -12,6 +12,7 @@ import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-pay
 import { GetMySubscriptionsUseCase } from './application/use-cases/queries/get-my-subscriptions.use-case';
 import { SubscriptionQueryRepository } from './infrastructure/subscription.query-repository';
 import { CancelAutoRenewalUseCase } from './application/use-cases/commands/cancel-auto-renewal.usecase';
+import { EnableAutoRenewalUseCase } from './application/use-cases/commands/enable-auto-renewal.use-case';
 
 const repos: Provider[] = [SubscriptionRepository, SubscriptionQueryRepository];
 
@@ -21,6 +22,7 @@ const useCases: Provider[] = [
   GetMyPaymentsUseCase,
   GetMySubscriptionsUseCase,
   CancelAutoRenewalUseCase,
+  EnableAutoRenewalUseCase,
 ];
 
 @Module({

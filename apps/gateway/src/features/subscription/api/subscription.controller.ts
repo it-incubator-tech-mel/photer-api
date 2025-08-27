@@ -19,7 +19,10 @@ import {
   NotFoundException,
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { CreateSubscriptionDocs } from './swagger/create.subscription.swagger';
-import { ResultStatus } from '../../../../base/notification/notification';
+import {
+  Notification,
+  ResultStatus,
+} from '../../../../base/notification/notification';
 import { GetMyPaymentsDocs } from './swagger/get.my-payments.swagger';
 import { PaymentOutputDto } from './dto/output/payment.output.dto';
 import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-payments.use-case';
@@ -30,6 +33,8 @@ import { SubscriptionOutputDto } from './dto/output/subscription.output.dto';
 import { GetMySubscriptionsDocs } from './swagger/get.my-subscriptions.swagger';
 import { GetUserSubscriptionsQuery } from '../application/use-cases/queries/get-my-subscriptions.use-case';
 import { CancelAutoRenewalCommand } from '../application/use-cases/commands/cancel-auto-renewal.usecase';
+import { CancelAutoRenewalDocs } from './swagger/сancel-auto-renewal.swagger';
+import { EnableAutoRenewalCommand } from '../application/use-cases/commands/enable-auto-renewal.use-case';
 
 @Controller('subscriptions')
 export class SubscriptionController {
@@ -89,19 +94,38 @@ export class SubscriptionController {
   }
 
   @Post('cancel-auto-renewal')
+  @CancelAutoRenewalDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(BearerAuthGuard)
   async cancelAutoRenewal(@CurrentUserId() userId: number) {
-    try {
-      await this.commandBus.execute(new CancelAutoRenewalCommand(userId));
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
+    const result: Notification = await this.commandBus.execute(
+      new CancelAutoRenewalCommand(userId),
+    );
+    switch (result.status) {
+      case ResultStatus.NotFound: {
+        throw new NotFoundException(result.errorMessage);
       }
-      if (error instanceof ConflictException) {
-        throw new ConflictException(error.message);
+      case ResultStatus.Conflict: {
+        throw new ConflictException(result.errorMessage);
       }
-      throw error;
+    }
+  }
+
+  @Post('enable-auto-renewal')
+  // @EnableAutoRenewalDocs()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(BearerAuthGuard)
+  async enableAutoRenewal(@CurrentUserId() userId: number) {
+    const result: Notification = await this.commandBus.execute(
+      new EnableAutoRenewalCommand(userId),
+    );
+    switch (result.status) {
+      case ResultStatus.NotFound: {
+        throw new NotFoundException(result.errorMessage);
+      }
+      case ResultStatus.Conflict: {
+        throw new ConflictException(result.errorMessage);
+      }
     }
   }
 }

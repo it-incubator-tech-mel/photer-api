@@ -15,6 +15,8 @@ import { GetMyPaymentsQuery } from '../application/use-cases/queries/get-my-paym
 import { PaymentQueryParams } from './dto/input/payment.query-params';
 import { DisableAutoRenewalInputDto } from './dto/input/disable-auto-renewal.input.dto';
 import { DisableAutoRenewalCommand } from '../application/use-cases/commands/disable-auto-renewal.use-case';
+import { EnableAutoRenewalInputDto } from './dto/input/enable-auto-renewal.input.dto';
+import { EnableAutoRenewalCommand } from '../application/use-cases/commands/enable-auto-renewal.use-case';
 
 interface RawBodyRequest extends Request {
   rawBody: Buffer;
@@ -95,6 +97,13 @@ export class PaymentsController {
     return this.queryBus.execute(
       new GetMyPaymentsQuery(String(userId), paymentQueryParams),
     );
+  }
+
+  @MessagePattern({ cmd: 'enable_auto_renewal' })
+  async enableAutoRenewal(
+    @Payload() payload: EnableAutoRenewalInputDto,
+  ): Promise<boolean> {
+    return this.commandBus.execute(new EnableAutoRenewalCommand(payload));
   }
 
   @MessagePattern({ cmd: 'disable_auto_renewal' })

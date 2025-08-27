@@ -200,11 +200,34 @@ export class StripeService {
     }
   }
 
+  async enableAutoRenewal(subscriptionId: string): Promise<boolean> {
+    try {
+      const result = await this.stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: false,
+      });
+
+      console.log(
+        'enableAutoRenewal result.cancel_at_period_end',
+        result.cancel_at_period_end,
+      );
+
+      return result.cancel_at_period_end === false;
+    } catch (e) {
+      console.error('Stripe enableAutoRenewal error:', e);
+      return false;
+    }
+  }
+
   async disableAutoRenewal(subscriptionId: string): Promise<boolean> {
     try {
       const result = await this.stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: true,
       });
+
+      console.log(
+        'disableAutoRenewal result.cancel_at_period_end',
+        result.cancel_at_period_end,
+      );
 
       return result.cancel_at_period_end === true;
     } catch (e) {

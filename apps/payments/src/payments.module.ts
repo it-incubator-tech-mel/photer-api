@@ -13,6 +13,7 @@ import { PaymentsQueryRepository } from './infrastructure/repositories/payments.
 import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.use-case';
 import { HandlePaymentUseCase } from './application/use-cases/commands/handle-payment.use-case';
 import { DisableAutoRenewalUseCase } from './application/use-cases/commands/disable-auto-renewal.use-case';
+import { EnableAutoRenewalUseCase } from './application/use-cases/commands/enable-auto-renewal.use-case';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { DisableAutoRenewalUseCase } from './application/use-cases/commands/disa
     PaymentsService,
     GetMyPaymentsUseCase,
     HandlePaymentUseCase,
+    EnableAutoRenewalUseCase,
     DisableAutoRenewalUseCase,
     PaymentsQueryRepository,
   ],
