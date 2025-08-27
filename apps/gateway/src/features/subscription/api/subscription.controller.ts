@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateSubscriptionInputDto } from './dto/input/create-subscription.input.dto';
 import { BearerAuthGuard } from '../../../core/guards/bearer-auth.guard';
 import { CurrentUserId } from '../../../core/decorators/param-decorators/current-user-id.decorator';
@@ -7,6 +16,7 @@ import { CreateSubscriptionCommand } from '../application/use-cases/commands/cre
 import {
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
 } from '../../../core/exception-filters/exceptions/exception-types';
 import { CreateSubscriptionDocs } from './swagger/create.subscription.swagger';
 import { ResultStatus } from '../../../../base/notification/notification';
@@ -19,6 +29,7 @@ import { SubscriptionQueryParams } from './dto/input/subscription.query-params';
 import { SubscriptionOutputDto } from './dto/output/subscription.output.dto';
 import { GetMySubscriptionsDocs } from './swagger/get.my-subscriptions.swagger';
 import { GetUserSubscriptionsQuery } from '../application/use-cases/queries/get-my-subscriptions.use-case';
+import { CancelAutoRenewalCommand } from '../application/use-cases/commands/cancel-auto-renewal.usecase';
 
 @Controller('subscriptions')
 export class SubscriptionController {
@@ -75,5 +86,22 @@ export class SubscriptionController {
     return this.queryBus.execute(
       new GetUserSubscriptionsQuery({ ...query, userId }),
     );
+  }
+
+  @Post('cancel-auto-renewal')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(BearerAuthGuard)
+  async cancelAutoRenewal(@CurrentUserId() userId: number) {
+    try {
+      await this.commandBus.execute(new CancelAutoRenewalCommand(userId));
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      if (error instanceof ConflictException) {
+        throw new ConflictException(error.message);
+      }
+      throw error;
+    }
   }
 }

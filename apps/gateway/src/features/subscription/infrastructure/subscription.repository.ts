@@ -11,14 +11,28 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class SubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  // async findActiveByUserId(userId: number): Promise<Subscription | null> {
-  //   return this.prisma.subscription.findFirst({
-  //     where: {
-  //       userId,
-  //       status: SubscriptionStatus.ACTIVE,
-  //     },
-  //   });
-  // }
+  async findActiveByUserId(userId: number): Promise<Subscription | null> {
+    return this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: SubscriptionStatus.ACTIVE,
+      },
+    });
+  }
+
+  findLastActiveBefore(userId: number, currentSubscriptionId: number) {
+    return this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        id: { not: currentSubscriptionId },
+        status: SubscriptionStatus.ACTIVE,
+        autoRenewal: true,
+        // optional: only if the period has not expired yet
+        validUntil: { gt: new Date() },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
 
   async getLatest(userId: number): Promise<Subscription | null> {
     return this.prisma.subscription.findFirst({
@@ -77,5 +91,16 @@ export class SubscriptionRepository {
       where: { id },
       data,
     });
+  }
+
+  async save(subscription: Subscription): Promise<Subscription> {
+    return this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: subscription,
+    });
+  }
+
+  delete(id: number) {
+    return this.prisma.subscription.delete({ where: { id } });
   }
 }

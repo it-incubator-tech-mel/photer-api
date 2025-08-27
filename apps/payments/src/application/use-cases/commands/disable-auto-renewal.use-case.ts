@@ -20,7 +20,6 @@ export class DisableAutoRenewalUseCase
   ) {}
   async execute(command: DisableAutoRenewalCommand) {
     const { dto } = command;
-    console.log('command', dto);
 
     // 1. Disable auto renewal in Stripe
     const isDisabled = await this.stripeService.disableAutoRenewal(

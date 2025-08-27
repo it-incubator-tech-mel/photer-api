@@ -34,69 +34,34 @@ export class CreateSubscriptionUseCase
 
     const now = new Date();
 
-    // 1. Find the latest subscription (any status)
+    // 1) Last subscription (any)
     const lastSubscription =
       await this.subscriptionRepository.getLatest(userId);
 
-    // 2. Disable autoRenewal for the last subscription with autoRenewal = true
-    const lastAutoRenewSub =
-      await this.subscriptionRepository.findLastWithAutoRenewal(userId);
-    if (lastAutoRenewSub) {
-      // const isDisabled = await new Promise<string>((resolve, reject) => {
-      //   this.paymentsClient
-      //     .send(
-      //       { cmd: 'disable_auto_renewal' },
-      //       {
-      //         gatewaySubscriptionId: lastAutoRenewSub.id,
-      //         externalSubscriptionId: lastAutoRenewSub.externalId,
-      //       },
-      //     )
-      //     .subscribe({
-      //       next: (url) => resolve(url),
-      //       error: (err) => reject(err),
-      //     });
-      // });
-
-      const isDisabled = await lastValueFrom(
-        this.paymentsClient.send<boolean>(
-          { cmd: 'disable_auto_renewal' },
-          {
-            gatewaySubscriptionId: lastAutoRenewSub.id,
-            externalSubscriptionId: lastAutoRenewSub.externalId,
-          },
-        ),
-      );
-
-      if (!isDisabled) {
-        return Notification.internalError('');
-      }
-
-      await this.subscriptionRepository.update(lastAutoRenewSub.id, {
-        autoRenewal: false,
-      });
-    }
-
-    // 3. Try to re-use PENDING subscription
+    // 2) We are trying to reuse PENDING (do not touch the autoRenewal of the active one!)
     let subscription =
       await this.subscriptionRepository.findPendingByUserId(userId);
+    let createdNew = false;
 
     if (subscription) {
       await this.subscriptionRepository.update(subscription.id, {
         updatedAt: now,
       });
     } else {
-      // 4. Calculate start date
+      // 3) Calculating the dates
       const startDate =
-        lastSubscription && lastSubscription.validUntil > now
+        lastSubscription &&
+        lastSubscription.validUntil &&
+        lastSubscription.validUntil > now
           ? lastSubscription.validUntil
           : now;
 
-      // 5. Calculate validUntil
       const validUntil = this.calculateValidUntil(
         startDate,
         subscriptionPeriod,
       );
 
+      // 4) Creating a new PENDING
       subscription = await this.subscriptionRepository.create({
         userId,
         status: SubscriptionStatus.PENDING,
@@ -105,14 +70,15 @@ export class CreateSubscriptionUseCase
         paymentProvider,
         validUntil,
       });
+      createdNew = true;
     }
 
-    // 6. Price and payment session
-    const amount = this.getPriceByType(subscriptionPeriod);
+    // 5) Creating a payment session in payments (via RMQ)
+    try {
+      const amount = this.getPriceByType(subscriptionPeriod);
 
-    const sessionUrl = await new Promise<string>((resolve, reject) => {
-      this.paymentsClient
-        .send(
+      const sessionUrl = await lastValueFrom(
+        this.paymentsClient.send<string>(
           { cmd: 'create_payment_session' },
           {
             userId: userId.toString(),
@@ -123,45 +89,52 @@ export class CreateSubscriptionUseCase
             subscriptionPeriod,
             subscriptionId: subscription.id.toString(),
           },
-        )
-        .subscribe({
-          next: (url) => resolve(url),
-          error: (err) => reject(err),
-        });
-    });
+        ),
+      );
 
-    if (!sessionUrl) {
-      return Notification.conflict('User already has an active subscription');
+      if (!sessionUrl) {
+        // unlikely, but just in case, we'll roll back the new Pending
+        if (createdNew)
+          await this.subscriptionRepository.delete(subscription.id);
+        return Notification.conflict('User already has an active subscription');
+      }
+
+      return Notification.success(sessionUrl);
+    } catch (err) {
+      // In case of an external service error, we clean the newly created Pending
+      if (createdNew) {
+        try {
+          await this.subscriptionRepository.delete(subscription.id);
+        } catch {
+          // we log, but do not cover the main error.
+        }
+      }
+      return Notification.internalError('Failed to create payment session');
     }
-
-    return Notification.success(sessionUrl);
   }
+
   private getPriceByType(type: string): number {
-    const prices = {
-      MONTHLY: 999,
-      WEEKLY: 299,
-      DAILY: 99,
-    };
-    return prices[type] || prices.MONTHLY;
+    const prices = { MONTHLY: 999, WEEKLY: 299, DAILY: 99 } as const;
+    return (prices as any)[type] ?? prices.MONTHLY;
   }
 
   private calculateValidUntil(
     startDate: Date,
-    subscriptionPeriod: SubscriptionPeriod,
+    period: SubscriptionPeriod,
   ): Date {
-    const validUntil = new Date(startDate);
-    switch (subscriptionPeriod) {
+    const d = new Date(startDate);
+    switch (period) {
       case SubscriptionPeriod.DAILY:
-        validUntil.setDate(validUntil.getDate() + 1);
+        d.setDate(d.getDate() + 1);
         break;
       case SubscriptionPeriod.WEEKLY:
-        validUntil.setDate(validUntil.getDate() + 7);
+        d.setDate(d.getDate() + 7);
         break;
       case SubscriptionPeriod.MONTHLY:
       default:
-        validUntil.setMonth(validUntil.getMonth() + 1);
+        d.setMonth(d.getMonth() + 1);
         break;
     }
-    return validUntil;
+    return d;
   }
 }

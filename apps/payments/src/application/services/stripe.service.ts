@@ -206,8 +206,6 @@ export class StripeService {
         cancel_at_period_end: true,
       });
 
-      console.log('stripe result', result);
-
       return result.cancel_at_period_end === true;
     } catch (e) {
       console.error('Stripe disableAutoRenewal error:', e);

@@ -102,8 +102,6 @@ export class PaymentsController {
     @Payload()
     payload: DisableAutoRenewalInputDto,
   ): Promise<boolean> {
-    console.log('payload', payload);
-
     return this.commandBus.execute(new DisableAutoRenewalCommand(payload));
   }
 }

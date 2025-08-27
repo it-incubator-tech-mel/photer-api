@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GetMyPaymentsUseCase } from './application/use-cases/queries/get-my-payments.use-case';
 import { GetMySubscriptionsUseCase } from './application/use-cases/queries/get-my-subscriptions.use-case';
 import { SubscriptionQueryRepository } from './infrastructure/subscription.query-repository';
+import { CancelAutoRenewalUseCase } from './application/use-cases/commands/cancel-auto-renewal.usecase';
 
 const repos: Provider[] = [SubscriptionRepository, SubscriptionQueryRepository];
 
@@ -19,6 +20,7 @@ const useCases: Provider[] = [
   ActivateSubscriptionUseCase,
   GetMyPaymentsUseCase,
   GetMySubscriptionsUseCase,
+  CancelAutoRenewalUseCase,
 ];
 
 @Module({
