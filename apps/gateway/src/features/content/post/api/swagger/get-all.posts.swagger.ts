@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 import { PostOutputDto } from '../dto/output/post.output.dto';
-import { BasePaginatedOutputDto } from '../../../../../../base/dto/base-output-dto/base-paginated.output.dto';
+import { BasePaginatedOutputDto } from '../../../../../../../common/dto/base-output-dto/base-paginated.output.dto';
 
 export function GetAllPostsDocs() {
   return applyDecorators(

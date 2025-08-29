@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { User } from '../domain/user.entity';
 import { IUserRepository } from './user.repository.interface';
+import { AccountType } from '@prisma/client';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -180,6 +181,13 @@ export class UserRepository implements IUserRepository {
         },
       }),
     ]);
+  }
+
+  async updateUserAccountType(userId: number, accountType: AccountType) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { accountType },
+    });
   }
 
   private mapToDomain(prismaUser: any): User {

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PostOutputDto } from '../api/dto/output/post.output.dto';
-import { BasePaginatedOutputDto } from '../../../../../base/dto/base-output-dto/base-paginated.output.dto';
-import { BaseQueryParams } from '../../../../../base/dto/base-input-query-params/base.query-params';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { PostQueryParams } from '../api/query/get-all-posts.query';
+import { BasePaginatedOutputDto } from '../../../../../../common/dto/base-output-dto/base-paginated.output.dto';
+import { BaseQueryParams } from '../../../../../../common/dto/base-input-query-params/base.query-params';
 
 @Injectable()
 export class PostQueryRepository {

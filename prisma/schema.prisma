@@ -16,12 +16,14 @@ model User {
   createdAt         DateTime           @default(now())
   isDeleted         Boolean            @default(false)
   updatedAt         DateTime           @updatedAt
+  accountType       AccountType        @default(PERSONAL)
   devices           Device[]
   emailConfirmation EmailConfirmation?
   providers         OAuthAccount[]
   passwordRecovery  PasswordRecovery?
   posts             Post[]
   profile           Profile?
+  subscriptions     Subscription[]     @relation("UserSubscription")
 }
 
 model Profile {
@@ -43,6 +45,11 @@ model Profile {
   @@index([city])
   @@index([createdAt])
   @@index([birthDate])
+}
+
+enum ProviderType {
+  GITHUB
+  GOOGLE
 }
 
 model OAuthAccount {
@@ -83,6 +90,11 @@ model Device {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum PostStatusType {
+  private
+  public
+}
+
 model Post {
   id          Int            @id @default(autoincrement())
   description String?        @db.VarChar(500)
@@ -104,12 +116,37 @@ model Photo {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
-enum ProviderType {
-  GITHUB
-  GOOGLE
+model Subscription {
+  id              Int                @id @default(autoincrement())
+  userId          Int
+  status          SubscriptionStatus @default(PENDING)
+  accountType     AccountType        @default(BUSINESS)
+  validUntil      DateTime?
+  autoRenewal     Boolean            @default(true)
+  paymentProvider PaymentProvider
+  externalId      String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  user            User               @relation("UserSubscription", fields: [userId], references: [id])
+
+  @@index([validUntil])
+  @@index([status])
 }
 
-enum PostStatusType {
-  private
-  public
+enum AccountType {
+  PERSONAL
+  BUSINESS
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  UPCOMING
+  PENDING
+  EXPIRED
+  CANCELED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
 }

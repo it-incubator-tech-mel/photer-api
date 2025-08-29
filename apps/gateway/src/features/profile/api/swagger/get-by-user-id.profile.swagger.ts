@@ -2,10 +2,10 @@ import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ProfileOutputDto } from '../dto/output/profile.output.dto';
 
-export function GetByIdProfileDocs() {
+export function GetProfileByUserIdDocs() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get public profile for user by id',
+      summary: 'Get profile by user id',
     }),
     ApiResponse({
       status: 200,

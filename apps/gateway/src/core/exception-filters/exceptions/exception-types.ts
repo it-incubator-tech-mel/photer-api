@@ -24,6 +24,12 @@ export class ForbiddenException extends CustomError {
   }
 }
 
+export class ConflictException extends CustomError {
+  constructor(message: string = 'Conflict') {
+    super(409, undefined, message);
+  }
+}
+
 export class TooManyRequestsException extends CustomError {
   constructor(message: string = 'Too many requests') {
     super(429, undefined, message);
