@@ -35,6 +35,7 @@ import { GetUserSubscriptionsQuery } from '../application/use-cases/queries/get-
 import { CancelAutoRenewalCommand } from '../application/use-cases/commands/cancel-auto-renewal.usecase';
 import { CancelAutoRenewalDocs } from './swagger/сancel-auto-renewal.swagger';
 import { EnableAutoRenewalCommand } from '../application/use-cases/commands/enable-auto-renewal.use-case';
+import { EnableAutoRenewalDocs } from './swagger/enable-auto-renewal.swagger';
 
 @Controller('subscriptions')
 export class SubscriptionController {
@@ -112,7 +113,7 @@ export class SubscriptionController {
   }
 
   @Post('enable-auto-renewal')
-  // @EnableAutoRenewalDocs()
+  @EnableAutoRenewalDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(BearerAuthGuard)
   async enableAutoRenewal(@CurrentUserId() userId: number) {
