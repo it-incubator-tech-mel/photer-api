@@ -61,7 +61,6 @@ export class RegistrationUseCase
     );
 
     const user: User = User.create(username, passwordHash, email);
-    user.confirmEmail();
 
     await this.userRepository.create(user);
 
