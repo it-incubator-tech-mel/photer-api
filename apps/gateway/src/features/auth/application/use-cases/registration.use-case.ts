@@ -31,24 +31,15 @@ export class RegistrationUseCase
   ): Promise<Notification<string | null>> {
     const { username, email, password } = command;
 
-    const [userByLogin, userByEmail] = await Promise.all([
+    const [userByEmail] = await Promise.all([
       this.userRepository.findByUsername(username),
       this.userRepository.findByEmail(email),
     ]);
 
-    if (userByLogin) {
-      return Notification.badRequest([
-        {
-          message: 'User with such credentials already exists',
-          field: 'login',
-        },
-      ]);
-    }
-
     if (userByEmail) {
       return Notification.badRequest([
         {
-          message: 'User with such credentials already exists',
+          message: 'User with this email is already registered',
           field: 'email',
         },
       ]);
