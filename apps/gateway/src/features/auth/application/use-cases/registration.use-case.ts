@@ -39,8 +39,17 @@ export class RegistrationUseCase
     if (userByLogin) {
       return Notification.badRequest([
         {
-          message: 'User with this login is already registered',
+          message: 'User with such credentials already exists',
           field: 'login',
+        },
+      ]);
+    }
+
+    if (userByEmail) {
+      return Notification.badRequest([
+        {
+          message: 'User with such credentials already exists',
+          field: 'email',
         },
       ]);
     }
