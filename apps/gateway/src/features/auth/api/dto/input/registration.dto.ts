@@ -40,9 +40,9 @@ export class RegistrationDto {
   @Trim()
   @IsNotEmpty({ message: 'Password is required' })
   @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
-  @Matches(/^[a-zA-Z0-9_-]+$/, {
+  @Matches(/^[0-9a-zA-Z!\"#$%&'()*+,\-./:;<=>?@\[\\\]^_{|}~]+$/, {
     message:
-      'Password can only contain letters, numbers, underscores, and hyphens',
+      'Password must contain 0-9, a-z, A-Z and may include special characters ! " # $ % & \' ( ) * + , - . / : ; < = > ? @ [ \\ ] ^ _ { | } ~',
   })
   password: string;
 }
