@@ -1,33 +1,30 @@
-import { AuthModule } from './features/auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from './core/config/config.module';
+import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { PostsModule } from './features/content/post/posts.module';
-import { ProfileModule } from './features/profile/profile.module';
-import { DeviceModule } from './features/device/device.module';
-import { SubscriptionModule } from './features/subscription/subscription.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { SecurityModule } from './security/security.module';
+import { ProfileModule } from './profile/profile.module'; // Раскомментировано
+import { PostsModule } from './posts/posts.module'; // Добавлен Posts модуль
+import { SubscriptionsModule } from './subscriptions/subscriptions.module'; // Добавлен Subscriptions модуль
 
 @Module({
   imports: [
-    ConfigModule,
-    PrismaModule,
-    AuthModule,
-    ProfileModule,
-    DeviceModule,
-    PostsModule,
-    SubscriptionModule,
-    ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          limit: 5,
-          ttl: 60000,
-        },
-      ],
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 5,
+      },
+    ]),
+    AuthModule,
+    UsersModule,
+    SecurityModule,
+    ProfileModule, // Раскомментировано
+    PostsModule, // Добавлен Posts модуль
+    SubscriptionsModule, // Добавлен Subscriptions модуль
   ],
-  controllers: [],
-  providers: [],
-  exports: [],
 })
 export class AppModule {}

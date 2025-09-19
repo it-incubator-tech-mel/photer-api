@@ -1,34 +1,24 @@
 import { NestFactory } from '@nestjs/core';
-import { StorageModule } from './storage.module';
-import {
-  MicroserviceOptions,
-  TcpOptions,
-  Transport,
-} from '@nestjs/microservices';
-import { INestMicroservice } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const configService = new ConfigService<any, true>();
-  const host: string = configService.get<string>('STORAGE_TCP_HOST');
-  const port: number = configService.get<number>('STORAGE_TCP_PORT');
-
-  const transportTCP: TcpOptions = {
-    transport: Transport.TCP,
-    options: {
-      host: host,
-      port: port,
-      // host: 'localhost',
-      // port: 3004,
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.RMQ,
+      options: {
+        urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+        queue: 'storage_queue',
+        queueOptions: {
+          durable: false,
+        },
+      },
     },
-  };
-
-  const app: INestMicroservice =
-    await NestFactory.createMicroservice<MicroserviceOptions>(
-      StorageModule,
-      transportTCP,
-    );
+  );
 
   await app.listen();
+  console.log('Storage microservice is listening');
 }
+
 bootstrap();

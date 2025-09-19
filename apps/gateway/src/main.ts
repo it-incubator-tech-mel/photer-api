@@ -1,36 +1,76 @@
-import { CoreConfig } from './core/config/core.config';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { appSetup } from './setup/app.setup';
-import { INestApplication } from '@nestjs/common';
-import { Transport } from '@nestjs/microservices';
+import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  // Create the main NestJS HTTP app
-  const app: INestApplication = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Apply global app setup (pipes, filters, etc.)
-  appSetup(app);
-
-  // Get app config (like port)
-  const coreConfig: CoreConfig = app.get<CoreConfig>(CoreConfig);
-  const port: number = coreConfig.port;
-
-  // Enable RabbitMQ listener in this app
-  app.connectMicroservice({
-    transport: Transport.RMQ,
-    options: {
-      urls: [process.env.RABBITMQ_URL],
-      queue: 'gateway_queue', // listen this queue
-      queueOptions: { durable: true },
+  // Статическая раздача файлов
+  app.useStaticAssets(join(__dirname, '../../../uploads'), {
+    prefix: '/api/uploads/',
+    setHeaders: (res) => {
+      // Отключаем кэширование для development
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      // CORS заголовки для изображений
+      res.set('Access-Control-Allow-Origin', 'http://localhost:3000');
+      res.set('Access-Control-Allow-Methods', 'GET');
+      res.set('Access-Control-Allow-Headers', '*');
     },
   });
 
-  // Start all registered microservice transports (including RabbitMQ)
-  await app.startAllMicroservices();
+  // Global pipes
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
-  // Start HTTP server
+  // Middleware
+  app.use(cookieParser());
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+  });
+
+  // Swagger documentation
+  const config = new DocumentBuilder()
+    .setTitle('Photer API Gateway')
+    .setDescription('API for Photer application - photo sharing platform')
+    .setVersion('1.0')
+    .addServer('http://localhost:3001', 'Development server')
+    .addServer('https://api.photer.com', 'Production server')
+    .addTag('Auth', 'Authentication and authorization endpoints')
+    .addTag('User', 'User-related endpoints')
+    .addTag('Device', 'Device management endpoints')
+    .addTag('Profile', 'User profile management endpoints')
+    .addTag('Posts', 'Posts management endpoints')
+    .addTag('Subscriptions', 'Subscription and payment endpoints')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
+  const port = process.env.PORT || 3001;
   await app.listen(port);
+  console.log(`Gateway service is running on: http://localhost:${port}`);
 }
 
 bootstrap();

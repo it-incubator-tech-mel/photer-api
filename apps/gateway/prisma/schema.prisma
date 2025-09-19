@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  username          String   @unique
+  email             String   @unique
+  password          String
+  emailConfirmed    Boolean  @default(false)
+  confirmationCode  String?  @unique
+  confirmationExpires DateTime?
+  recoveryCode      String?  @unique
+  recoveryExpires   DateTime?
+  oauthProvider     String?
+  oauthId           String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  profile Profile?
+  photos  Photo[]
+  subscriptions Subscription[]
+  payments Payment[]
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  firstName String?
+  lastName  String?
+  city      String?
+  country   String?
+  birthDate DateTime?
+  aboutMe   String?
+  avatarUrl String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+}
+
+model Photo {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  url         String
+  tags        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+}
+
+model Subscription {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  status          String   @default("PENDING") // PENDING, ACTIVE, EXPIRED, CANCELLED
+  accountType     String   @default("PERSONAL") // PERSONAL, BUSINESS, ENTERPRISE
+  validUntil      DateTime
+  autoRenewal     Boolean  @default(true)
+  paymentProvider String   // STRIPE, PAYPAL
+  externalId      String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+}
+
+model Payment {
+  id                    String   @id @default(cuid())
+  userId                String
+  subscriptionId        String
+  dateOfPayment         DateTime @default(now())
+  endDateOfSubscription DateTime
+  price                 Float
+  subscriptionType      String
+  paymentType           String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [externalId], onDelete: Cascade)
+}
