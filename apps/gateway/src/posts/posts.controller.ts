@@ -26,6 +26,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostOutputDto } from './dto/post-output.dto';
+import { CommentOutputDto } from './dto/comment-output.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Posts')
@@ -346,5 +347,91 @@ export class PostsController {
       sortDirection,
       sortBy,
     );
+  }
+
+  @Post(':postId/comments')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add comment to post' })
+  @ApiParam({
+    name: 'postId',
+    description: 'Post ID',
+    type: 'string',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        text: { type: 'string', example: 'This is a great post!' },
+      },
+      required: ['text'],
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Comment added successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: 'cmfovo66m0000v39816a2gwg8' },
+        text: { type: 'string', example: 'This is a great post!' },
+        createdAt: { type: 'string', format: 'date-time' },
+        owner: {
+          type: 'object',
+          properties: {
+            userName: { type: 'string', example: 'john_doe' },
+            avatarUrl: {
+              type: 'string',
+              example: 'https://example.com/avatar.jpg',
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - empty comment text',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Post not found',
+  })
+  async addComment(
+    @Param('postId') postId: string,
+    @Body('text') text: string,
+    @Req() req: any,
+  ) {
+    const userId = req.user?.userId;
+    return this.postsService.addComment(postId, text, userId);
+  }
+
+  @Get(':postId/comments')
+  @ApiOperation({ summary: 'Get all comments for a post' })
+  @ApiParam({
+    name: 'postId',
+    description: 'Post ID',
+    type: 'string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Success',
+    schema: {
+      type: 'array',
+      items: { $ref: '#/components/schemas/CommentOutputDto' },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Post not found',
+  })
+  async getPostComments(
+    @Param('postId') postId: string,
+  ): Promise<CommentOutputDto[]> {
+    return this.postsService.getPostComments(postId);
   }
 }

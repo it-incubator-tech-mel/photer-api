@@ -10,7 +10,14 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Статическая раздача файлов
-  app.useStaticAssets(join(__dirname, '../../../uploads'), {
+  // В development: __dirname = /dist/apps/gateway, нужно ../../../uploads
+  // В production может быть по-другому, поэтому используем process.cwd()
+  const uploadsPath = process.env.NODE_ENV === 'production'
+    ? join(process.cwd(), 'uploads')
+    : join(__dirname, '../../../uploads');
+
+  console.log('Static assets path:', uploadsPath);
+  app.useStaticAssets(uploadsPath, {
     prefix: '/api/uploads/',
     setHeaders: (res) => {
       // Отключаем кэширование для development

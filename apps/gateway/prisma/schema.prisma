@@ -28,6 +28,7 @@ model User {
   // Relations
   profile Profile?
   photos  Photo[]
+  comments Comment[]
   subscriptions Subscription[]
   payments Payment[]
 }
@@ -62,6 +63,20 @@ model Photo {
   // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
+  comments Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  photo   Photo  @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  photoId String
 }
 
 model Subscription {

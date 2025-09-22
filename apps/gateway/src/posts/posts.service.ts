@@ -7,12 +7,121 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostOutputDto, PostOwnerOutputDto } from './dto/post-output.dto';
+import { CommentOutputDto } from './dto/comment-output.dto';
 // Убираем несуществующий тип Post, оставляем только существующие
 import { User, Profile } from '@prisma/client';
 
 @Injectable()
 export class PostsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Добавляет комментарий к посту
+   */
+  async addComment(postId: string, text: string, userId: string) {
+    // Валидация входных данных
+    if (!text || text.trim().length === 0) {
+      throw new Error('Comment text cannot be empty');
+    }
+
+    // Проверяем существование поста
+    const post = await this.prisma.photo.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    // Проверяем существование пользователя
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    console.log('💬 Adding comment:', { postId, text: text.trim(), userId });
+
+    // Сохраняем комментарий в базу данных
+    const comment = await this.prisma.comment.create({
+      data: {
+        text: text.trim(),
+        userId: userId,
+        photoId: postId,
+      },
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+      },
+    });
+
+    // Форматируем ответ
+    const commentResponse = {
+      id: comment.id,
+      text: comment.text,
+      createdAt: comment.createdAt.toISOString(),
+      owner: {
+        userName: user.username,
+        avatarUrl: user.profile?.avatarUrl?.[0] || null,
+      },
+    };
+
+    console.log('✅ Comment added successfully:', commentResponse);
+
+    return commentResponse;
+  }
+
+  /**
+   * Получает все комментарии к посту
+   */
+  async getPostComments(postId: string): Promise<CommentOutputDto[]> {
+    // Проверяем существование поста
+    const post = await this.prisma.photo.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    console.log('📝 Getting comments for post:', postId);
+
+    // Получаем комментарии с информацией о пользователях
+    const comments = await this.prisma.comment.findMany({
+      where: { photoId: postId },
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' }, // Сортируем по времени создания (старые сначала)
+    });
+
+    // Форматируем ответ
+    const formattedComments: CommentOutputDto[] = comments.map((comment) => ({
+      id: comment.id,
+      text: comment.text,
+      createdAt: comment.createdAt.toISOString(),
+      owner: {
+        userName: comment.user.username,
+        avatarUrl: comment.user.profile?.avatarUrl?.[0] || null,
+      },
+    }));
+
+    console.log(
+      `✅ Found ${formattedComments.length} comments for post ${postId}`,
+    );
+
+    return formattedComments;
+  }
 
   /**
    * Создает новый пост
