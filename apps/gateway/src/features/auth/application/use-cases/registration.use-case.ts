@@ -31,39 +31,42 @@ export class RegistrationUseCase
   ): Promise<Notification<string | null>> {
     const { username, email, password } = command;
 
-    const [userByLogin, userByEmail] = await Promise.all([
-      this.userRepository.findByUsername(username),
-      this.userRepository.findByEmail(email),
-    ]);
+    // we are looking for a user by email
+    const userByEmail = await this.userRepository.findByEmail(email);
 
-    if (userByLogin) {
+    // case 1: the user exists and has already confirmed the email → error
+    if (userByEmail && userByEmail.isEmailConfirmed()) {
       return Notification.badRequest([
         {
-          message: 'User with such credentials already exists',
-          field: 'login',
-        },
-      ]);
-    }
-
-    if (userByEmail) {
-      return Notification.badRequest([
-        {
-          message: 'User with such credentials already exists',
+          message: 'User with this email is already registered',
           field: 'email',
         },
       ]);
     }
 
-    const saltRounds: number = 10;
-    const passwordHash: string = await this.cryptoService.createHash(
-      password,
-      saltRounds,
-    );
+    // case 2: the user exists, but has not confirmed the email → recreate
+    if (userByEmail && !userByEmail.isEmailConfirmed()) {
+      await this.userRepository.deleteByEmail(email);
+    }
 
-    const user: User = User.create(username, passwordHash, email);
+    // checking username uniqueness (only among verified ones)
+    const userByUsername = await this.userRepository.findByUsername(username);
+    if (userByUsername && userByUsername.isEmailConfirmed()) {
+      return Notification.badRequest([
+        {
+          message: 'User with this username is already registered',
+          field: 'username',
+        },
+      ]);
+    }
+
+    // creating a new user
+    const passwordHash = await this.cryptoService.createHash(password, 10);
+    const user = User.create(username, passwordHash, email);
 
     await this.userRepository.create(user);
 
+    // sending an email
     await this.mailerService.sendEmail(
       user.getEmail(),
       registrationEmailTemplate(
