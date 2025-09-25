@@ -33,6 +33,12 @@ export class AuthService {
       return Notification.unauthorized('Wrong email or password');
     }
 
+    if (!user.isEmailConfirmed()) {
+      return Notification.unauthorized(
+        'Please confirm your email before login',
+      );
+    }
+
     return Notification.success(user.getId());
   }
 

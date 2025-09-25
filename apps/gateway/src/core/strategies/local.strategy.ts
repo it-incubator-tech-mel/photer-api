@@ -23,7 +23,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
     const userId: number = result.data;
     if (!userId) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(result.errorMessage);
     }
 
     return { id: userId };
