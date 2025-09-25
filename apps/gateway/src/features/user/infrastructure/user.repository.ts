@@ -193,9 +193,9 @@ export class UserRepository implements IUserRepository {
   }
 
   async deleteByEmail(email: string): Promise<boolean> {
-    const result = await this.prisma.user.update({
+    const result = await this.prisma.user.delete({
       where: { email },
-      data: { isDeleted: true },
+      //data: { isDeleted: true, email: `${email}__deleted_${Date.now()}` },
     });
 
     return result.isDeleted === true;

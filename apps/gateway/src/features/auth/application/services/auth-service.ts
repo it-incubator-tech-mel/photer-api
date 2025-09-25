@@ -7,6 +7,7 @@ import { MailerService } from '../../../../core/services/mailler/mailer.service'
 import { oAuthRegistrationEmailTemplate } from '../../../../core/services/mailler/email-templates/oauth-registration-email-template';
 import { UserRepository } from '../../../user/infrastructure/user.repository';
 import { User } from '../../../user/domain/user.entity';
+import { CoreConfig } from '../../../../core/config/core.config';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
     private readonly cryptoService: CryptoService,
     private readonly oauthAccountRepository: OAuthAccountRepository,
     private readonly mailerService: MailerService,
+    private readonly coreConfig: CoreConfig,
   ) {}
 
   // local-strategy
@@ -141,5 +143,18 @@ export class AuthService {
 
     // save domain user in db
     await this.userRepository.create(user);
+  }
+
+  async sendEmail(
+    email: string,
+    template: (userData: string, baseUrl: string) => string,
+    subject: string,
+    userData: any,
+  ): Promise<void> {
+    await this.mailerService.sendEmail(
+      email,
+      template(userData, this.coreConfig.baseUrl),
+      subject,
+    );
   }
 }

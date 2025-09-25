@@ -39,7 +39,7 @@ export class RegistrationEmailResendingUseCase
     }
 
     try {
-      this.resendConfirmation(user);
+      this.generateConfirmationCode(user);
       await this.userRepository.updateConfirmation(user);
     } catch (error) {
       return Notification.badRequest([
@@ -59,14 +59,11 @@ export class RegistrationEmailResendingUseCase
     return { status: ResultStatus.Success, data: null };
   }
 
-  private resendConfirmation(user: User): void {
+  private generateConfirmationCode(user: User): void {
     if (user.isEmailConfirmed()) {
       throw new Error('Email already confirmed');
     }
 
-    user.updateConfirmationCode(
-      randomUUID(),
-      add(new Date(), { hours: 1, minutes: 30 }),
-    );
+    user.generateNewConfirmationCode();
   }
 }

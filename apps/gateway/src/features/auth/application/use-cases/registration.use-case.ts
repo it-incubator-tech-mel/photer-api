@@ -6,6 +6,7 @@ import { CoreConfig } from '../../../../core/config/core.config';
 import { UserRepository } from '../../../user/infrastructure/user.repository';
 import { User } from '../../../user/domain/user.entity';
 import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
+import { AuthService } from '../services/auth-service';
 
 export class RegistrationUserCommand {
   constructor(
@@ -24,6 +25,7 @@ export class RegistrationUseCase
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
     private readonly coreConfig: CoreConfig,
+    private readonly authService: AuthService,
   ) {}
 
   async execute(
@@ -32,7 +34,7 @@ export class RegistrationUseCase
     const { username, email, password } = command;
 
     // we are looking for a user by email
-    const userByEmail = await this.userRepository.findByEmail(email);
+    const userByEmail: User = await this.userRepository.findByEmail(email);
 
     // case 1: the user exists and has already confirmed the email → error
     if (userByEmail && userByEmail.isEmailConfirmed()) {
@@ -44,9 +46,22 @@ export class RegistrationUseCase
       ]);
     }
 
-    // case 2: the user exists, but has not confirmed the email → recreate
+    // case 2: the user exists, but has not confirmed the email → update confirmation and send email
     if (userByEmail && !userByEmail.isEmailConfirmed()) {
-      await this.userRepository.deleteByEmail(email);
+      // await this.userRepository.deleteByEmail(email);
+      userByEmail.generateNewConfirmationCode();
+
+      await this.userRepository.update(userByEmail);
+
+      // sending an email
+      this.authService.sendEmail(
+        userByEmail.getEmail(),
+        registrationEmailTemplate,
+        'Registration Confirmation',
+        userByEmail.getConfirmationCode(),
+      );
+
+      return Notification.success();
     }
 
     // checking username uniqueness (only among verified ones)
@@ -67,13 +82,11 @@ export class RegistrationUseCase
     await this.userRepository.create(user);
 
     // sending an email
-    await this.mailerService.sendEmail(
+    this.authService.sendEmail(
       user.getEmail(),
-      registrationEmailTemplate(
-        user.getConfirmationCode(),
-        this.coreConfig.baseUrl,
-      ),
+      registrationEmailTemplate,
       'Registration Confirmation',
+      user.getConfirmationCode(),
     );
 
     return Notification.success();

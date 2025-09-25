@@ -29,7 +29,10 @@ export class RegistrationDto {
   })
   @Trim()
   @IsNotEmpty({ message: 'Email is required' })
-  @IsEmail({}, { message: 'Invalid email format' })
+  @IsEmail(
+    {},
+    { message: 'The email must match the format example@example.com' },
+  )
   email: string;
 
   @ApiProperty({
