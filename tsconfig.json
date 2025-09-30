@@ -6,7 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2021",
+    "target": "ES2020",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
@@ -17,10 +17,14 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    //    "paths": {
-    //      "@post/*": ["apps/gateway/src/features/post/*"],
-    //      "@storage/*": ["apps/storage/src/features/*"]
-    //    }
-    "paths": {}
-  }
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "paths": {
+      "@/*": ["src/*"],
+      "@prisma/client": ["node_modules/@prisma/client"]
+    }
+  },
+  "include": ["apps/**/*", "libs/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

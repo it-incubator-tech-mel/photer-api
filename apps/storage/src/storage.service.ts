@@ -1,0 +1,103 @@
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
+import { v4 as uuidv4 } from 'uuid';
+import * as sharp from 'sharp';
+
+@Injectable()
+export class StorageService {
+  private s3Client: S3Client;
+  private bucketName: string;
+
+  constructor(private configService: ConfigService) {
+    this.s3Client = new S3Client({
+      region: this.configService.get<string>('AWS_REGION'),
+      credentials: {
+        accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+        secretAccessKey: this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        ),
+      },
+    });
+    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET');
+  }
+
+  async uploadFile(data: {
+    file: Buffer;
+    filename: string;
+    mimetype: string;
+  }): Promise<string> {
+    const key = `photos/${uuidv4()}-${data.filename}`;
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      Body: data.file,
+      ContentType: data.mimetype,
+      ACL: 'public-read',
+    });
+
+    await this.s3Client.send(command);
+
+    return `https://${this.bucketName}.s3.amazonaws.com/${key}`;
+  }
+
+  async deleteFile(url: string): Promise<void> {
+    const key = url.replace(`https://${this.bucketName}.s3.amazonaws.com/`, '');
+
+    const command = new DeleteObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+    });
+
+    await this.s3Client.send(command);
+  }
+
+  async processImage(data: {
+    file: Buffer;
+    filename: string;
+    operations: any[];
+  }): Promise<string> {
+    let processedImage = sharp(data.file);
+
+    // Apply operations
+    for (const operation of data.operations) {
+      switch (operation.type) {
+        case 'resize':
+          processedImage = processedImage.resize(
+            operation.width,
+            operation.height,
+          );
+          break;
+        case 'crop':
+          processedImage = processedImage.extract({
+            left: operation.left,
+            top: operation.top,
+            width: operation.width,
+            height: operation.height,
+          });
+          break;
+        case 'rotate':
+          processedImage = processedImage.rotate(operation.angle);
+          break;
+        case 'blur':
+          processedImage = processedImage.blur(operation.sigma);
+          break;
+        case 'sharpen':
+          processedImage = processedImage.sharpen(operation.sigma);
+          break;
+      }
+    }
+
+    const processedBuffer = await processedImage.toBuffer();
+    return this.uploadFile({
+      file: processedBuffer,
+      filename: data.filename,
+      mimetype: 'image/jpeg',
+    });
+  }
+}
