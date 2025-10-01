@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { Trim } from '../../../../../core/decorators/trim';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -14,8 +14,15 @@ export class PasswordRecoveryDto {
   email: string;
 
   @ApiProperty({
-    maxLength: 100,
-    description: 'Google recaptchaValue',
+    maxLength: 2000,
+    description: 'Google reCAPTCHA value (token)',
+    example: '03AGdBq27M...token',
+  })
+  @IsString()
+  @Trim()
+  @IsNotEmpty({ message: 'recaptchaValue is required' })
+  @MaxLength(2000, {
+    message: 'recaptchaValue must be at most 2000 characters',
   })
   recaptchaValue: string;
 }
