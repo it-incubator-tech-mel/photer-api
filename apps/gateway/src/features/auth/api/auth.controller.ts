@@ -301,12 +301,14 @@ export class AuthController {
     return user;
   }
 
+  @SkipThrottle()
   @Get('oauth/:provider/login')
   @OauthProviderLoginDocs()
   @UseGuards(OAuthLoginGuard)
   @HttpCode(HttpStatus.OK)
   async oauthLogin() {}
 
+  @SkipThrottle()
   @Get('oauth/:provider/callback')
   @OauthProviderCallbackDocs()
   @Redirect('https://photer.ltd/oauth')
