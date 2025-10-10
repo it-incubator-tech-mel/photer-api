@@ -6,6 +6,7 @@ import { CoreConfig } from '../../../../core/config/core.config';
 import { UserRepository } from '../../../user/infrastructure/user.repository';
 import { User } from '../../../user/domain/user.entity';
 import { registrationEmailTemplate } from '../../../../core/services/mailler/email-templates/registration-email-template';
+import { AuthService } from '../services/auth-service';
 
 export class RegistrationUserCommand {
   constructor(
@@ -24,6 +25,7 @@ export class RegistrationUseCase
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
     private readonly coreConfig: CoreConfig,
+    private readonly authService: AuthService,
   ) {}
 
   async execute(
@@ -31,47 +33,60 @@ export class RegistrationUseCase
   ): Promise<Notification<string | null>> {
     const { username, email, password } = command;
 
-    const [userByLogin, userByEmail] = await Promise.all([
-      this.userRepository.findByUsername(username),
-      this.userRepository.findByEmail(email),
-    ]);
+    // we are looking for a user by email
+    const userByEmail: User = await this.userRepository.findByEmail(email);
 
-    if (userByLogin) {
+    // case 1: the user exists and has already confirmed the email → error
+    if (userByEmail && userByEmail.isEmailConfirmed()) {
       return Notification.badRequest([
         {
-          message: 'User with such credentials already exists',
-          field: 'login',
-        },
-      ]);
-    }
-
-    if (userByEmail) {
-      return Notification.badRequest([
-        {
-          message: 'User with such credentials already exists',
+          message: 'User with this email is already registered',
           field: 'email',
         },
       ]);
     }
 
-    const saltRounds: number = 10;
-    const passwordHash: string = await this.cryptoService.createHash(
-      password,
-      saltRounds,
-    );
+    // case 2: the user exists, but has not confirmed the email → update confirmation and send email
+    if (userByEmail && !userByEmail.isEmailConfirmed()) {
+      // await this.userRepository.deleteByEmail(email);
+      userByEmail.generateNewConfirmationCode();
 
-    const user: User = User.create(username, passwordHash, email);
-    user.confirmEmail();
+      await this.userRepository.update(userByEmail);
+
+      // sending an email
+      this.authService.sendEmail(
+        userByEmail.getEmail(),
+        registrationEmailTemplate,
+        'Registration Confirmation',
+        userByEmail.getConfirmationCode(),
+      );
+
+      return Notification.success();
+    }
+
+    // checking username uniqueness (only among verified ones)
+    const userByUsername = await this.userRepository.findByUsername(username);
+    if (userByUsername && userByUsername.isEmailConfirmed()) {
+      return Notification.badRequest([
+        {
+          message: 'User with this username is already registered',
+          field: 'username',
+        },
+      ]);
+    }
+
+    // creating a new user
+    const passwordHash = await this.cryptoService.createHash(password, 10);
+    const user = User.create(username, passwordHash, email);
 
     await this.userRepository.create(user);
 
-    await this.mailerService.sendEmail(
+    // sending an email
+    this.authService.sendEmail(
       user.getEmail(),
-      registrationEmailTemplate(
-        user.getConfirmationCode(),
-        this.coreConfig.baseUrl,
-      ),
+      registrationEmailTemplate,
       'Registration Confirmation',
+      user.getConfirmationCode(),
     );
 
     return Notification.success();

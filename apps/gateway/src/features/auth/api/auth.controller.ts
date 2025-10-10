@@ -21,7 +21,6 @@ import { RegistrationEmailResendingDto } from './dto/input/registration-email-re
 import { RegistrationUserCommand } from '../application/use-cases/registration.use-case';
 import { Response } from 'express';
 import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
-import { APIErrorResult } from '../../../core/swagger/api-error/error-response.dto';
 import {
   Notification,
   ResultStatus,
@@ -58,6 +57,17 @@ import { OAuthLoginGuard } from '../../../core/guards/oauth/oauth.guard';
 import { RefreshTokenCommand } from '../application/use-cases/refresh-token.use-case';
 import { User } from '../../user/domain/user.entity';
 import { UserQueryRepository } from '../../user/infrastructure/user.query-repository';
+import { RegistrationSwaggerDocs } from './swagger/registration.swagger';
+import { RegistrationConfirmationDocs } from './swagger/registration-confirmation.swagger';
+import { RegistrationEmailResendingDocs } from './swagger/registration-email-resending.swagger';
+import { LoginDocs } from './swagger/login.swagger';
+import { PasswordRecoveryDocs } from './swagger/password-recovery.swagger';
+import { PasswordRecoveryResendingDocs } from './swagger/password-recovery-resending.swagger';
+import { NewPasswordDocs } from './swagger/new-password.swagger';
+import { RefreshTokenDocs } from './swagger/refresh-token.swagger';
+import { LogoutDocs } from './swagger/logout.swagger';
+import { OauthProviderLoginDocs } from './swagger/oauth-provider-login.swagger';
+import { OauthProviderCallbackDocs } from './swagger/oauth-provider-callback.swagger';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -69,34 +79,7 @@ export class AuthController {
   ) {}
 
   @Post('registration')
-  @ApiOperation({
-    summary:
-      'Registration in the system. Email will be send to passed email address',
-  })
-  @ApiResponse({
-    status: 204,
-    description:
-      'Input data is accepted. Email with confirmation code will be send to passed email address',
-  })
-  @ApiResponse({
-    status: 400,
-    description:
-      'If the inputModel has incorrect values (in particular if the user with the given email or username already exists',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
+  @RegistrationSwaggerDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() registrationDto: RegistrationDto) {
     const { username, email, password } = registrationDto;
@@ -112,31 +95,7 @@ export class AuthController {
   }
 
   @Post('registration-confirmation')
-  @ApiOperation({ summary: 'Confirm registration' })
-  @ApiResponse({
-    status: 204,
-    description: 'Email was verified. Account was activated',
-  })
-  @ApiResponse({
-    status: 400,
-    description:
-      'If the confirmation code is incorrect, expired or already been applied',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
-  @Post('registration-confirmation')
+  @RegistrationConfirmationDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   async confirmRegistration(
     @Body() confirmRegistrationDto: ConfirmRegistrationDto,
@@ -154,32 +113,7 @@ export class AuthController {
   }
 
   @Post('registration-email-resending')
-  @ApiOperation({
-    summary: 'Resend confirmation registration email if user exists',
-  })
-  @ApiResponse({
-    status: 204,
-    description:
-      'Input data is accepted.Email with confirmation code will be send to passed email address.Confirmation code should be inside link as base-input-query-params param, for example: https://some-front.com/confirm-registration?code=youtcodehere',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect values',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
+  @RegistrationEmailResendingDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(
     @Body() registrationEmailResendingDto: RegistrationEmailResendingDto,
@@ -197,34 +131,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'Try login user to the system' })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'If the inputModel has incorrect values',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'If the password or login is wrong',
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
+  @LoginDocs()
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
   async login(
@@ -262,38 +169,7 @@ export class AuthController {
   }
 
   @Post('password-recovery')
-  @ApiOperation({
-    summary:
-      'Password recovery via Email confirmation. Email should be send with RecoveryCode inside',
-  })
-  @ApiResponse({
-    status: 204,
-    description:
-      'Email with confirmation code will be send to passed email address',
-  })
-  @ApiResponse({
-    status: 400,
-    description:
-      'If the inputModel has invalid email (for example 222^gmail.com)',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'If user with this email does not exist',
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
+  @PasswordRecoveryDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto) {
     if (
@@ -315,34 +191,7 @@ export class AuthController {
   }
 
   @Post('password-recovery-resending')
-  @ApiOperation({ summary: 'Resend password recovery link via email' })
-  @ApiResponse({
-    status: 204,
-    description: 'Email with a new recovery link has been sent',
-  })
-  @ApiResponse({
-    status: 400,
-    description:
-      'If the inputModel has invalid email (for example 222^gmail.com)',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'If user with this email does not exist',
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
+  @PasswordRecoveryResendingDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   async resendRecoveryLink(@Body() dto: PasswordRecoveryResendingDto) {
     const result: Notification = await this.commandBus.execute(
@@ -355,30 +204,7 @@ export class AuthController {
   }
 
   @Post('new-password')
-  @ApiOperation({ summary: 'Confirm password recovery' })
-  @ApiResponse({
-    status: 204,
-    description: 'If code is valid and new password is accepted',
-  })
-  @ApiResponse({
-    status: 400,
-    description:
-      'If the inputModel has incorrect value (for incorrect password length) or RecoveryCode is incorrect or expired',
-    type: APIErrorResult,
-    content: {
-      'application/json': {
-        example: {
-          statusCode: 400,
-          message: 'Validation failed',
-          errorsMessages: [],
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'More than 5 attempts from one IP-address during 10 seconds',
-  })
+  @NewPasswordDocs()
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() newPasswordDto: NewPasswordDto) {
     const result: Notification = await this.commandBus.execute<
@@ -393,14 +219,7 @@ export class AuthController {
 
   @SkipThrottle()
   @Post('refresh-token')
-  @ApiSecurity('refreshToken')
-  @ApiOperation({ summary: 'Generate new pair of access and refresh token' })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Returns JWT accessToken (expired after 60 seconds) in body and JWT refreshToken in cookie (http-only, secure) (expired 5 minutes).',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @RefreshTokenDocs()
   @UseGuards(RefreshTokenAuthGuard)
   @HttpCode(HttpStatus.OK)
   async refreshToken(
@@ -435,12 +254,7 @@ export class AuthController {
 
   @SkipThrottle()
   @Post('logout')
-  @ApiSecurity('refreshToken')
-  @ApiOperation({
-    summary:
-      'In cookie client must send correct refreshToken that will be revoked',
-  })
-  @ApiResponse({ status: 204, description: 'Logout successfully' })
+  @LogoutDocs()
   @UseGuards(RefreshTokenAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
@@ -487,34 +301,16 @@ export class AuthController {
     return user;
   }
 
+  @SkipThrottle()
   @Get('oauth/:provider/login')
-  @ApiOperation({ summary: 'Redirects user to OAuth authentication' })
-  @ApiResponse({
-    status: 200,
-    description: 'Redirects user to the OAuth login page',
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'Too many requests from the same IP in a short time',
-  })
+  @OauthProviderLoginDocs()
   @UseGuards(OAuthLoginGuard)
   @HttpCode(HttpStatus.OK)
   async oauthLogin() {}
 
+  @SkipThrottle()
   @Get('oauth/:provider/callback')
-  @ApiOperation({ summary: 'Handles OAuth callback and issues tokens' })
-  @ApiResponse({
-    status: 200,
-    description: 'Issues JWT accessToken and refreshToken in cookie',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized if authentication fails',
-  })
-  @ApiResponse({
-    status: 429,
-    description: 'Too many requests from the same IP in a short time',
-  })
+  @OauthProviderCallbackDocs()
   @Redirect('https://photer.ltd/oauth')
   @UseGuards(OAuthLoginGuard)
   @HttpCode(HttpStatus.OK)

@@ -7,11 +7,13 @@ import { PostsModule } from './features/content/post/posts.module';
 import { ProfileModule } from './features/profile/profile.module';
 import { DeviceModule } from './features/device/device.module';
 import { SubscriptionModule } from './features/subscription/subscription.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    ScheduleModule.forRoot(),
     AuthModule,
     ProfileModule,
     DeviceModule,

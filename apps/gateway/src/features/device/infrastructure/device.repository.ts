@@ -66,6 +66,32 @@ export class DeviceRepository {
     }
   }
 
+  async softDeleteExpiredDevices(): Promise<number> {
+    const result = await this.prisma.device.updateMany({
+      where: {
+        exp: { lt: new Date() },
+        isDeleted: false,
+      },
+      data: { isDeleted: true },
+    });
+
+    return result.count;
+  }
+
+  async hardDeleteOldDevices(): Promise<number> {
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+    const result = await this.prisma.device.deleteMany({
+      where: {
+        isDeleted: true,
+        exp: { lt: monthAgo },
+      },
+    });
+
+    return result.count;
+  }
+
   async deleteOneByDeviceIdAndUserId(
     deviceId: string,
     userId: number,

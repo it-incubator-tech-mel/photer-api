@@ -33,7 +33,7 @@ export class UserRepository implements IUserRepository {
 
   async findById(id: number): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
-      where: { id },
+      where: { id, isDeleted: false },
       include: { emailConfirmation: true },
     });
     return user ? this.mapToDomain(user) : null;
@@ -41,7 +41,7 @@ export class UserRepository implements IUserRepository {
 
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
-      where: { username },
+      where: { username, isDeleted: false },
       include: { emailConfirmation: true },
     });
 
@@ -50,7 +50,7 @@ export class UserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email, isDeleted: false },
       include: { emailConfirmation: true },
     });
     return user ? this.mapToDomain(user) : null;
@@ -114,6 +114,7 @@ export class UserRepository implements IUserRepository {
         emailConfirmation: {
           confirmationCode: confirmationCode,
         },
+        isDeleted: false,
       },
       include: {
         emailConfirmation: true,
@@ -155,6 +156,7 @@ export class UserRepository implements IUserRepository {
         passwordRecovery: {
           recoveryCode,
         },
+        isDeleted: false,
       },
       include: {
         passwordRecovery: true,
@@ -188,6 +190,15 @@ export class UserRepository implements IUserRepository {
       where: { id: userId },
       data: { accountType },
     });
+  }
+
+  async deleteByEmail(email: string): Promise<boolean> {
+    const result = await this.prisma.user.delete({
+      where: { email },
+      //data: { isDeleted: true, email: `${email}__deleted_${Date.now()}` },
+    });
+
+    return result.isDeleted === true;
   }
 
   private mapToDomain(prismaUser: any): User {

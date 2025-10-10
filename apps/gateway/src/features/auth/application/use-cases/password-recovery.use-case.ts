@@ -24,7 +24,8 @@ export class PasswordRecoveryUseCase
     const { email } = command;
 
     const user: User = await this.userRepository.findByEmail(email);
-    if (!user) return Notification.notFound('User not found');
+    if (!user)
+      return Notification.notFound("User with this email doesn't exist");
 
     user.requestPasswordRecovery();
 

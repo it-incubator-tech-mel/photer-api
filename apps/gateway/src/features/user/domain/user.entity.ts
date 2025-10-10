@@ -31,7 +31,7 @@ export class User {
       new Date(),
       false,
       randomUUID(),
-      add(new Date(), { hours: 1, minutes: 30 }),
+      add(new Date(), { hours: 1 }),
       false,
       null,
       null,
@@ -145,9 +145,9 @@ export class User {
     this.updatedAt = new Date();
   }
 
-  updateConfirmationCode(code: string, expiration: Date): void {
-    this.confirmationCode = code;
-    this.confirmationExpiration = expiration;
+  generateNewConfirmationCode(): void {
+    this.confirmationCode = randomUUID();
+    this.confirmationExpiration = add(new Date(), { hours: 1 });
     this.updatedAt = new Date();
   }
 
@@ -155,7 +155,7 @@ export class User {
 
   requestPasswordRecovery(): void {
     this.recoveryCode = randomUUID();
-    this.recoveryExpiration = add(new Date(), { hours: 1, minutes: 30 });
+    this.recoveryExpiration = add(new Date(), { hours: 1 });
     this.updatedAt = new Date();
   }
 
